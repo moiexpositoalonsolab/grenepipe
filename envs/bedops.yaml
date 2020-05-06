@@ -1,0 +1,6 @@
+# Used by rule compose_regions
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::bedops =2.4

@@ -1,0 +1,27 @@
+$schema: "http://json-schema.org/draft-04/schema#"
+
+description: an entry in the sample sheet, representing a sequencing unit, i.e. single-end or paired-end data
+type: object
+
+properties:
+  sample:
+    type: string
+    description: sample name/identifier
+  unit:
+    type: string
+    description: unit id
+  platform:
+    type: string
+    enum: ["CAPILLARY", "LS454", "ILLUMINA", "SOLID", "HELICOS", "IONTORRENT", "ONT", "PACBIO"]
+  fq1:
+    type: string
+    description: path to FASTQ file
+  fq2:
+    type: string
+    description: path to second FASTQ file (leave empty in case of single-end)
+
+required:
+  - sample
+  - unit
+  - platform
+  - fq1

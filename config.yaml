@@ -1,0 +1,78 @@
+# =================================================================================================
+#     Input Data
+# =================================================================================================
+
+data:
+  samples: samples.tsv
+
+  reference:
+    name: "reference genome"
+
+    # Path to the reference genome, using the file ideally as it is provided by the GATK bundle.
+    genome: "data/genome.fa"
+
+    # Path to any database of known variants, ideally as it is provided by the GATK bundle.
+    # If no such file is available, use an empty list or string instead.
+    known-variants: ""
+
+    # Used by rule recalibrate_base_qualities
+    # Uncomment and point to a bed file with, e.g., captured regions if necessary,
+    # see https://gatkforums.broadinstitute.org/gatk/discussion/4133/when-should-i-use-l-to-pass-in-a-list-of-intervals.
+    # restrict-regions: captured_regions.bed
+
+# =================================================================================================
+#     Pipeline Settings
+# =================================================================================================
+
+settings:
+  remove-duplicates: true
+
+  recalibrate-base-qualities: false
+
+  # Valid values: "haplotypecaller", "freebayes", "bcftools"
+  snp-calling-tool: "haplotypecaller"
+
+  # TODO
+  # If regions are restricted, uncomment this to enlarge them by the given value in order to include
+  # flanking areas.
+  # region-padding: 100
+
+# =================================================================================================
+#     Tool Parameters
+# =================================================================================================
+
+params:
+
+  # ----------------------------------------------------------------------
+  #     Mapping  (mapping.smk)
+  # ----------------------------------------------------------------------
+
+  trimmomatic:
+    pe:
+      trimmer:
+        # See trimmomatic manual for adding additional options, e.g. for adapter trimming.
+        - "LEADING:3"
+        - "TRAILING:3"
+        - "SLIDINGWINDOW:4:15"
+        - "MINLEN:36"
+    se:
+      trimmer:
+        # See trimmomatic manual for adding additional options, e.g. for adapter trimming.
+        - "LEADING:3"
+        - "TRAILING:3"
+        - "SLIDINGWINDOW:4:15"
+        - "MINLEN:36"
+
+  picard:
+
+    MarkDuplicates: "REMOVE_DUPLICATES=true"
+
+  # ----------------------------------------------------------------------
+  #     Variant Calling  (calling.smk)
+  # ----------------------------------------------------------------------
+
+  gatk:
+    HaplotypeCaller: ""
+    BaseRecalibrator: ""
+    GenotypeGVCFs: ""
+    VariantRecalibrator: ""
