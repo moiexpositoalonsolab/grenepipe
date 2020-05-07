@@ -6,8 +6,8 @@ include: "rules/common.smk"
 
 rule all:
     input:
-        "genotyped/all.vcf.gz",
-        "qc/multiqc.html"
+        config["rundir"] + "genotyped/all.vcf.gz",
+        config["rundir"] + "qc/multiqc.html"
 
 # =================================================================================================
 #     Rule Modules

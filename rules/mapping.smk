@@ -6,12 +6,12 @@ rule trim_reads_se:
     input:
         unpack(get_fastq)
     output:
-        temp("trimmed/{sample}-{unit}.fastq.gz")
+        temp(config["rundir"] + "trimmed/{sample}-{unit}.fastq.gz")
     params:
         extra="",
         **config["params"]["trimmomatic"]["se"]
     log:
-        "logs/trimmomatic/{sample}-{unit}.log"
+        config["rundir"] + "logs/trimmomatic/{sample}-{unit}.log"
     wrapper:
         "0.51.3/bio/trimmomatic/se"
 
@@ -19,16 +19,16 @@ rule trim_reads_pe:
     input:
         unpack(get_fastq)
     output:
-        r1=temp("trimmed/{sample}-{unit}.1.fastq.gz"),
-        r2=temp("trimmed/{sample}-{unit}.2.fastq.gz"),
-        r1_unpaired=temp("trimmed/{sample}-{unit}.1.unpaired.fastq.gz"),
-        r2_unpaired=temp("trimmed/{sample}-{unit}.2.unpaired.fastq.gz"),
-        trimlog="trimmed/{sample}-{unit}.trimlog.txt"
+        r1=temp(config["rundir"] + "trimmed/{sample}-{unit}.1.fastq.gz"),
+        r2=temp(config["rundir"] + "trimmed/{sample}-{unit}.2.fastq.gz"),
+        r1_unpaired=temp(config["rundir"] + "trimmed/{sample}-{unit}.1.unpaired.fastq.gz"),
+        r2_unpaired=temp(config["rundir"] + "trimmed/{sample}-{unit}.2.unpaired.fastq.gz"),
+        trimlog=config["rundir"] + "trimmed/{sample}-{unit}.trimlog.txt"
     params:
         extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         **config["params"]["trimmomatic"]["pe"]
     log:
-        "logs/trimmomatic/{sample}-{unit}.log"
+        config["rundir"] + "logs/trimmomatic/{sample}-{unit}.log"
     wrapper:
         "0.51.3/bio/trimmomatic/pe"
 
@@ -44,18 +44,18 @@ def get_trimmed_reads(wildcards):
     """Get trimmed reads of given sample-unit."""
     if is_single_end(**wildcards):
         # single end sample
-        return "trimmed/{sample}-{unit}.fastq.gz".format(**wildcards)
+        return config["rundir"] + "trimmed/{sample}-{unit}.fastq.gz".format(**wildcards)
     else:
         # paired-end sample
-        return expand("trimmed/{sample}-{unit}.{group}.fastq.gz", group=[1, 2], **wildcards)
+        return expand(config["rundir"] + "trimmed/{sample}-{unit}.{group}.fastq.gz", group=[1, 2], **wildcards)
 
 rule map_reads:
     input:
         reads=get_trimmed_reads
     output:
-        temp("mapped/{sample}-{unit}.sorted.bam")
+        config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
     log:
-        "logs/bwa_mem/{sample}-{unit}.log"
+        config["rundir"] + "logs/bwa_mem/{sample}-{unit}.log"
     params:
         index=config["data"]["reference"]["genome"],
         extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
@@ -74,12 +74,12 @@ rule map_reads:
 
 rule mark_duplicates:
     input:
-        "mapped/{sample}-{unit}.sorted.bam"
+        config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
     output:
-        bam=temp("dedup/{sample}-{unit}.bam"),
-        metrics="qc/dedup/{sample}-{unit}.metrics.txt"
+        bam=config["rundir"] + "dedup/{sample}-{unit}.bam",
+        metrics=config["rundir"] + "qc/dedup/{sample}-{unit}.metrics.txt"
     log:
-        "logs/picard/dedup/{sample}-{unit}.log"
+        config["rundir"] + "logs/picard/dedup/{sample}-{unit}.log"
     params:
         config["params"]["picard"]["MarkDuplicates"]
     wrapper:
@@ -91,11 +91,11 @@ rule mark_duplicates:
 
 def get_recal_input(bai=False):
     # case 1: no duplicate removal
-    f = "mapped/{sample}-{unit}.sorted.bam"
+    f = config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
 
     if config["settings"]["remove-duplicates"]:
         # case 2: remove duplicates
-        f = "dedup/{sample}-{unit}.bam"
+        f = config["rundir"] + "dedup/{sample}-{unit}.bam"
 
     if bai:
         if config["settings"].get("restrict-regions"):
@@ -115,11 +115,11 @@ rule recalibrate_base_qualities:
         ref=config["data"]["reference"]["genome"],
         known=config["data"]["reference"].get("known-variants") # empty if key not present
     output:
-        bam=protected("recal/{sample}-{unit}.bam")
+        bam=protected(config["rundir"] + "recal/{sample}-{unit}.bam")
     params:
         extra=get_regions_param() + config["params"]["gatk"]["BaseRecalibrator"]
     log:
-        "logs/gatk/bqsr/{sample}-{unit}.log"
+        config["rundir"] + "logs/gatk/bqsr/{sample}-{unit}.log"
     wrapper:
         "0.51.3/bio/gatk/baserecalibrator"
 
@@ -127,7 +127,7 @@ rule recalibrate_base_qualities:
 #     Indexing
 # =================================================================================================
 
-rule samtools_index:
+rule bam_index:
     input:
         "{prefix}.bam"
     output:
@@ -142,16 +142,20 @@ rule samtools_index:
 # At this point, we have several choices of which files we want to hand down to the next
 # pipleine step. We offer a function so that downstream does not have to deal with this.
 
-def get_mapping_result():
+def get_mapping_result(bai=False):
     # case 1: no duplicate removal
-    f = "mapped/{sample}-{unit}.sorted.bam"
+    f = config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
 
     # case 2: remove duplicates
     if config["settings"]["remove-duplicates"]:
-        f = "dedup/{sample}-{unit}.bam"
+        f = config["rundir"] + "dedup/{sample}-{unit}.bam"
 
     # case 3: recalibrate base qualities
     if config["settings"]["recalibrate-base-qualities"]:
-        f = "recal/{sample}-{unit}.bam"
+        f = config["rundir"] + "recal/{sample}-{unit}.bam"
+
+    # Additionally, this function is run for getting bai files as well
+    if bai:
+        f += ".bai"
 
     return f

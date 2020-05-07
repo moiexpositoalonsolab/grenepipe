@@ -22,6 +22,7 @@ if not config["data"]["reference"]["known-variants"]:
     variants=[]
 else:
     variants=config["data"]["reference"]["known-variants"] + ".gz"
+genomedir=os.path.dirname(config["data"]["reference"]["genome"])
 
 # =================================================================================================
 #     Main Rule
@@ -35,7 +36,6 @@ rule preparation:
         pac=genome + ".pac",
         sa=genome + ".sa",
         fai=genome + ".fai",
-        # fadict=genome + ".dict",
         dict=os.path.splitext(genome)[0] + ".dict",
         vcf=variants
 
@@ -43,10 +43,10 @@ rule preparation:
 #     Rules for preparing input files
 # =================================================================================================
 
+# Write indices for a given fasta reference genome file
 rule bwa_index:
     input:
         "{genome}"
-        # genome=config["data"]["reference"]["genome"]
     output:
         "{genome}.amb",
         "{genome}.ann",
@@ -54,37 +54,47 @@ rule bwa_index:
         "{genome}.pac",
         "{genome}.sa"
     log:
-        "logs/bwa_index/{genome}.log"
+        genomedir + "logs/{genome}.bwa_index.log"
     params:
         prefix="{genome}",
         algorithm="bwtsw"
     wrapper:
         "0.51.3/bio/bwa/index"
 
+# Write more indices for the fasta reference genome file
 rule samtools_faidx:
     input:
         "{genome}"
     output:
         "{genome}.fai"
+    log:
+        genomedir + "logs/{genome}.samtools_faidx.log"
     params:
         "" # optional params string
     wrapper:
         "0.51.3/bio/samtools/faidx"
 
+# Write a dictionary file for the genome.
+# This file is expected to replace the file extension, instead of adding to it
 rule sequence_dictionary:
     input:
         "{genome}" + os.path.splitext(genome)[1]
     output:
         "{genome}.dict"
+    log:
+        genomedir + "logs/{genome}.sequence_dictionary.log"
     conda:
         "../envs/prep.yaml"
     shell:
         "gatk CreateSequenceDictionary -R {input} -O {output}"
 
+# Compress a vcf file using gzip
 rule compress_vcf:
     input:
         "{prefix}.vcf"
     output:
         "{prefix}.vcf.gz"
+    log:
+        genomedir + "logs/{prefix}.compress_vcf.log"
     wrapper:
         "0.27.1/bio/vcf/compress"

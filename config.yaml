@@ -2,6 +2,7 @@
 #     Input Data
 # =================================================================================================
 
+# Set the input data, using file paths relative to the main snakemake directory
 data:
   samples: samples.tsv
 
