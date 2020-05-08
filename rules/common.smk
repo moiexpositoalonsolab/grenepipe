@@ -32,9 +32,7 @@ else:
     configfile: "config.yaml"
 if config["rundir"] and not config["rundir"].endswith("/"):
     config["rundir"] += "/"
-
-# TODO
-# snakemake.utils.validate(config, schema="../schemas/config.schema.yaml")
+snakemake.utils.validate(config, schema="../schemas/config.schema.yaml")
 
 # TODO
 # report: "../report/workflow.rst"

@@ -1,0 +1,102 @@
+$schema: "http://json-schema.org/draft-04/schema#"
+
+description: snakemake configuration file for the grenepipe workflow
+
+type: object
+
+properties:
+  data:
+    type: object
+    properties:
+      samples:
+        type: string
+      reference:
+        type: object
+        properties:
+          name:
+            type: string
+          genome:
+            type: string
+          known-variants:
+            type: string
+          restrict-regions:
+            type: string
+        required:
+          - genome
+    required:
+      - samples
+      - reference
+
+  settings:
+    type: object
+    properties:
+      remove-duplicates:
+        type: boolean
+      recalibrate-base-qualities:
+        type: boolean
+      snp-calling-tool:
+        type: string
+        enum: ["haplotypecaller", "freebayes", "bcftools"]
+      region-padding:
+        type: integer
+      vqsr:
+        type: boolean
+    required:
+      - remove-duplicates
+      - recalibrate-base-qualities
+      - snp-calling-tool
+      - vqsr
+
+  params:
+    type: object
+    properties:
+      trimmomatic:
+        type: object
+        properties:
+          pe:
+            type: object
+          se:
+            type: object
+      picard:
+        type: object
+        properties:
+          MarkDuplicates:
+            type: string
+        required:
+          - MarkDuplicates
+      gatk:
+        type: object
+        properties:
+          HaplotypeCaller:
+            type: string
+          BaseRecalibrator:
+            type: string
+          GenotypeGVCFs:
+            type: string
+          VariantRecalibrator:
+            type: string
+        required:
+          - HaplotypeCaller
+          - BaseRecalibrator
+          - GenotypeGVCFs
+          - VariantRecalibrator
+      variantfiltration-hard:
+        type: object
+        properties:
+          snvs:
+            type: string
+          indels:
+            type: string
+        required:
+          - snvs
+          - indels
+    required:
+      - trimmomatic
+      - picard
+      - gatk
+      - variantfiltration-hard
+
+required:
+  - data
+  - settings
+  - params
