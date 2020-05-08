@@ -26,17 +26,24 @@ data:
 # =================================================================================================
 
 settings:
+
+  # Select whether to mark and remove duplicates after mapping, using picard/markduplicates
   remove-duplicates: true
 
+  # Select whether to recalibrate base frequencies after mapping, using gatk/baserecalibrator
   recalibrate-base-qualities: false
 
+  # Select the tool used for SNP calling.
   # Valid values: "haplotypecaller", "freebayes", "bcftools"
   snp-calling-tool: "haplotypecaller"
 
-  # TODO
-  # If regions are restricted, uncomment this to enlarge them by the given value in order to include
-  # flanking areas.
+  # If regions are restricted, uncomment this to enlarge them by the given value
+  # in order to include flanking areas.
   # region-padding: 100
+
+  # Set to true in order to apply machine learning based recalibration
+  # of quality scores instead of hard filtering.
+  vqsr: false
 
 # =================================================================================================
 #     Tool Parameters
@@ -45,7 +52,7 @@ settings:
 params:
 
   # ----------------------------------------------------------------------
-  #     Mapping  (mapping.smk)
+  #     trimmomatic
   # ----------------------------------------------------------------------
 
   trimmomatic:
@@ -64,12 +71,15 @@ params:
         - "SLIDINGWINDOW:4:15"
         - "MINLEN:36"
 
-  picard:
+  # ----------------------------------------------------------------------
+  #     picard
+  # ----------------------------------------------------------------------
 
+  picard:
     MarkDuplicates: "REMOVE_DUPLICATES=true"
 
   # ----------------------------------------------------------------------
-  #     Variant Calling  (calling.smk)
+  #     gatk
   # ----------------------------------------------------------------------
 
   gatk:
@@ -77,3 +87,15 @@ params:
     BaseRecalibrator: ""
     GenotypeGVCFs: ""
     VariantRecalibrator: ""
+
+  # ----------------------------------------------------------------------
+  #     gatk / variantfiltration
+  # ----------------------------------------------------------------------
+
+  variantfiltration-hard:
+    # Hard filtering as outlined in GATK docs
+    # (https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set)
+    snvs:
+      "QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0"
+    indels:
+      "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0"
