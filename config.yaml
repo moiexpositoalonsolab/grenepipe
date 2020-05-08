@@ -4,9 +4,13 @@
 
 # Set the input data, using file paths relative to the main snakemake directory
 data:
+
+  # Input table that lists all samples with their units and fastq files.
   samples: samples.tsv
 
   reference:
+
+    # Name of the reference genome, used in the final report.
     name: "reference genome"
 
     # Path to the reference genome, using the file ideally as it is provided by the GATK bundle.

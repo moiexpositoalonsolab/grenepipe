@@ -31,9 +31,8 @@ rule multiqc:
     input:
         expand(config["rundir"] + "qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
         expand(config["rundir"] + "qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
-        expand(config["rundir"] + "qc/dedup/{u.sample}-{u.unit}.metrics.txt", u=samples.itertuples())
-
-        # "snpeff/all.csv" TODO
+        expand(config["rundir"] + "qc/dedup/{u.sample}-{u.unit}.metrics.txt", u=samples.itertuples()),
+        config["rundir"] + "snpeff/all.csv"
     output:
         report(config["rundir"] + "qc/multiqc.html", caption="../report/multiqc.rst", category="Quality control")
     log:

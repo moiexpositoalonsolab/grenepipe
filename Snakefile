@@ -1,16 +1,20 @@
 include: "rules/common.smk"
 
 # =================================================================================================
-#     All Target Rule
+#     Default "All" Target Rule
 # =================================================================================================
 
-# The rule that is executed by default. We include the result files of different steps here as well,
-# for example, the genotyped vcf file from the "calling.smk" step, so that it shows up in the DAG.
+# The rule that is executed by default. We include the result files of different intermediate steps
+# here as well, for example, the genotyped vcf file from the "calling.smk" step, so that a nice
+# arrow shows up in the DAG that reminds us that this is an important intermediate file.
 rule all:
     input:
         config["rundir"] + "genotyped/all.vcf.gz",
         config["rundir"] + "filtered/all.vcf.gz",
-        config["rundir"] + "qc/multiqc.html"
+        config["rundir"] + "annotated/all.vcf.gz",
+        config["rundir"] + "qc/multiqc.html",
+        config["rundir"] + "plots/depths.svg",
+        config["rundir"] + "plots/allele-freqs.svg"
 
 # =================================================================================================
 #     Rule Modules
@@ -23,6 +27,6 @@ rule all:
 include: "rules/mapping.smk"
 include: "rules/calling.smk"
 include: "rules/filtering.smk"
-# include: "rules/stats.smk"
+include: "rules/annotation.smk"
 include: "rules/qc.smk"
-# include: "rules/annotation.smk"
+include: "rules/stats.smk"

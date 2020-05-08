@@ -1,0 +1,7 @@
+# Used by rule vcf_to_tsv in stats.smk
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - rust-bio-tools =0.6.0
+  - bcftools =1.9

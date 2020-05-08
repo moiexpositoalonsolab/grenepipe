@@ -1,6 +1,8 @@
 # Used for the preparation step, that in the demo pipeline is done outside of Snakemake. See
 # https://github.com/snakemake-workflows/dna-seq-gatk-variant-calling/blob/master/.github/workflows/main.yml
-# We incorporate the necessary steps directly into our pipeline, for full comfort, see rules/prep.smk
+# for the steps that they run beforhand. This produces index files that we need so that our
+# rule DAG can be built. We hence incorporate the necessary steps directly into our pipeline,
+# for full comfort, see rules/prep.smk
 
 channels:
   - conda-forge

@@ -1,4 +1,4 @@
-# Used by rule compose_regions
+# Used by rule compose_regions in calling.smk
 channels:
   - conda-forge
   - bioconda
