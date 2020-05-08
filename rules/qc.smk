@@ -34,7 +34,7 @@ rule multiqc:
         expand(config["rundir"] + "qc/dedup/{u.sample}-{u.unit}.metrics.txt", u=samples.itertuples()),
         config["rundir"] + "snpeff/all.csv"
     output:
-        report(config["rundir"] + "qc/multiqc.html", caption="../report/multiqc.rst", category="Quality control")
+        report(config["rundir"] + "qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
     log:
         config["rundir"] + "logs/multiqc.log"
     wrapper:

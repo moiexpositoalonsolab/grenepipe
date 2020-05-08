@@ -99,6 +99,7 @@ params:
   variantfiltration-hard:
     # Hard filtering as outlined in GATK docs
     # (https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set)
+    # These are only used if the above "settings: vqsr" is set to false
     snvs:
       "QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0"
     indels:

@@ -12,6 +12,9 @@ snakemake.utils.min_version("4.3.1")
 #     Basic Configuration
 # =================================================================================================
 
+# Add a description of the workflow to the final report
+report: "../reports/workflow.rst"
+
 # We check if snakemake was called with what we call the run directory ("rundir"),
 # e.g., `snakemake --config rundir="my-run"`, which is the target directory to write all files to.
 # If not, we simply write files to the current directory. We explicitly use the run dir instead
@@ -33,9 +36,6 @@ else:
 if config["rundir"] and not config["rundir"].endswith("/"):
     config["rundir"] += "/"
 snakemake.utils.validate(config, schema="../schemas/config.schema.yaml")
-
-# TODO
-# report: "../report/workflow.rst"
 
 # Some settings in the config file need to be converted from empty string to empty list, it seems,
 # so that rules that use the files specified in these settings are working properly.
