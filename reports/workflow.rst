@@ -1,5 +1,5 @@
 Variants where called *roughly* following the `GATK best practices workflow`_:
-Reads were mapped onto {{ snakemake.config["data"]["reference"]["name"] }} with `BWA mem`_.
+Reads were mapped onto the {{ snakemake.config["data"]["reference"]["name"] }} reference genome with `BWA mem`_.
 {% if snakemake.config["settings"]["remove-duplicates"] %}
 Both optical and PCR duplicates were removed with Picard_.
 {% endif %}
