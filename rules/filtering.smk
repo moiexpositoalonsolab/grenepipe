@@ -8,7 +8,11 @@ def get_vartype_arg(wildcards):
 rule select_calls:
     input:
         ref=config["data"]["reference"]["genome"],
-        vcf=config["rundir"] + "genotyped/all.vcf.gz"
+        vcf=config["rundir"] + "genotyped/all.vcf.gz",
+
+        # bcftools does not automatically create vcf index files, so we need to specifically request them...
+        # ... but the picard merge tool that we use right now does create tbi files, so all good atm.
+        # tbi=config["rundir"] + "genotyped/all.vcf.gz.tbi" if config["settings"]["calling-tool"] == "bcftools" else []
     output:
         vcf=temp(config["rundir"] + "filtered/all.select-{vartype}.vcf.gz")
     params:

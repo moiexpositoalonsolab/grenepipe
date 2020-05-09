@@ -32,7 +32,7 @@ properties:
         type: boolean
       recalibrate-base-qualities:
         type: boolean
-      snp-calling-tool:
+      calling-tool:
         type: string
         enum: ["haplotypecaller", "freebayes", "bcftools"]
       restrict-regions:
@@ -44,7 +44,7 @@ properties:
     required:
       - remove-duplicates
       - recalibrate-base-qualities
-      - snp-calling-tool
+      - calling-tool
       - vqsr
 
   params:
@@ -64,6 +64,15 @@ properties:
             type: string
         required:
           - MarkDuplicates
+      bcftools:
+        type: object
+        properties:
+          mpileup:
+            type: string
+          call:
+            type: string
+          # concat:
+          #   type: string
       gatk:
         type: object
         properties:

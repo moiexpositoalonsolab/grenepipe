@@ -6,14 +6,14 @@ Both optical and PCR duplicates were removed with Picard_.
 {% if snakemake.config["settings"]["recalibrate-base-qualities"] %}
 This was followed by recalibration of base qualities with GATK_.
 {% endif %}
-{% if snakemake.config["settings"]["snp-calling-tool"] == "haplotypecaller" %}
+{% if snakemake.config["settings"]["calling-tool"] == "haplotypecaller" %}
 The GATK_ HaplotypeCaller was used to call variants per sample, including summarized evidence for non-variant sites (GVCF_ approach).
-{% elif snakemake.config["settings"]["snp-calling-tool"] == "freebayes" %}
+Then, GATK_ genotyping was done in a joint way over GVCF_ files of all samples.
+{% elif snakemake.config["settings"]["calling-tool"] == "freebayes" %}
 Next, Freebayes_ was used to call variants per sample.
-{% elif snakemake.config["settings"]["snp-calling-tool"] == "bcftools" %}
+{% elif snakemake.config["settings"]["calling-tool"] == "bcftools" %}
 Next, bcftools_ was used to call variants per sample.
 {% endif %}
-Then, GATK_ genotyping was done in a joint way over GVCF_ files of all samples.
 {% if snakemake.config["settings"]["vqsr"] %}
 Genotyped variants were filtered with the GATK_ VariantRecalibrator approach.
 {% else %}

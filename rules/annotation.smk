@@ -5,7 +5,7 @@
 # We store the snpeff database in the directory where the reference genome is.
 # This way, we do not have to download it again and again for different runs.
 def get_snpeff_db_path():
-    return os.path.dirname( config["data"]["reference"]["genome"] ) + "/snpeff-db/"
+    return os.path.join(os.path.dirname( config["data"]["reference"]["genome"] ), "snpeff-db" ) + "/"
 
 # We separate download from usage, so that we can better see progress and errors.
 rule snpeff_db:
