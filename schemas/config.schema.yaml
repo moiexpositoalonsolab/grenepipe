@@ -19,8 +19,6 @@ properties:
             type: string
           known-variants:
             type: string
-          restrict-regions:
-            type: string
         required:
           - genome
     required:
@@ -37,6 +35,8 @@ properties:
       snp-calling-tool:
         type: string
         enum: ["haplotypecaller", "freebayes", "bcftools"]
+      restrict-regions:
+        type: string
       region-padding:
         type: integer
       vqsr:
@@ -76,10 +76,7 @@ properties:
           VariantRecalibrator:
             type: string
         required:
-          - HaplotypeCaller
-          - BaseRecalibrator
           - GenotypeGVCFs
-          - VariantRecalibrator
       variantfiltration-hard:
         type: object
         properties:

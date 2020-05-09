@@ -2,10 +2,10 @@
 #     Restrict Regions
 # =================================================================================================
 
-if "restrict-regions" in config["data"]:
+if "restrict-regions" in config["settings"]:
     rule compose_regions:
         input:
-            config["data"]["reference"].get("restrict-regions")
+            config["settings"].get("restrict-regions")
         output:
             config["rundir"] + "called/{contig}.regions.bed"
         conda:
@@ -30,13 +30,17 @@ def get_sample_bams(wildcards):
 def get_sample_bais(wildcards):
     return expand(get_mapping_result(True), sample=wildcards.sample, unit=samples.loc[wildcards.sample].unit)
 
+def get_gatk_call_variants_params(wildcards, input):
+    return (get_gatk_regions_param(regions=input.regions, default="--intervals '{}'".format(wildcards.contig)) +
+    config["params"]["gatk"]["HaplotypeCaller"])
+
 rule call_variants:
     input:
         bam=get_sample_bams,
         bai=get_sample_bais,
         ref=config["data"]["reference"]["genome"],
         known=config["data"]["reference"].get("known-variants"), # empty if key not present
-        regions=config["rundir"] + "called/{contig}.regions.bed" if config["data"]["reference"].get("restrict-regions") else []
+        regions=config["rundir"] + "called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
     output:
         gvcf=protected(config["rundir"] + "called/{sample}.{contig}.g.vcf.gz")
     log:
@@ -44,7 +48,8 @@ rule call_variants:
     params:
         # The function here is where the contig variable is propagated to haplotypecaller.
         # Took me a while to figure this one out...
-        extra=get_call_variants_params
+        # Contigs are used as long as no restrict-regions are given in the config file.
+        extra=get_gatk_call_variants_params
     wrapper:
         "0.51.3/bio/gatk/haplotypecaller"
 

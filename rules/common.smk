@@ -26,8 +26,9 @@ report: "../reports/workflow.rst"
 # instead of the config.yaml in the main snakemake directory.
 # This is useful to have runs that have different settings, but generally re-use the main setup.
 if "rundir" in config.keys():
-    if os.path.isfile(config["rundir"] + "config.yaml"):
-        configfile: config["rundir"] + "config.yaml"
+    cfg=os.path.join(config["rundir"], "config.yaml")
+    if os.path.isfile(cfg):
+        configfile: cfg
     else:
         configfile: "config.yaml"
 else:
@@ -42,8 +43,8 @@ snakemake.utils.validate(config, schema="../schemas/config.schema.yaml")
 # Maybe there is some better way, but for now, this is working.
 if "known-variants" not in config["data"]["reference"] or not config["data"]["reference"]["known-variants"]:
     config["data"]["reference"]["known-variants"]=[]
-if "restrict-regions" not in config["data"]["reference"] or not config["data"]["reference"]["restrict-regions"]:
-    config["data"]["reference"]["restrict-regions"]=[]
+if "restrict-regions" not in config["settings"] or not config["settings"]["restrict-regions"]:
+    config["settings"]["restrict-regions"]=[]
 
 # =================================================================================================
 #     Read Samples File
@@ -74,7 +75,11 @@ logger.info("    GRENEPIPE")
 logger.info("")
 logger.info("    Current directory:  " + os.getcwd())
 logger.info("    Run directory:      " + (config["rundir"][:-1] if config["rundir"] else os.getcwd()))
-logger.info("    Samples:            " + str(len(sample_names)) + ", with " + str(len(samples.index.get_level_values("unit"))) + " total units")
+unitcnt=len(samples.index.get_level_values("unit"))
+if unitcnt == len(sample_names):
+    logger.info("    Samples:            " + str(len(sample_names)))
+else:
+    logger.info("    Samples:            " + str(len(sample_names)) + ", with " + str(unitcnt) + " total units")
 logger.info("===========================================================================")
 logger.info("")
 
@@ -89,20 +94,3 @@ def get_fastq(wildcards):
         return {"r1": fastqs.fq1, "r2": fastqs.fq2}
     else:
         return {"r1": fastqs.fq1}
-
-# =================================================================================================
-#     Common Param Functions
-# =================================================================================================
-
-def get_regions_param(regions=config["data"]["reference"].get("restrict-regions"), default=""):
-    if regions:
-        params = "--intervals '{}' ".format(regions)
-        padding = config["settings"].get("region-padding")
-        if padding:
-            params += "--interval-padding {}".format(padding)
-        return params
-    return default
-
-def get_call_variants_params(wildcards, input):
-    return (get_regions_param(regions=input.regions, default="--intervals {}".format(wildcards.contig)) +
-            config["params"]["gatk"]["HaplotypeCaller"])

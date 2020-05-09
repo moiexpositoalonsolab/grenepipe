@@ -108,6 +108,15 @@ def get_recal_input(bai=False):
     else:
         return f
 
+def get_gatk_regions_param(regions=config["settings"].get("restrict-regions"), default=""):
+    if regions:
+        params = "--intervals '{}' ".format(regions)
+        padding = config["settings"].get("region-padding")
+        if padding:
+            params += "--interval-padding {}".format(padding)
+        return params
+    return default
+
 rule recalibrate_base_qualities:
     input:
         bam=get_recal_input(),
@@ -117,7 +126,7 @@ rule recalibrate_base_qualities:
     output:
         bam=protected(config["rundir"] + "recal/{sample}-{unit}.bam")
     params:
-        extra=get_regions_param() + config["params"]["gatk"]["BaseRecalibrator"]
+        extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"]
     log:
         config["rundir"] + "logs/gatk/bqsr/{sample}-{unit}.log"
     wrapper:
