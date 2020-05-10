@@ -16,6 +16,10 @@ rule vcf_to_tsv:
         "rbt vcf-to-txt -g --fmt DP AD --info ANN | "
         "gzip > {output}"
 
+# TODO this rule fails for freebayes for some weird reason, see
+# https://github.com/rust-bio/rust-bio-tools/issues/52#issuecomment-626289782
+# fix it, once that github issue has an answer
+
 # =================================================================================================
 #     Depth Stats Plot
 # =================================================================================================
