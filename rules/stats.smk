@@ -26,6 +26,8 @@ rule plot_stats:
     output:
         depths=report(config["rundir"] + "plots/depths.svg", caption="../reports/depths.rst", category="Plots"),
         freqs=report(config["rundir"] + "plots/allele-freqs.svg", caption="../reports/freqs.rst", category="Plots")
+    log:
+        config["rundir"] + "logs/plot-depths.log"
     conda:
         "../envs/stats.yaml"
     script:

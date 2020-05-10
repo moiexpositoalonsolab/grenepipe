@@ -22,7 +22,7 @@ if not config["data"]["reference"]["known-variants"]:
     variants=[]
 else:
     variants=config["data"]["reference"]["known-variants"] + ".gz"
-genomedir=os.path.dirname(config["data"]["reference"]["genome"])
+genomedir=os.path.dirname(config["data"]["reference"]["genome"]) + "/"
 
 # =================================================================================================
 #     Main Rule

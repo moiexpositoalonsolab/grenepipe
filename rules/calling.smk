@@ -10,6 +10,8 @@ if "restrict-regions" in config["settings"]:
             config["settings"].get("restrict-regions")
         output:
             config["rundir"] + "called/{contig}.regions.bed"
+        log:
+            config["rundir"] + "logs/bedextract/{contig}.regions.log"
         conda:
             "../envs/bedops.yaml"
         shell:

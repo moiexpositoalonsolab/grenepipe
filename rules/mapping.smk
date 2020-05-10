@@ -146,6 +146,8 @@ rule bam_index:
         "{prefix}.bam"
     output:
         "{prefix}.bam.bai"
+    log:
+        config["rundir"] + "logs/samtools/index-{prefix}.log"
     wrapper:
         "0.51.3/bio/samtools/index"
 

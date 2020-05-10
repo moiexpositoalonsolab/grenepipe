@@ -6,7 +6,7 @@ import pandas as pd
 import os
 
 # Ensure min Snakemake version
-snakemake.utils.min_version("4.3.1")
+snakemake.utils.min_version("5.0")
 
 # =================================================================================================
 #     Basic Configuration

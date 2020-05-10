@@ -46,7 +46,7 @@ rule call_variants:
     input:
         ref=config["data"]["reference"]["genome"],
 
-        # Get the bam files for the given sample only.
+        # Get the bam and bai files for the given sample only.
         samples=get_all_bams(),
         indices=get_all_bais(),
 
@@ -99,6 +99,8 @@ rule call_variants:
 rule merge_variants:
     input:
         ref=get_fai(), # fai is needed to calculate aggregation over contigs below
+
+        # The wrapper expects input to be called `vcfs`, but we can use `vcf.gz` as well.
         vcfs=lambda w: expand(config["rundir"] + "called/{contig}.vcf.gz", contig=get_contigs())
     output:
         vcf=config["rundir"] + "genotyped/all.vcf.gz"
