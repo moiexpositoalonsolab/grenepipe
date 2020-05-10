@@ -73,6 +73,13 @@ properties:
             type: string
           # concat:
           #   type: string
+      freebayes:
+        type: object
+        properties:
+          extra:
+            type: string
+          chunksize:
+            type: integer
       gatk:
         type: object
         properties:
