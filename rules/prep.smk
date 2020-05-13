@@ -86,7 +86,7 @@ rule sequence_dictionary:
     conda:
         "../envs/prep.yaml"
     shell:
-        "gatk CreateSequenceDictionary -R {input} -O {output}"
+        "gatk CreateSequenceDictionary -R {input} -O {output} > {log} 2>&1"
 
 # Compress a vcf file using gzip
 rule compress_vcf:
