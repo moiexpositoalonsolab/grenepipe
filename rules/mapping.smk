@@ -1,3 +1,5 @@
+from itertools import chain
+
 # =================================================================================================
 #     Trimming
 # =================================================================================================
@@ -175,3 +177,19 @@ def get_mapping_result(bai=False):
         f += ".bai"
 
     return f
+
+# Return the bam file(s) for a given sample
+def get_sample_bams(sample):
+    return expand(get_mapping_result(), sample=sample, unit=samples.loc[sample].unit)
+
+# Return the bai file(s) for a given sample
+def get_sample_bais(sample):
+    return expand(get_mapping_result(True), sample=sample, unit=samples.loc[sample].unit)
+
+# Return the bam file(s) for all samples
+def get_all_bams():
+    return list(chain.from_iterable( [ get_sample_bams(sample) for sample in sample_names ] ))
+
+# Return the bai file(s) for all samples
+def get_all_bais():
+    return list(chain.from_iterable( [ get_sample_bais(sample) for sample in sample_names ] ))

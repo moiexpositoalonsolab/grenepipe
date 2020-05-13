@@ -3,7 +3,7 @@
 # =================================================================================================
 
 # Return the bam file(s) for a given sample
-def get_sample_bams(wildcards):
+def get_sample_bams_wildcard(wildcards):
     """
     Get all aligned reads of given sample, with all its units.
     This is where all units are merged together. The function also automatically gets
@@ -14,7 +14,7 @@ def get_sample_bams(wildcards):
     return expand(get_mapping_result(), sample=wildcards.sample, unit=samples.loc[wildcards.sample].unit)
 
 # Return the bai file(s) for a given sample
-def get_sample_bais(wildcards):
+def get_sample_bais_wildcard(wildcards):
     return expand(get_mapping_result(True), sample=wildcards.sample, unit=samples.loc[wildcards.sample].unit)
 
 def get_gatk_call_variants_params(wildcards, input):
@@ -23,8 +23,8 @@ def get_gatk_call_variants_params(wildcards, input):
 
 rule call_variants:
     input:
-        bam=get_sample_bams,
-        bai=get_sample_bais,
+        bam=get_sample_bams_wildcard,
+        bai=get_sample_bais_wildcard,
         ref=config["data"]["reference"]["genome"],
         known=config["data"]["reference"].get("known-variants"), # empty if key not present
         regions=config["rundir"] + "called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
