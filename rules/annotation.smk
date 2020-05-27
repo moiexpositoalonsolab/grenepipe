@@ -42,6 +42,8 @@ rule snpeff:
     log:
         config["rundir"] + "logs/snpeff.log"
     params:
-        extra="-Xmx4g"           # optional parameters (e.g., max memory 4g)
+        # optional parameters (e.g., max memory 4g)
+        # For finding the chromosome names used by snpeff, add `-v` here
+        extra="-Xmx4g"
     wrapper:
         "0.55.1/bio/snpeff/annotate"

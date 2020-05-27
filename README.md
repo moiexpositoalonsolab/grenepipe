@@ -1,2 +1,2 @@
 # grenepipe
-Snakemake pipeline for large-scale Evolve &amp; Resequence Experiments
+Snakemake pipeline for allele frequency calculations in evolve &amp; resequence experiments

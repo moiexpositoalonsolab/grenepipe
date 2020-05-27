@@ -9,9 +9,12 @@ include: "rules/common.smk"
 # arrow shows up in the DAG that reminds us that this is an important intermediate file.
 rule all:
     input:
+        # Basic steps
         config["rundir"] + "genotyped/all.vcf.gz",
         config["rundir"] + "filtered/all.vcf.gz",
         config["rundir"] + "annotated/all.vcf.gz",
+
+        # Quality control
         config["rundir"] + "qc/multiqc.html",
         config["rundir"] + "plots/depths.svg",
         config["rundir"] + "plots/allele-freqs.svg"
