@@ -28,7 +28,7 @@ rule call_variants:
         "0.55.1/bio/freebayes"
 
 # Picard does not understand the bcf files that freebayes produces, so we have to take
-# an unfortunate detour via vcf, and compress on-the-fly using a piped rule.
+# an unfortunate detour via vcf, and compress on-the-fly using a piped rule from above.
 rule compress_vcf:
     input:
         config["rundir"] + "called/{contig}.vcf"

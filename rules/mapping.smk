@@ -61,9 +61,9 @@ rule map_reads:
     output:
         config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
     log:
-        config["rundir"] + "logs/bwa_mem/{sample}-{unit}.log"
+        config["rundir"] + "logs/bwa-mem/{sample}-{unit}.log"
     benchmark:
-        config["rundir"] + "benchmarks/bwa_mem/{sample}-{unit}.bench.log"
+        config["rundir"] + "benchmarks/bwa-mem/{sample}-{unit}.bench.log"
     params:
         index=config["data"]["reference"]["genome"],
 
@@ -155,11 +155,11 @@ rule recalibrate_base_qualities:
 
 rule bam_index:
     input:
-        "{prefix}.bam"
+        config["rundir"] + "{prefix}.bam"
     output:
-        "{prefix}.bam.bai"
+        config["rundir"] + "{prefix}.bam.bai"
     log:
-        config["rundir"] + "logs/samtools/index-{prefix}.log"
+        config["rundir"] + "logs/samtools/index/{prefix}.log"
     wrapper:
         "0.51.3/bio/samtools/index"
 

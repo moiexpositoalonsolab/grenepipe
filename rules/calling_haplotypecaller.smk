@@ -53,9 +53,9 @@ rule combine_calls:
     output:
         gvcf=temp(config["rundir"] + "called/all.{contig}.g.vcf.gz")
     log:
-        config["rundir"] + "logs/gatk/combinegvcfs.{contig}.log"
+        config["rundir"] + "logs/gatk/combine-gvcfs/{contig}.log"
     benchmark:
-        config["rundir"] + "benchmarks/gatk/combinegvcfs.{contig}.bench.log"
+        config["rundir"] + "benchmarks/gatk/combine-gvcfs/{contig}.bench.log"
     wrapper:
         "0.51.3/bio/gatk/combinegvcfs"
 
@@ -68,9 +68,9 @@ rule genotype_variants:
     params:
         extra=config["params"]["gatk"]["GenotypeGVCFs"]
     log:
-        config["rundir"] + "logs/gatk/genotypegvcfs.{contig}.log"
+        config["rundir"] + "logs/gatk/genotype-gvcfs/{contig}.log"
     benchmark:
-        config["rundir"] + "benchmarks/gatk/genotypegvcfs.{contig}.bench.log"
+        config["rundir"] + "benchmarks/gatk/genotype-gvcfs/{contig}.bench.log"
     wrapper:
         "0.51.3/bio/gatk/genotypegvcfs"
 
