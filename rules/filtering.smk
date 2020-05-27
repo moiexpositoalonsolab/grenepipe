@@ -19,6 +19,8 @@ rule select_calls:
         extra=get_vartype_arg
     log:
         config["rundir"] + "logs/gatk/selectvariants/{vartype}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/gatk/selectvariants/{vartype}.bench.log"
     wrapper:
         "0.27.1/bio/gatk/selectvariants"
 
@@ -40,6 +42,8 @@ rule hard_filter_calls:
         filters=get_filter
     log:
         config["rundir"] + "logs/gatk/variantfiltration/{vartype}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/gatk/variantfiltration/{vartype}.bench.log"
     wrapper:
         "0.27.1/bio/gatk/variantfiltration"
 
@@ -54,6 +58,8 @@ rule recalibrate_calls:
         extra=config["params"]["gatk"]["VariantRecalibrator"]
     log:
         config["rundir"] + "logs/gatk/variantrecalibrator/{vartype}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/gatk/variantrecalibrator/{vartype}.bench.log"
     wrapper:
         "0.27.1/bio/gatk/variantrecalibrator"
 
@@ -70,5 +76,7 @@ rule merge_calls:
         vcf=protected(config["rundir"] + "filtered/all.vcf.gz")
     log:
         config["rundir"] + "logs/picard/merge-filtered.log"
+    benchmark:
+        config["rundir"] + "benchmarks/picard/merge-filtered.bench.log"
     wrapper:
         "0.27.1/bio/picard/mergevcfs"

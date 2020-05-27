@@ -32,6 +32,8 @@ rule call_variants:
         gvcf=protected(config["rundir"] + "called/{sample}.{contig}.g.vcf.gz")
     log:
         config["rundir"] + "logs/gatk/haplotypecaller/{sample}.{contig}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/gatk/haplotypecaller/{sample}.{contig}.bench.log"
     params:
         # The function here is where the contig variable is propagated to haplotypecaller.
         # Took me a while to figure this one out...
@@ -52,6 +54,8 @@ rule combine_calls:
         gvcf=temp(config["rundir"] + "called/all.{contig}.g.vcf.gz")
     log:
         config["rundir"] + "logs/gatk/combinegvcfs.{contig}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/gatk/combinegvcfs.{contig}.bench.log"
     wrapper:
         "0.51.3/bio/gatk/combinegvcfs"
 
@@ -65,6 +69,8 @@ rule genotype_variants:
         extra=config["params"]["gatk"]["GenotypeGVCFs"]
     log:
         config["rundir"] + "logs/gatk/genotypegvcfs.{contig}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/gatk/genotypegvcfs.{contig}.bench.log"
     wrapper:
         "0.51.3/bio/gatk/genotypegvcfs"
 
@@ -80,5 +86,7 @@ rule merge_variants:
         vcf=config["rundir"] + "genotyped/all.vcf.gz"
     log:
         config["rundir"] + "logs/picard/merge-genotyped.log"
+    benchmark:
+        config["rundir"] + "benchmarks/picard/merge-genotyped.bench.log"
     wrapper:
         "0.51.3/bio/picard/mergevcfs"

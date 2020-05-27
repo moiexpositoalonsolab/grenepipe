@@ -17,6 +17,8 @@ rule call_variants:
         pipe(config["rundir"] + "called/{contig}.vcf")
     log:
         config["rundir"] + "logs/freebayes/{contig}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/freebayes/{contig}.bench.log"
     params:
         extra=config["params"]["freebayes"]["extra"],         # optional parameters
         chunksize=config["params"]["freebayes"]["chunksize"]  # reference genome chunk size for parallelization (default: 100000)
@@ -57,5 +59,7 @@ rule merge_variants:
         vcf=config["rundir"] + "genotyped/all.vcf.gz"
     log:
         config["rundir"] + "logs/picard/merge-genotyped.log"
+    benchmark:
+        config["rundir"] + "benchmarks/picard/merge-genotyped.bench.log"
     wrapper:
         "0.51.3/bio/picard/mergevcfs"

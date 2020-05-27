@@ -14,6 +14,8 @@ rule trim_reads_se:
         **config["params"]["trimmomatic"]["se"]
     log:
         config["rundir"] + "logs/trimmomatic/{sample}-{unit}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/trimmomatic/{sample}-{unit}.bench.log"
     wrapper:
         "0.51.3/bio/trimmomatic/se"
 
@@ -31,6 +33,8 @@ rule trim_reads_pe:
         **config["params"]["trimmomatic"]["pe"]
     log:
         config["rundir"] + "logs/trimmomatic/{sample}-{unit}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/trimmomatic/{sample}-{unit}.bench.log"
     wrapper:
         "0.51.3/bio/trimmomatic/pe"
 
@@ -58,6 +62,8 @@ rule map_reads:
         config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
     log:
         config["rundir"] + "logs/bwa_mem/{sample}-{unit}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/bwa_mem/{sample}-{unit}.bench.log"
     params:
         index=config["data"]["reference"]["genome"],
 
@@ -87,6 +93,8 @@ rule mark_duplicates:
         metrics=config["rundir"] + "qc/dedup/{sample}-{unit}.metrics.txt"
     log:
         config["rundir"] + "logs/picard/dedup/{sample}-{unit}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/picard/dedup/{sample}-{unit}.bench.log"
     params:
         config["params"]["picard"]["MarkDuplicates"]
     wrapper:
@@ -136,6 +144,8 @@ rule recalibrate_base_qualities:
         extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"]
     log:
         config["rundir"] + "logs/gatk/bqsr/{sample}-{unit}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/gatk/bqsr/{sample}-{unit}.bench.log"
     wrapper:
         "0.51.3/bio/gatk/baserecalibrator"
 

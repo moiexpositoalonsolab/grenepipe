@@ -41,6 +41,8 @@ rule call_variants:
         call=config["params"]["bcftools"]["call"]
     log:
         config["rundir"] + "logs/bcftools/call-{contig}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/bcftools/call-{contig}.bench.log"
     conda:
         "../envs/bcftools.yaml"
     shell:
@@ -84,6 +86,8 @@ rule merge_variants:
         vcf=config["rundir"] + "genotyped/all.vcf.gz"
     log:
         config["rundir"] + "logs/picard/merge-genotyped.log"
+    benchmark:
+        config["rundir"] + "benchmarks/picard/merge-genotyped.bench.log"
     wrapper:
         "0.51.3/bio/picard/mergevcfs"
 

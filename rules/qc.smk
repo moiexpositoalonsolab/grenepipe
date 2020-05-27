@@ -10,6 +10,8 @@ rule fastqc:
         zip=config["rundir"] + "qc/fastqc/{sample}-{unit}.zip"
     log:
         config["rundir"] + "logs/fastqc/{sample}-{unit}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/fastqc/{sample}-{unit}.bench.log"
     wrapper:
         "0.27.1/bio/fastqc"
 
@@ -20,6 +22,8 @@ rule samtools_stats:
         config["rundir"] + "qc/samtools-stats/{sample}-{unit}.txt"
     log:
         config["rundir"] + "logs/samtools-stats/{sample}-{unit}.log"
+    benchmark:
+        config["rundir"] + "benchmarks/samtools-stats/{sample}-{unit}.bench.log"
     wrapper:
         "0.27.1/bio/samtools/stats"
 
