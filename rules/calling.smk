@@ -36,17 +36,17 @@ def get_contigs():
 if config["settings"]["calling-tool"] == "haplotypecaller":
 
     # Use `GATK HaplotypeCaller`
-    include: "calling_haplotypecaller.smk"
+    include: "calling-haplotypecaller.smk"
 
 elif config["settings"]["calling-tool"] == "bcftools":
 
     # Use `bcftools call`
-    include: "calling_bcftools.smk"
+    include: "calling-bcftools.smk"
 
 elif config["settings"]["calling-tool"] == "freebayes":
 
     # Use `freebayes`
-    include: "calling_freebayes.smk"
+    include: "calling-freebayes.smk"
 
 else:
     raise Exception("Unknown calling-tool: " + config["settings"]["calling-tool"])

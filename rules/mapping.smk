@@ -59,12 +59,12 @@ def get_trimmed_reads(wildcards):
 if config["settings"]["mapping-tool"] == "bwamem":
 
     # Use `bwa mem`
-    include: "mapping_bwamem.smk"
+    include: "mapping-bwa-mem.smk"
 
 elif config["settings"]["mapping-tool"] == "bowtie2":
 
     # Use `bowtie2`
-    include: "mapping_bowtie2.smk"
+    include: "mapping-bowtie2.smk"
 
 else:
     raise Exception("Unknown mapping-tool: " + config["settings"]["mapping-tool"])
