@@ -32,7 +32,7 @@ def get_contigs():
 #     Variant Calling
 # =================================================================================================
 
-# Switch on the chosen caller
+# Switch to the chosen caller
 if config["settings"]["calling-tool"] == "haplotypecaller":
 
     # Use `GATK HaplotypeCaller`
