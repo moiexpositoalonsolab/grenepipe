@@ -40,7 +40,7 @@ rule preparation:
         vcf=variants
 
 # =================================================================================================
-#     Rules for preparing input files
+#     Prepare Genome
 # =================================================================================================
 
 # Write indices for a given fasta reference genome file
