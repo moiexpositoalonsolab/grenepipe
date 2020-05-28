@@ -32,6 +32,9 @@ properties:
         type: boolean
       recalibrate-base-qualities:
         type: boolean
+      mapping-tool:
+        type: string
+        enum: ["bwamem", "bowtie2"]
       calling-tool:
         type: string
         enum: ["haplotypecaller", "freebayes", "bcftools"]
@@ -44,6 +47,7 @@ properties:
     required:
       - remove-duplicates
       - recalibrate-base-qualities
+      - mapping-tool
       - calling-tool
       - vqsr
 

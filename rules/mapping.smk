@@ -50,36 +50,24 @@ def get_trimmed_reads(wildcards):
     """Get trimmed reads of given sample-unit."""
     if is_single_end(**wildcards):
         # single end sample
-        return config["rundir"] + "trimmed/{sample}-{unit}.fastq.gz".format(**wildcards)
+        return [ config["rundir"] + "trimmed/{sample}-{unit}.fastq.gz".format(**wildcards) ]
     else:
         # paired-end sample
         return expand(config["rundir"] + "trimmed/{sample}-{unit}.{group}.fastq.gz", group=[1, 2], **wildcards)
 
-rule map_reads:
-    input:
-        reads=get_trimmed_reads
-    output:
-        config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
-    log:
-        config["rundir"] + "logs/bwa-mem/{sample}-{unit}.log"
-    benchmark:
-        config["rundir"] + "benchmarks/bwa-mem/{sample}-{unit}.bench.log"
-    params:
-        index=config["data"]["reference"]["genome"],
+# Switch to the chosen mapper
+if config["settings"]["mapping-tool"] == "bwamem":
 
-        # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
-        extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
-        # TODO add LD field as well for the unit?! http://www.htslib.org/workflow/
+    # Use `bwa mem`
+    include: "mapping_bwamem.smk"
 
-        sort="samtools",         # Can be 'none', 'samtools' or 'picard'.
-        sort_order="coordinate", # Can be 'queryname' or 'coordinate'.
-        sort_extra=""            # Extra args for samtools/picard.
-    threads: 8
-    wrapper:
-        "0.51.3/bio/bwa/mem"
+elif config["settings"]["mapping-tool"] == "bowtie2":
 
-# TODO add threads: http://bio-bwa.sourceforge.net/bwa.shtml
-# TODO add bowtie alternative
+    # Use `bowtie2`
+    include: "mapping_bowtie2.smk"
+
+else:
+    raise Exception("Unknown mapping-tool: " + config["settings"]["mapping-tool"])
 
 # =================================================================================================
 #     Mark Duplicates
