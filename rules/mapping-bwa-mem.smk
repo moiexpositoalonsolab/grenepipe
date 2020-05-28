@@ -22,6 +22,6 @@ rule map_reads:
         sort_order="coordinate", # Can be 'queryname' or 'coordinate'.
         sort_extra=""            # Extra args for samtools/picard.
     threads:
-        6
+        config["params"]["bwamem"]["threads"]
     wrapper:
         "0.51.3/bio/bwa/mem"

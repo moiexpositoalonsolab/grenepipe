@@ -17,9 +17,15 @@ def get_sample_bams_wildcard(wildcards):
 def get_sample_bais_wildcard(wildcards):
     return expand(get_mapping_result(True), sample=wildcards.sample, unit=samples.loc[wildcards.sample].unit)
 
+# Combine all params to call gatk. We may want to set regions, we set that bit of multithreading
+# that gatk is capable of (not much, but the best we can do without spark...), and we add
+# all additional params from the config file.
 def get_gatk_call_variants_params(wildcards, input):
-    return (get_gatk_regions_param(regions=input.regions, default="--intervals '{}'".format(wildcards.contig)) +
-    config["params"]["gatk"]["HaplotypeCaller"])
+    return (
+        get_gatk_regions_param(regions=input.regions, default="--intervals '{}'".format(wildcards.contig))
+        + " --native-pair-hmm-threads " + str(config["params"]["gatk"]["HaplotypeCaller-threads"]) + " "
+        + config["params"]["gatk"]["HaplotypeCaller"]
+    )
 
 rule call_variants:
     input:
@@ -34,6 +40,9 @@ rule call_variants:
         config["rundir"] + "logs/gatk/haplotypecaller/{sample}.{contig}.log"
     benchmark:
         config["rundir"] + "benchmarks/gatk/haplotypecaller/{sample}.{contig}.bench.log"
+    threads:
+        # Need to set threads here so that snakemake can plan the job scheduling properly
+        config["params"]["gatk"]["HaplotypeCaller-threads"]
     params:
         # The function here is where the contig variable is propagated to haplotypecaller.
         # Took me a while to figure this one out...

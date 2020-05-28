@@ -61,6 +61,16 @@ properties:
             type: object
           se:
             type: object
+      bwamem:
+        type: object
+        properties:
+          threads:
+            type: integer
+      bowtie2:
+        type: object
+        properties:
+          threads:
+            type: integer
       picard:
         type: object
         properties:
@@ -75,6 +85,8 @@ properties:
             type: string
           call:
             type: string
+          threads:
+            type: integer
           # concat:
           #   type: string
       freebayes:
@@ -84,11 +96,17 @@ properties:
             type: string
           chunksize:
             type: integer
+          threads:
+            type: integer
+          compress-threads:
+            type: integer
       gatk:
         type: object
         properties:
           HaplotypeCaller:
             type: string
+          HaplotypeCaller-threads:
+            type: integer
           BaseRecalibrator:
             type: string
           GenotypeGVCFs:

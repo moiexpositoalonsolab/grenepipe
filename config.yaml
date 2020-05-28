@@ -79,6 +79,22 @@ params:
         - "MINLEN:36"
 
   # ----------------------------------------------------------------------
+  #     bwa mem
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:mapping-tool == bwamem
+  bwamem:
+    threads: 6
+
+  # ----------------------------------------------------------------------
+  #     bowtie2
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:mapping-tool == bowtie2
+  bowtie2:
+    threads: 6
+
+  # ----------------------------------------------------------------------
   #     picard
   # ----------------------------------------------------------------------
 
@@ -93,6 +109,7 @@ params:
   bcftools:
     mpileup: "--max-depth 10000"
     call: ""
+    threads: 6
     # concat: ""
 
   # ----------------------------------------------------------------------
@@ -103,6 +120,8 @@ params:
   freebayes:
     extra: ""
     chunksize: 100000
+    threads: 4
+    compress-threads: 2
 
   # ----------------------------------------------------------------------
   #     gatk
@@ -114,6 +133,7 @@ params:
 
     # Used only if settings:calling-tool == haplotypecaller
     HaplotypeCaller: ""
+    HaplotypeCaller-threads: 6
     GenotypeGVCFs: ""
 
     # Used only if settings:vqsr == true

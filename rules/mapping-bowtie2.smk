@@ -49,7 +49,7 @@ rule map_reads:
         extra="--rg-id {sample} --rg SM:{sample}"
     threads:
         # Use at least two threads
-        4
+        config["params"]["bowtie2"]["threads"]
     log:
         config["rundir"] + "logs/bowtie2/{sample}-{unit}.log"
     benchmark:
@@ -68,7 +68,7 @@ rule sort_reads:
     params:
         "-m 4G"
     threads:  # Samtools takes additional threads through its option -@
-        2     # This value - 1 will be sent to -@. Weird flex, but okay.
+        1     # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
         config["rundir"] + "logs/samtools/sort/{sample}-{unit}.log"
     wrapper:
