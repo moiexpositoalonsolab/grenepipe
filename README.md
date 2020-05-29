@@ -17,7 +17,7 @@ Process:
 Output:
   - Variant calls `vcf`
 
-# Basic Usage
+## Basic Usage
 
 The file `config.yaml` contains the basic configuration for the data and the tools to use:
 
@@ -27,7 +27,7 @@ The file `config.yaml` contains the basic configuration for the data and the too
 
 Change this file to your needs.
 
-## Samples Table
+### Samples Table
 
 The configuration (`config.yaml`) expects the key `data --> samples` to point to a tab-separated
 table that lists all sample names and the paths to their `fastq` files:
@@ -44,13 +44,13 @@ and the second unit being single-end (hence, the last column is simply left empt
 Samples can either be in `fastq` format, or in compressed `fastq.gz` format (the file extension
 itself does not matter though).
 
-## Reference Genome
+### Reference Genome
 
 The reference genome is expected to be in `fasta` format. Furthermore, we do annotation using
 [snpEff](http://snpeff.sourceforge.net/), which expects a valid genome name from its database
 in our `config.yaml` under the key `data --> reference --> name`; see below for details.
 
-## Preparing the Pipeline
+### Preparing the Pipeline
 
 There are some steps that need to be done before running the main data analysis.
 These are mainly for preparing indices into the reference genome, which decide how our jobs are
@@ -61,7 +61,7 @@ before starting the actual analysis:
 
 will run the `prep` rules of the pipeline.
 
-## Running the Pipeline
+### Running the Pipeline
 
 Once this is done, simply run
 
@@ -69,7 +69,7 @@ Once this is done, simply run
 
 for the whole pipeline.
 
-## Advanced Usage
+### Advanced Usage
 
 The above call will produce output files in the main directory. This might get crowded.
 We hence offer a convenient run directory (`rundir`), into which all output is written:
@@ -84,7 +84,7 @@ configuration is used instead. This is useful if one wants to test different map
 tools, or see the effect of different parameters for these tools. Simply copy the config into
 a subdirectory, edit as needed, and use that subdirectory as `rundir`.
 
-## Report
+### Report
 
 We also offer to automatically generate a Snakemake report for a run of the pipeline
 
@@ -97,7 +97,7 @@ For this to work, the Python packages networkx and pygraphviz must be installed:
     sudo apt-get install python3-dev graphviz libgraphviz-dev pkg-config python-pip
     sudo pip install networkx pygraphviz
 
-# Rule Dependencies and Call Graph
+## Rule Dependencies and Call Graph
 
 The default setup, using `bwa mem` for mapping, and `GATK HaplotypeCaller` for calling,
 has the following rule dependencies:
@@ -112,7 +112,7 @@ To get the rule dependency graph and the job call graph, use
     snakemake --rulegraph | dot -Tsvg > rules.svg
     snakemake --dag | dot -Tsvg > dag.svg
 
-# snpEff
+## snpEff
 
 The annotation tool snpEff needs a bit of special consideration here.
 For it to work, we need to select a reference genome that snpEff understands.
