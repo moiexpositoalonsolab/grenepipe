@@ -24,7 +24,8 @@ rule call_variants:
     input:
         ref=config["data"]["reference"]["genome"],
 
-        # Get the bam and bai files for the given sample only.
+        # Get the bam and bai files for all files. If this is too slow, we need to split,
+        # similar to what our GATK HaplotypeCaller rule does.
         samples=get_all_bams(),
         indices=get_all_bais(),
 
