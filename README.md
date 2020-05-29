@@ -33,9 +33,9 @@ The configuration (`config.yaml`) expects the key `data --> samples` to point to
 table that lists all sample names and the paths to their `fastq` files:
 
     sample	unit	platform	fq1	fq2
-    A	1	ILLUMINA	data/samples/R1_001.fastq.gz	data/samples/R2_001.fastq.gz
-    B	1	ILLUMINA	data/samples/R1_001.fastq.gz	data/samples/R2_001.fastq.gz
-    B	2	ILLUMINA	data/samples/R1_002.fastq.gz
+    A	1	ILLUMINA	data/samples/A_R1_001.fastq.gz	data/samples/A_R2_001.fastq.gz
+    B	1	ILLUMINA	data/samples/B_R1_001.fastq.gz	data/samples/B_R2_001.fastq.gz
+    B	2	ILLUMINA	data/samples/B_002.fastq.gz
 
 This table contains two samples, `A` and `B`. Sample `A` consists of one unit (coming from one
 sequencing run), with paired-end reads. Sample `B` consists of two units (coming e.g., from
