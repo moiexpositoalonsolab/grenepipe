@@ -1,0 +1,6 @@
+# Used by rules in trimming-skewer.smk
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - skewer ==0.2.2

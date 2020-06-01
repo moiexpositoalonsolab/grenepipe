@@ -27,6 +27,7 @@ rule all:
 # See the file itself for instructions on how to run it.
 # include: "rules/prep.smk"
 
+include: "rules/trimming.smk"
 include: "rules/mapping.smk"
 include: "rules/calling.smk"
 include: "rules/filtering.smk"

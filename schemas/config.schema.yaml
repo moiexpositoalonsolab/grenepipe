@@ -32,6 +32,9 @@ properties:
         type: boolean
       recalibrate-base-qualities:
         type: boolean
+      trimming-tool:
+        type: string
+        enum: ["trimmomatic", "skewer"]
       mapping-tool:
         type: string
         enum: ["bwamem", "bowtie2"]
@@ -47,6 +50,7 @@ properties:
     required:
       - remove-duplicates
       - recalibrate-base-qualities
+      - trimming-tool
       - mapping-tool
       - calling-tool
       - vqsr
@@ -57,6 +61,8 @@ properties:
       trimmomatic:
         type: object
         properties:
+          threads:
+            type: integer
           pe:
             type: object
           se:
@@ -66,6 +72,15 @@ properties:
         properties:
           threads:
             type: integer
+      skewer:
+        type: object
+        properties:
+          threads:
+            type: integer
+          se:
+            type: string
+          pe:
+            type: string
       bowtie2:
         type: object
         properties:

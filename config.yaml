@@ -32,6 +32,10 @@ settings:
   # Select whether to recalibrate base frequencies after mapping, using gatk/baserecalibrator
   recalibrate-base-qualities: false
 
+  # Select the tool used for read trimming.
+  # Valid values: "trimmomatic", "skewer"
+  trimming-tool: "trimmomatic"
+
   # Select the tool used for read mapping.
   # Valid values: "bwamem", "bowtie2"
   mapping-tool: "bwamem"
@@ -63,6 +67,7 @@ params:
   # ----------------------------------------------------------------------
 
   trimmomatic:
+    threads: 6
     pe:
       trimmer:
         # See trimmomatic manual for adding additional options, e.g. for adapter trimming.
@@ -77,6 +82,15 @@ params:
         - "TRAILING:3"
         - "SLIDINGWINDOW:4:15"
         - "MINLEN:36"
+
+  # ----------------------------------------------------------------------
+  #     skewer
+  # ----------------------------------------------------------------------
+
+  skewer:
+    threads: 6
+    se: "--mode any"
+    pe: "--mode pe"
 
   # ----------------------------------------------------------------------
   #     bwa mem
