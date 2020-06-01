@@ -1,4 +1,4 @@
-# Used by rule call_variants in calling_bcftools.smk
+# Used by rule call_variants in calling-bcftools.smk
 channels:
   - bioconda
   - conda-forge

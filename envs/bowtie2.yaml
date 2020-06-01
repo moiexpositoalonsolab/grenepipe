@@ -1,3 +1,4 @@
+# Used by rules in mapping-bowtie2.smk
 channels:
   - bioconda
   - conda-forge
