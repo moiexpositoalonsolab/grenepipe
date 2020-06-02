@@ -43,6 +43,18 @@ rule preparation:
 #     Prepare Genome
 # =================================================================================================
 
+# We provide our test data in gz-compressed form, in order to keep data in the git repo low.
+# Hence, we have to decompress first.
+rule decompress_genome:
+    input:
+        genome + ".gz"
+    output:
+        genome
+    log:
+        genomedir + "logs/" + genome + ".decompress.log"
+    shell:
+        "gunzip {input}"
+
 # Write indices for a given fasta reference genome file
 rule bwa_index:
     input:
@@ -75,10 +87,12 @@ rule samtools_faidx:
         "0.51.3/bio/samtools/faidx"
 
 # Write a dictionary file for the genome.
-# This file is expected to replace the file extension, instead of adding to it
+# This file is expected to replace the file extension, instead of adding to it.
+# We also add the genome file itself as an input, so that it is decompressed.
 rule sequence_dictionary:
     input:
-        "{genome}" + os.path.splitext(genome)[1]
+        base="{genome}" + os.path.splitext(genome)[1],
+        file=genome
     output:
         "{genome}.dict"
     log:
@@ -86,7 +100,7 @@ rule sequence_dictionary:
     conda:
         "../envs/prep.yaml"
     shell:
-        "gatk CreateSequenceDictionary -R {input} -O {output} > {log} 2>&1"
+        "gatk CreateSequenceDictionary -R {input.base} -O {output} > {log} 2>&1"
 
 # Compress a vcf file using gzip
 rule compress_vcf:

@@ -1,0 +1,4 @@
+sample	unit	platform	fq1	fq2
+A	1	ILLUMINA	data/samples/S1_R1.fastq.gz	data/samples/S1_R2.fastq.gz
+B	1	ILLUMINA	data/samples/S2_R1.fastq.gz	data/samples/S2_R2.fastq.gz
+B	2	ILLUMINA	data/samples/S2_R1.fastq.gz	
