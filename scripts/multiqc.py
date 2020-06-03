@@ -24,5 +24,6 @@ shell(
     "#    export LC_ALL=en_US.utf8                                  \n"
     "#    export LANG=en_US.utf8                                    \n"
     "#fi                                                            \n"
+    "export PYTHONIOENCODING=UTF-8 \n"
     "multiqc {snakemake.params} --force -o {output_dir} -n {output_name} {input_dirs} {log}"
 )
