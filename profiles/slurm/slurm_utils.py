@@ -67,8 +67,12 @@ def format_wildcards(string, job_properties):
     job = Job(job_properties)
     if "params" in job_properties:
         job._format_params = Wildcards(fromdict=job_properties['params'])
+    else:
+        job._format_params = Wildcards()
     if "wildcards" in job_properties:
         job._format_wildcards = Wildcards(fromdict=job_properties['wildcards'])
+    else:
+        job._format_wildcards = Wildcards()
     _variables = dict()
     _variables.update(
         dict(
