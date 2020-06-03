@@ -14,7 +14,7 @@ workingdir = os.getcwd()
 
 # cookiecutter arguments
 SBATCH_DEFAULTS = """"""
-ADVANCED_ARGUMENT_CONVERSION = {"yes": True, "no": False}["yes"]
+ADVANCED_ARGUMENT_CONVERSION = {"yes": True, "no": False}["no"]
 
 # Try to find a cluster config for the current host. If not found, reset to empty config file.
 CLUSTER_CONFIG = os.path.join(workingdir, "profiles/host/" + socket.gethostname().split('.', 1)[0] + ".yaml")
