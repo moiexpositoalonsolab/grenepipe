@@ -13,4 +13,15 @@ However, we extended it as follows:
  - Slurm log files are collected in a subdirectory, instead of cluttering the main directory.
  - Using the `host` config files, specific configurations for each host can be provided.
 
-Usage example: `snakemake --profile profiles/slurm` for the `slurm` profile.
+This `host` config simply needs a file with the short hostname in the `host` subdirectory.
+This file can contain any snakemake cluster configuration.
+To get the short hostname on a given system, simply call `hostname -s`.
+
+Usage
+============
+
+Direct usage example: `snakemake --profile profiles/slurm` for the `slurm` profile.
+
+Alternatively, snakemake looks for profiles in `~/.config/snakemake`. Hence, you can also copy
+the `local` or the `slum` subdirectory to that location, and then do not need to specify `--profile`
+when calling snakemake.
