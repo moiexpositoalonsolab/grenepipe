@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 
 import sys
 import os
@@ -15,14 +15,20 @@ if len(sys.argv) >= 2:
     benchdir = sys.argv[1]
 if os.path.isdir( os.path.join( benchdir, "benchmarks" )):
     benchdir = os.path.join( benchdir, "benchmarks" )
+    
 print "Summarizing", benchdir, "\n"
+print "Runtime: s (seconds), h:m:s (hours:minutes:seconds)"
+print "Memory:  max_rss (maximum resident set size, MB), max_vms (maximum virtual memory size, MB), max_uss (MB), max_pss (MB)"
+print "IO:      io_in (read MB), io_out (write MB)"
+print "System:  mean_load (CPU load)\n"
+#s  h:m:s      max_rss    max_vms    max_uss    max_pss    io_in    io_out    mean_load
 
 # Scan the given directory for all `.bench.log` files, which is what our rules produce.
 entries = list()
 for dirpath, dirnames, filenames in os.walk( benchdir ):
     for filename in [f for f in filenames if f.endswith(".bench.log")]:
         path = os.path.join(dirpath, filename)
-        name = path[2:-4]
+        name = path[0:-4]
         # print name
 
         with open(path) as fp:
