@@ -35,6 +35,9 @@ rule samtools_stats:
 #     MultiQC
 # =================================================================================================
 
+# Unfortunately, in some environments, multiqc does not work due to encoding issues, see
+# https://github.com/ewels/MultiQC/issues/484
+# Hence, we here do not use the wrapper, but instead call the command manually.
 rule multiqc:
     input:
         expand(config["rundir"] + "qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
@@ -47,8 +50,13 @@ rule multiqc:
         config["rundir"] + "logs/multiqc.log"
     group:
         "qc"
-    wrapper:
-        "0.55.1/bio/multiqc"
+    conda:
+        "../envs/multiqc.yaml"
+    script:
+        "../scripts/multiqc.py"
+
+    # wrapper:
+    #     "0.55.1/bio/multiqc"
 
 # Rule is not submitted as a job to the cluster.
 localrules: multiqc

@@ -1,0 +1,7 @@
+# Used by rule multiqc in qc.smk
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - multiqc ==1.8
