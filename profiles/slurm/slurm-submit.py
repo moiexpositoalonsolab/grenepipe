@@ -89,7 +89,7 @@ with open( os.path.join(extra_params["log_base"], "slurm-submissions.log"), "a")
     now = datetime.datetime.now()
     opt = [f"--{k}={v}" for k, v in sbatch_options.items()]
     cmd = ["sbatch"] + opt + [jobscript]
-    slurmlog.write(now.strftime("%Y-%m-%d %H:%M:%S") + "\t" + cmd + "\n")
+    slurmlog.write(now.strftime("%Y-%m-%d %H:%M:%S") + "\t" + ' '.join(cmd) + "\n")
 
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
