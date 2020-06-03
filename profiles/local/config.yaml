@@ -1,0 +1,7 @@
+# Useful settings used for our purposes
+restart-times: 3
+local-cores: 6
+use-conda: True
+keep-going: True
+rerun-incomplete: True
+printshellcmds: True
