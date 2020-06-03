@@ -147,7 +147,7 @@ params:
 
     # Used only if settings:calling-tool == haplotypecaller
     HaplotypeCaller: ""
-    HaplotypeCaller-threads: 6
+    HaplotypeCaller-threads: 2
     GenotypeGVCFs: ""
 
     # Used only if settings:vqsr == true

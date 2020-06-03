@@ -11,6 +11,8 @@ rule vcf_to_tsv:
         config["rundir"] + "logs/vcf_to_tsv.log"
     conda:
         "../envs/rbt.yaml"
+    group:
+        "stats"
     shell:
         "bcftools view --apply-filters PASS --output-type u {input} | "
         "rbt vcf-to-txt -g --fmt DP AD --info ANN | "
@@ -34,5 +36,7 @@ rule plot_stats:
         config["rundir"] + "logs/plot-depths.log"
     conda:
         "../envs/stats.yaml"
+    group:
+        "stats"
     script:
         "../scripts/plot-depths.py"

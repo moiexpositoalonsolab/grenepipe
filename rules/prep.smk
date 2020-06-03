@@ -38,6 +38,11 @@ rule preparation:
         fai=genome + ".fai",
         dict=os.path.splitext(genome)[0] + ".dict",
         vcf=variants
+    group:
+        "prep"
+
+# All of the prep ruls are local. No need to submit 1min jobs to the cluster.
+localrules: preparation, decompress_genome, bwa_index, samtools_faidx, sequence_dictionary, compress_vcf
 
 # =================================================================================================
 #     Prepare Genome
@@ -52,6 +57,8 @@ rule decompress_genome:
         genome
     log:
         genomedir + "logs/" + genome + ".decompress.log"
+    group:
+        "prep"
     shell:
         "gunzip {input}"
 
@@ -67,6 +74,8 @@ rule bwa_index:
         "{genome}.sa"
     log:
         genomedir + "logs/{genome}.bwa_index.log"
+    group:
+        "prep"
     params:
         prefix="{genome}",
         algorithm="bwtsw"
@@ -81,6 +90,8 @@ rule samtools_faidx:
         "{genome}.fai"
     log:
         genomedir + "logs/{genome}.samtools_faidx.log"
+    group:
+        "prep"
     params:
         "" # optional params string
     wrapper:
@@ -97,6 +108,8 @@ rule sequence_dictionary:
         "{genome}.dict"
     log:
         genomedir + "logs/{genome}.sequence_dictionary.log"
+    group:
+        "prep"
     conda:
         "../envs/prep.yaml"
     shell:
@@ -110,5 +123,7 @@ rule compress_vcf:
         "{prefix}.vcf.gz"
     log:
         genomedir + "logs/{prefix}.compress_vcf.log"
+    group:
+        "prep"
     wrapper:
         "0.27.1/bio/vcf/compress"

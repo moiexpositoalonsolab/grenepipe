@@ -34,6 +34,8 @@ rule mark_duplicates:
         config["rundir"] + "benchmarks/picard/dedup/{sample}-{unit}.bench.log"
     params:
         config["params"]["picard"]["MarkDuplicates"]
+    group:
+        "mapping"
     wrapper:
         "0.51.3/bio/picard/markduplicates"
 
@@ -83,6 +85,8 @@ rule recalibrate_base_qualities:
         config["rundir"] + "logs/gatk/bqsr/{sample}-{unit}.log"
     benchmark:
         config["rundir"] + "benchmarks/gatk/bqsr/{sample}-{unit}.bench.log"
+    group:
+        "mapping"
     wrapper:
         "0.51.3/bio/gatk/baserecalibrator"
 
@@ -97,6 +101,8 @@ rule bam_index:
         config["rundir"] + "{prefix}.bam.bai"
     log:
         config["rundir"] + "logs/samtools/index/{prefix}.log"
+    group:
+        "mapping"
     wrapper:
         "0.51.3/bio/samtools/index"
 

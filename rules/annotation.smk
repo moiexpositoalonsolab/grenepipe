@@ -14,10 +14,15 @@ rule snpeff_db:
         directory(get_snpeff_db_path() + "{reference}")
     log:
         config["rundir"] + "logs/snpeff-download-{reference}.log"
+    group:
+        "snpeff"
     params:
         reference="{reference}"
     wrapper:
         "0.55.1/bio/snpeff/download"
+
+# Rule is not submitted as a job to the cluster.
+localrules: snpeff_db
 
 # =================================================================================================
 #     SnpEff
@@ -41,9 +46,14 @@ rule snpeff:
         csvstats=config["rundir"] + "snpeff/all.csv"
     log:
         config["rundir"] + "logs/snpeff.log"
+    group:
+        "snpeff"
     params:
         # optional parameters (e.g., max memory 4g)
         # For finding the chromosome names used by snpeff, add `-v` here
         extra="-Xmx4g"
     wrapper:
         "0.55.1/bio/snpeff/annotate"
+
+# Rule is not submitted as a job to the cluster.
+localrules: snpeff

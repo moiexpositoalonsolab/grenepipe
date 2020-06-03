@@ -12,6 +12,8 @@ rule fastqc:
         config["rundir"] + "logs/fastqc/{sample}-{unit}.log"
     benchmark:
         config["rundir"] + "benchmarks/fastqc/{sample}-{unit}.bench.log"
+    group:
+        "qc"
     wrapper:
         "0.27.1/bio/fastqc"
 
@@ -24,6 +26,8 @@ rule samtools_stats:
         config["rundir"] + "logs/samtools-stats/{sample}-{unit}.log"
     benchmark:
         config["rundir"] + "benchmarks/samtools-stats/{sample}-{unit}.bench.log"
+    group:
+        "qc"
     wrapper:
         "0.27.1/bio/samtools/stats"
 
@@ -41,5 +45,10 @@ rule multiqc:
         report(config["rundir"] + "qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
     log:
         config["rundir"] + "logs/multiqc.log"
+    group:
+        "qc"
     wrapper:
         "0.55.1/bio/multiqc"
+
+# Rule is not submitted as a job to the cluster.
+localrules: multiqc

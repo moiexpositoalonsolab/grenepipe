@@ -25,6 +25,9 @@ rule bowtie2_index:
     shell:
         "bowtie2-build {input} {params.basename} > {log} 2>&1"
 
+# Rule is not submitted as a job to the cluster.
+localrules: bowtie2_index
+
 # =================================================================================================
 #     Read Mapping
 # =================================================================================================
@@ -54,6 +57,8 @@ rule map_reads:
         config["rundir"] + "logs/bowtie2/{sample}-{unit}.log"
     benchmark:
         config["rundir"] + "benchmarks/bowtie2/{sample}-{unit}.bench.log"
+    group:
+        "mapping"
     wrapper:
         "0.58.0/bio/bowtie2/align"
 
@@ -71,5 +76,7 @@ rule sort_reads:
         1     # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
         config["rundir"] + "logs/samtools/sort/{sample}-{unit}.log"
+    group:
+        "mapping"
     wrapper:
         "0.58.0/bio/samtools/sort"

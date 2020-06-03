@@ -17,6 +17,9 @@ if "restrict-regions" in config["settings"]:
         shell:
             "bedextract {wildcards.contig} {input} > {output}"
 
+# Rule is not submitted as a job to the cluster.
+localrules: compose_regions
+
 # =================================================================================================
 #     Common Helper Functions
 # =================================================================================================

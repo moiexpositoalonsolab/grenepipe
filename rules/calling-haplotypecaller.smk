@@ -65,6 +65,8 @@ rule combine_calls:
         config["rundir"] + "logs/gatk/combine-gvcfs/{contig}.log"
     benchmark:
         config["rundir"] + "benchmarks/gatk/combine-gvcfs/{contig}.bench.log"
+    group:
+        "gatk_calls"
     wrapper:
         "0.51.3/bio/gatk/combinegvcfs"
 
@@ -80,6 +82,8 @@ rule genotype_variants:
         config["rundir"] + "logs/gatk/genotype-gvcfs/{contig}.log"
     benchmark:
         config["rundir"] + "benchmarks/gatk/genotype-gvcfs/{contig}.bench.log"
+    group:
+        "gatk_calls"
     wrapper:
         "0.51.3/bio/gatk/genotypegvcfs"
 

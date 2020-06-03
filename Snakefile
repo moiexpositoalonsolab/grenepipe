@@ -19,6 +19,10 @@ rule all:
         config["rundir"] + "plots/depths.svg",
         config["rundir"] + "plots/allele-freqs.svg"
 
+# The main `all` rule is local. It does not do anything anyway,
+# except requesting the other rules to run.
+localrules: all
+
 # =================================================================================================
 #     Rule Modules
 # =================================================================================================

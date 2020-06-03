@@ -21,6 +21,8 @@ rule select_calls:
         config["rundir"] + "logs/gatk/selectvariants/{vartype}.log"
     benchmark:
         config["rundir"] + "benchmarks/gatk/selectvariants/{vartype}.bench.log"
+    group:
+        "filtering"
     wrapper:
         "0.27.1/bio/gatk/selectvariants"
 
@@ -44,6 +46,8 @@ rule hard_filter_calls:
         config["rundir"] + "logs/gatk/variantfiltration/{vartype}.log"
     benchmark:
         config["rundir"] + "benchmarks/gatk/variantfiltration/{vartype}.bench.log"
+    group:
+        "filtering"
     wrapper:
         "0.27.1/bio/gatk/variantfiltration"
 
@@ -60,6 +64,8 @@ rule recalibrate_calls:
         config["rundir"] + "logs/gatk/variantrecalibrator/{vartype}.log"
     benchmark:
         config["rundir"] + "benchmarks/gatk/variantrecalibrator/{vartype}.bench.log"
+    group:
+        "filtering"
     wrapper:
         "0.27.1/bio/gatk/variantrecalibrator"
 
@@ -78,5 +84,7 @@ rule merge_calls:
         config["rundir"] + "logs/picard/merge-filtered.log"
     benchmark:
         config["rundir"] + "benchmarks/picard/merge-filtered.bench.log"
+    group:
+        "filtering"
     wrapper:
         "0.27.1/bio/picard/mergevcfs"
