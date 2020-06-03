@@ -64,6 +64,9 @@ if ADVANCED_ARGUMENT_CONVERSION:
 extra_params = {}
 extra_params["log_base"] = os.path.join(workingdir, "slurm-logs")
 
+def file_escape(string):
+    return string.replace("/", "_").replace(" ", "_")
+
 # Prepare job name for log script
 if job_properties["type"] == "single":
     extra_params["job_name"] = "snakejob." + job_properties["rule"]
