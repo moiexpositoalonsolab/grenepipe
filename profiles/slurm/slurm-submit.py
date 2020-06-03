@@ -62,10 +62,21 @@ if ADVANCED_ARGUMENT_CONVERSION:
 
 # Prepare directory and params for slurm log files
 extra_params = {}
-extra_params["job_name"] = "snakemake." + job_properties["rule"]
 extra_params["log_base"] = os.path.join(workingdir, "slurm-logs")
-extra_params["log_dir"] = os.path.join(workingdir, "slurm-logs", job_properties["rule"])
-os.makedirs(submission_params["log_dir"], exist_ok=True)
+
+# Prepare job name for log script
+if job_properties["type"] == "single":
+    extra_params["job_name"] = "snakemake." + job_properties["rule"]
+    if "wildcards" in job_properties and len(job_properties["wildcards"] > 0):
+        extra_params["job_name"] += "." + ".".join([key + "=" + file_escape(value) for key,value in job_properties["wildcards"].items()])
+    extra_params["log_dir"] = os.path.join(workingdir, "slurm-logs", job_properties["rule"])
+elif job_properties["type"] == "group":
+    extra_params["job_name"] = "snakemake." + job_properties["groupid"]
+    extra_params["log_dir"] = os.path.join(workingdir, "slurm-logs", job_properties["groupid"])
+else:
+    print("Error: slurm-submit.py doesn't support job type {} yet!".format(job_properties["type"]))
+    sys.exit(1)
+os.makedirs(extra_params["log_dir"], exist_ok=True)
 
 # Set out and err slurm log files
 sbatch_options["output"] = "{log_dir}/{job_name}.%j.out".format(**extra_params)
