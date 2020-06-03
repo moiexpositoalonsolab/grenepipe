@@ -1,0 +1,8 @@
+__default__:
+    account: lczech # your hpc account
+    mail-user: lczech@carnegiescience.edu # your email (optional)
+    partition: vGPU # the partition you use
+    time: 60 # default time (minutes)
+    mem: 5GB # default memory
+    nodes: 1
+    ntasks: 1
