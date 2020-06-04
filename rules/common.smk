@@ -18,11 +18,11 @@ report: "../reports/workflow.rst"
 # We check if snakemake was called with what we call the run directory ("rundir"),
 # e.g., `snakemake --config rundir="my-run"`, which is the target directory to write all files to.
 # If not, we simply write files to the current directory. We explicitly use the run dir instead
-# of the working directory offered by snakamake, as the latter makes ALL paths relative to that dir,
+# of the working directory offered by snakemake, as the latter makes ALL paths relative to that dir,
 # which would mean that we have to re-specify all input file paths as well, and re-load all conda
 # modules, etc...
 #
-# Furthermore, we check if the rundir contains a "confic.yaml" configuration file, and load this
+# Furthermore, we check if the rundir contains a "config.yaml" configuration file, and load this
 # instead of the config.yaml in the main snakemake directory.
 # This is useful to have runs that have different settings, but generally re-use the main setup.
 if "rundir" in config.keys():
