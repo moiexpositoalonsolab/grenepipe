@@ -3,7 +3,7 @@ __default__:
   mail-user: lczech@carnegiescience.edu # your email (optional)
   partition: DPB # the partition you use
   time: 120 # default time (minutes)
-  mem: 5GB # default memory
+  mem: 10GB # default memory
   nodes: 1
   ntasks: 1
 
