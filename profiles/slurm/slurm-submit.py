@@ -10,10 +10,7 @@ import socket
 from snakemake.utils import read_job_properties
 import slurm_utils
 
-# Prepare directory and params for slurm log files
 workingdir = os.getcwd()
-extra_params = {}
-extra_params["log_base"] = os.path.join(workingdir, "slurm-logs")
 
 # cookiecutter arguments
 SBATCH_DEFAULTS = """"""
@@ -44,29 +41,16 @@ sbatch_options.update(slurm_utils.parse_sbatch_defaults(SBATCH_DEFAULTS))
 # 2) cluster_config defaults
 sbatch_options.update(cluster_config["__default__"])
 
-with open( os.path.join(extra_params["log_base"], "slurm-debug.log"), "a") as slurmdbg:
-    slurmdbg.write("J: " + str(job_properties) + "\n")
-    slurmdbg.write("D: " + str(sbatch_options) + "\n")
-
 # 3) Convert resources (no unit conversion!) and threads
 sbatch_options.update(
     slurm_utils.convert_job_properties(job_properties, RESOURCE_MAPPING)
 )
 
-with open( os.path.join(extra_params["log_base"], "slurm-debug.log"), "a") as slurmdbg:
-    slurmdbg.write("P: " + str(sbatch_options) + "\n")
-
 # 4) cluster_config for particular rule
 sbatch_options.update(cluster_config.get(job_properties.get("rule"), {}))
 
-with open( os.path.join(extra_params["log_base"], "slurm-debug.log"), "a") as slurmdbg:
-    slurmdbg.write("R: " + str(sbatch_options) + "\n")
-
 # 5) cluster_config options
 sbatch_options.update(job_properties.get("cluster", {}))
-
-with open( os.path.join(extra_params["log_base"], "slurm-debug.log"), "a") as slurmdbg:
-    slurmdbg.write("C: " + str(sbatch_options) + "\n\n")
 
 # 6) Advanced conversion of parameters
 if ADVANCED_ARGUMENT_CONVERSION:
@@ -75,6 +59,10 @@ if ADVANCED_ARGUMENT_CONVERSION:
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 # Additional features that we want and need.
 # Inspiration from: https://github.com/bnprks/snakemake-slurm-profile
+
+# Prepare directory and params for slurm log files
+extra_params = {}
+extra_params["log_base"] = os.path.join(workingdir, "slurm-logs")
 
 def file_escape(string):
     return string.replace("/", "_").replace(" ", "_")
