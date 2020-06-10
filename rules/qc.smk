@@ -48,15 +48,10 @@ rule multiqc:
         report(config["rundir"] + "qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
     log:
         config["rundir"] + "logs/multiqc.log"
-    group:
-        "qc"
     conda:
         "../envs/multiqc.yaml"
-    script:
-        "../scripts/multiqc.py"
-
-    # wrapper:
-    #     "0.55.1/bio/multiqc"
+    wrapper:
+        "0.55.1/bio/multiqc"
 
 # Rule is not submitted as a job to the cluster.
 localrules: multiqc
