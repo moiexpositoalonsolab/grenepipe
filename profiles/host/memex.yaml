@@ -8,5 +8,5 @@ __default__:
   ntasks: 1
 
 call_variants:
-  mem: 120GB
-  time: ""
+  mem: 0 # A memory size specification of zero grants the job access to all of the memory on each node.
+  time: 0 # A time limit of zero requests that no time limit be imposed
