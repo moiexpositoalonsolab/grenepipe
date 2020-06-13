@@ -8,20 +8,20 @@ __default__:
   ntasks: 1
 
 trim_reads_se:
-  ntasks: 4
+  cpus-per-task: 4
   mem: 1G
   time: 60
 
 trim_reads_pe:
-  ntasks: 4
+  cpus-per-task: 4
   mem: 1G
   time: 60
 
 map_reads:
-  ntasks: 12
+  cpus-per-task: 12
 
 call_variants:
+  cpus-per-task: 2
   mem: 16G # A memory size specification of zero grants the job access to all of the memory on each node.
   time: 1-0 # A time limit of zero requests that no time limit be imposed
   partition: DPB # the partition you use. Use DPB only, as it as inf time limit
-  ntasks: 2
