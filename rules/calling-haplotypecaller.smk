@@ -48,13 +48,8 @@ rule call_variants:
         # Took me a while to figure this one out...
         # Contigs are used as long as no restrict-regions are given in the config file.
         extra=get_gatk_call_variants_params
-    conda:
-        "../envs/gatk.yaml"
-    script:
-        "../scripts/gatk-haplotypecaller.py"
-    # Not using the wrapper, as this randomly fails on the cluster
-    # wrapper:
-    #     "0.51.3/bio/gatk/haplotypecaller"
+    wrapper:
+        "0.51.3/bio/gatk/haplotypecaller"
 
 # =================================================================================================
 #     Combining Calls
