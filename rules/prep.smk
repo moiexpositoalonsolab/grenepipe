@@ -21,7 +21,12 @@ genome=config["data"]["reference"]["genome"]
 if not config["data"]["reference"]["known-variants"]:
     variants=[]
 else:
-    variants=config["data"]["reference"]["known-variants"] + ".gz"
+    variants=config["data"]["reference"]["known-variants"]
+    if os.path.splitext(variants)[1] == ".vcf":
+        variants += ".gz"
+    elif variants[:-7] != ".vcf.gz":
+        raise Error("Invalid known variants file type: " + variants )
+
 genomedir=os.path.dirname(config["data"]["reference"]["genome"]) + "/"
 
 # =================================================================================================
