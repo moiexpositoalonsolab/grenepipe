@@ -73,8 +73,11 @@ wildcard_constraints:
 logger.info("===========================================================================")
 logger.info("    GRENEPIPE")
 logger.info("")
-logger.info("    Current directory:  " + os.getcwd())
+logger.info("    Snakefile:          " + (workflow.snakefile))
+logger.info("    Base directory:     " + (workflow.basedir))
+logger.info("    Working directory:  " + os.getcwd())
 logger.info("    Run directory:      " + (config["rundir"][:-1] if config["rundir"] else os.getcwd()))
+logger.info("    Config files:       " + (", ".join(workflow.configfiles)))
 unitcnt=len(samples.index.get_level_values("unit"))
 if unitcnt == len(sample_names):
     logger.info("    Samples:            " + str(len(sample_names)))
