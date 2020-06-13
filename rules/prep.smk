@@ -20,12 +20,14 @@ include: "common.smk"
 genome=config["data"]["reference"]["genome"]
 if not config["data"]["reference"]["known-variants"]:
     variants=[]
+    variants_index=[]
 else:
     variants=config["data"]["reference"]["known-variants"]
     if os.path.splitext(variants)[1] == ".vcf":
         variants += ".gz"
     elif not variants.endswith(".vcf.gz"):
         raise Exception("Invalid known variants file type: " + variants )
+    variants_index = variants + ".tbi"
 
 genomedir=os.path.dirname(config["data"]["reference"]["genome"]) + "/"
 
@@ -42,12 +44,13 @@ rule preparation:
         sa=genome + ".sa",
         fai=genome + ".fai",
         dict=os.path.splitext(genome)[0] + ".dict",
-        vcf=variants
+        vcf=variants,
+        vcfi=variants_index
     group:
         "prep"
 
 # All of the prep ruls are local. No need to submit 1min jobs to the cluster.
-localrules: preparation, decompress_genome, bwa_index, samtools_faidx, sequence_dictionary, compress_vcf
+localrules: preparation, decompress_genome, bwa_index, samtools_faidx, sequence_dictionary, vcf_compress, vcf_index
 
 # =================================================================================================
 #     Prepare Genome
@@ -121,14 +124,27 @@ rule sequence_dictionary:
         "gatk CreateSequenceDictionary -R {input.base} -O {output} > {log} 2>&1"
 
 # Compress a vcf file using gzip
-rule compress_vcf:
+rule vcf_compress:
     input:
         "{prefix}.vcf"
     output:
         "{prefix}.vcf.gz"
     log:
-        genomedir + "logs/{prefix}.compress_vcf.log"
+        genomedir + "logs/{prefix}.vcf_compress.log"
     group:
         "prep"
     wrapper:
         "0.27.1/bio/vcf/compress"
+
+rule vcf_index:
+    input:
+        "{prefix}.vcf.gz"
+    output:
+        "{prefix}.vcf.gz.tbi"
+    params:
+        # pass arguments to tabix (e.g. index a vcf)
+        "-p vcf"
+    log:
+        genomedir + "logs/{prefix}.vcf_index.log"
+    wrapper:
+        "0.55.1/bio/tabix"
