@@ -88,7 +88,7 @@ params:
   # ----------------------------------------------------------------------
 
   skewer:
-    threads: 6
+    threads: 4
     se: "--mode any"
     pe: "--mode pe"
 
@@ -98,7 +98,7 @@ params:
 
   # Used only if settings:mapping-tool == bwamem
   bwamem:
-    threads: 6
+    threads: 12
 
   # ----------------------------------------------------------------------
   #     bowtie2
@@ -106,7 +106,7 @@ params:
 
   # Used only if settings:mapping-tool == bowtie2
   bowtie2:
-    threads: 6
+    threads: 12
 
   # ----------------------------------------------------------------------
   #     picard
