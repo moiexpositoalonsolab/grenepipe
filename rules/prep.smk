@@ -24,7 +24,7 @@ else:
     variants=config["data"]["reference"]["known-variants"]
     if os.path.splitext(variants)[1] == ".vcf":
         variants += ".gz"
-    elif variants[:-7] != ".vcf.gz":
+    elif not variants.endswith(".vcf.gz"):
         raise Exception("Invalid known variants file type: " + variants )
 
 genomedir=os.path.dirname(config["data"]["reference"]["genome"]) + "/"
