@@ -35,7 +35,7 @@ rule mark_duplicates:
     params:
         config["params"]["picard"]["MarkDuplicates"]
     group:
-        "mapping"
+        "mapping-extra"
     wrapper:
         "0.51.3/bio/picard/markduplicates"
 
@@ -86,7 +86,7 @@ rule recalibrate_base_qualities:
     benchmark:
         config["rundir"] + "benchmarks/gatk/bqsr/{sample}-{unit}.bench.log"
     group:
-        "mapping"
+        "mapping-extra"
     wrapper:
         "0.51.3/bio/gatk/baserecalibrator"
 
@@ -102,7 +102,7 @@ rule bam_index:
     log:
         config["rundir"] + "logs/samtools/index/{prefix}.log"
     group:
-        "mapping"
+        "mapping-extra"
     wrapper:
         "0.51.3/bio/samtools/index"
 
