@@ -10,12 +10,10 @@ __default__:
 
 trim_reads_se:
   mem: 1G
-  time: 60
   cpus-per-task: 4
 
 trim_reads_pe:
   mem: 1G
-  time: 60
   cpus-per-task: 4
 
 map_reads:
