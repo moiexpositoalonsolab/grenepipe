@@ -12,6 +12,11 @@ import slurm_utils
 
 workingdir = os.getcwd()
 
+def write_debug_log(msg):
+    with open( os.path.join(workingdir, "slurm-debug.log"), "a") as debug:
+        now = datetime.datetime.now()
+        debug.write(now.strftime("%Y-%m-%d %H:%M:%S") + "\t" + str(msg) + "\n")
+
 # cookiecutter arguments
 SBATCH_DEFAULTS = """"""
 ADVANCED_ARGUMENT_CONVERSION = {"yes": True, "no": False}["no"]
@@ -37,24 +42,30 @@ cluster_config = slurm_utils.load_cluster_config(CLUSTER_CONFIG)
 
 # 1) sbatch default arguments
 sbatch_options.update(slurm_utils.parse_sbatch_defaults(SBATCH_DEFAULTS))
+write_debug_log( "1\t" + str(sbatch_options))
 
 # 2) cluster_config defaults
 sbatch_options.update(cluster_config["__default__"])
+write_debug_log( "2\t" + str(sbatch_options))
 
 # 3) Convert resources (no unit conversion!) and threads
 sbatch_options.update(
     slurm_utils.convert_job_properties(job_properties, RESOURCE_MAPPING)
 )
+write_debug_log( "3\t" + str(sbatch_options))
 
 # 4) cluster_config for particular rule
 sbatch_options.update(cluster_config.get(job_properties.get("rule"), {}))
+write_debug_log( "4\t" + str(sbatch_options))
 
 # 5) cluster_config options
 sbatch_options.update(job_properties.get("cluster", {}))
+write_debug_log( "5\t" + str(sbatch_options))
 
 # 6) Advanced conversion of parameters
 if ADVANCED_ARGUMENT_CONVERSION:
     sbatch_options = slurm_utils.advanced_argument_conversion(sbatch_options)
+write_debug_log( "6\t" + str(sbatch_options))
 
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 # Additional features that we want and need.
@@ -85,6 +96,7 @@ os.makedirs(extra_params["log_dir"], exist_ok=True)
 sbatch_options["job-name"] = extra_params["job_name"]
 sbatch_options["output"] = "{log_dir}/{job_name}.%j.out".format(**extra_params)
 sbatch_options["error"] = "{log_dir}/{job_name}.%j.err".format(**extra_params)
+write_debug_log( "S\t" + str(sbatch_options) + "\n")
 
 # Write out the submission string. We do not want to rewire too much of this script as of now,
 # so instead we do something ugly and duplicate the code from slurm_utils.submit_job() to re-create
