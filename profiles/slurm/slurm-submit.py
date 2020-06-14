@@ -13,16 +13,18 @@ import slurm_utils
 workingdir = os.getcwd()
 
 def write_debug_log(msg):
-    with open( os.path.join(workingdir, "slurm-debug.log"), "a") as debug:
-        now = datetime.datetime.now()
-        debug.write(now.strftime("%Y-%m-%d %H:%M:%S") + "\t" + str(msg) + "\n")
+    pass
+    # with open( os.path.join(workingdir, "slurm-debug.log"), "a") as debug:
+    #     now = datetime.datetime.now()
+    #     debug.write(now.strftime("%Y-%m-%d %H:%M:%S") + "\t" + str(msg) + "\n")
 
 # cookiecutter arguments
 SBATCH_DEFAULTS = """"""
 ADVANCED_ARGUMENT_CONVERSION = {"yes": True, "no": False}["no"]
 
 # Try to find a cluster config for the current host. If not found, reset to empty config file.
-CLUSTER_CONFIG = os.path.join(workingdir, "profiles/host/" + socket.gethostname().split('.', 1)[0] + ".yaml")
+curfiledir=os.path.dirname(os.path.realpath(__file__))
+CLUSTER_CONFIG = os.path.join(curfiledir, "../host/" + socket.gethostname().split('.', 1)[0] + ".yaml")
 if not os.path.exists(CLUSTER_CONFIG):
     CLUSTER_CONFIG = ""
 
