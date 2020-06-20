@@ -23,5 +23,5 @@ Usage
 Direct usage example: `snakemake --profile profiles/slurm` for the `slurm` profile.
 
 Alternatively, snakemake looks for profiles in `~/.config/snakemake`. Hence, you can also copy
-the `local` or the `slum` subdirectory to that location, and then do not need to specify `--profile`
-when calling snakemake.
+the contents of the `local` or the `slurm` subdirectory to that location, and then do not need to
+specify `--profile` when calling snakemake.
