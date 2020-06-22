@@ -23,5 +23,8 @@ rule map_reads:
         sort_extra=""            # Extra args for samtools/picard.
     threads:
         config["params"]["bwamem"]["threads"]
+    resources:
+        # Increase time limit in factors of 2h, if the job fails due to time limit.
+        time = lambda wildcards, attempt: int(120 * int(attempt))
     wrapper:
         "0.51.3/bio/bwa/mem"

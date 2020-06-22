@@ -29,7 +29,7 @@ if not os.path.exists(CLUSTER_CONFIG):
     CLUSTER_CONFIG = ""
 
 RESOURCE_MAPPING = {
-    "time": ("time", "runtime", "walltime"),
+    "time": ("time", "runtime", "walltime", "time_min"),
     "mem": ("mem", "mem_mb", "ram", "memory"),
     "mem-per-cpu": ("mem-per-cpu", "mem_per_cpu", "mem_per_thread"),
     "nodes": ("nodes", "nnodes")

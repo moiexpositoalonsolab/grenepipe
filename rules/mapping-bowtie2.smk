@@ -53,6 +53,9 @@ rule map_reads:
     threads:
         # Use at least two threads
         config["params"]["bowtie2"]["threads"]
+    resources:
+        # Increase time limit in factors of 2h, if the job fails due to time limit.
+        time = lambda wildcards, attempt: int(120 * int(attempt))
     log:
         config["rundir"] + "logs/bowtie2/{sample}-{unit}.log"
     benchmark:
