@@ -51,6 +51,7 @@ rule call_variants:
         # Took me a while to figure this one out...
         # Contigs are used as long as no restrict-regions are given in the config file.
         extra=get_gatk_call_variants_params
+    shadow: "full"
     wrapper:
         "0.51.3/bio/gatk/haplotypecaller"
 

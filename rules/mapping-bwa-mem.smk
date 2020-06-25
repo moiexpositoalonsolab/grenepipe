@@ -42,5 +42,6 @@ rule map_reads:
     resources:
         # Increase time limit in factors of 2h, if the job fails due to time limit.
         time = lambda wildcards, attempt: int(120 * int(attempt))
+    shadow: "full"
     wrapper:
         "0.51.3/bio/bwa/mem"
