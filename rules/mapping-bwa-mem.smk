@@ -12,16 +12,18 @@
 # automatic deletion can do its job on a per-sample/unit basis.
 rule mk_samtools_sort_tmp_dir:
     output:
-        tmpdir=temp(directory( config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/" ))
+        tmpdir=temp(directory( config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/" )),
+        tmptch=temp(config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/touch.tmp")
     shell:
-        "mkdir -p {output.tmpdir}"
+        "mkdir -p {output.tmpdir}; "
+        "touch {output.tmptch}"
 
 localrules: mk_samtools_sort_tmp_dir
 
 rule map_reads:
     input:
         reads=get_trimmed_reads,
-        tmpdir=config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/"
+        tmptch=config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/touch.tmp"
     output:
         config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
     log:
@@ -38,7 +40,7 @@ rule map_reads:
         sort="samtools",         # Can be 'none', 'samtools' or 'picard'.
         sort_order="coordinate", # Can be 'queryname' or 'coordinate'.
         # Extra args for samtools/picard.
-        sort_extra=" -T {input.tmpdir} "
+        sort_extra=" -T " + config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/"
     threads:
         config["params"]["bwamem"]["threads"]
     resources:
