@@ -2,9 +2,20 @@
 #     Read Mapping
 # =================================================================================================
 
+# samtools sort creates tmp files that are not cleaned up when the cluster job runs out
+# of time, but which cause samtools to immediately terminate if called again, meaning
+# that we cannot run it again with more time. Hence, we need to set a specific tmp dir,
+# which we then clean up here
+rule mk_samtools_sort_tmp_dir:
+    output:
+        tmpdir=temp(directory( config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/" ))
+    shell:
+        "mkdir -p {output.tmpdir}"
+
 rule map_reads:
     input:
-        reads=get_trimmed_reads
+        reads=get_trimmed_reads,
+        tmpdir=temp(directory( config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/" ))
     output:
         config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
     log:
@@ -20,7 +31,8 @@ rule map_reads:
 
         sort="samtools",         # Can be 'none', 'samtools' or 'picard'.
         sort_order="coordinate", # Can be 'queryname' or 'coordinate'.
-        sort_extra=""            # Extra args for samtools/picard.
+        # Extra args for samtools/picard.
+        sort_extra=" -T {input.tmpdir} "
     threads:
         config["params"]["bwamem"]["threads"]
     resources:
