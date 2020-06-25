@@ -19,7 +19,7 @@ rule mk_samtools_sort_tmp_dir:
 rule map_reads:
     input:
         reads=get_trimmed_reads,
-        tmpdir=temp(directory( config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/" ))
+        tmpdir=config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/"
     output:
         config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
     log:
