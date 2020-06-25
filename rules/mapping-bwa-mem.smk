@@ -2,10 +2,14 @@
 #     Read Mapping
 # =================================================================================================
 
-# samtools sort creates tmp files that are not cleaned up when the cluster job runs out
+# `samtools sort` creates tmp files that are not cleaned up when the cluster job runs out
 # of time, but which cause samtools to immediately terminate if called again, meaning
-# that we cannot run it again with more time. Hence, we need to set a specific tmp dir,
-# which we then clean up here
+# that we cannot run it again with more wall time. Hence, we need to set a specific tmp dir,
+# which we then let snakemake clean up for us by marking it as temp. The `samtools sort` manual
+# states that when given an existing directory to the `-T` option to specify the temp output,
+# it uses tmp file names that are unique per run, so we can re-use the same dir for each attempt
+# at least, without collision. But we need to make individual dirs per sample/unit, so that the
+# automatic deletion can do its job on a per-sample/unit basis.
 rule mk_samtools_sort_tmp_dir:
     output:
         tmpdir=temp(directory( config["rundir"] + "mapped/samtools-sort-{sample}-{unit}/" ))
