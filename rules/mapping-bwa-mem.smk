@@ -16,6 +16,8 @@ rule mk_samtools_sort_tmp_dir:
     shell:
         "mkdir -p {output.tmpdir}"
 
+localrules: mk_samtools_sort_tmp_dir
+
 rule map_reads:
     input:
         reads=get_trimmed_reads,
