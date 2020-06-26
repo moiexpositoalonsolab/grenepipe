@@ -26,6 +26,14 @@ rule map_reads:
     resources:
         # Increase time limit in factors of 2h, if the job fails due to time limit.
         time = lambda wildcards, attempt: int(120 * int(attempt))
+
+    # We need a full shadow directory, as `samtools sort` creates a bunch of tmp files that mess
+    # up any later attempts, as `samtools sort` terminates if these files are already present.
+    # We experimented with all kinds of other solutions, such as setting the `-T` option of
+    # `samtools sort` via the `sort_extra` param, and creating and deleting tmp directories for that,
+    # but that fails due to issues with snakemake handling directories instead of files...
+    # The snakemake shadow rule here seems to do the job. At least, if we understood their mediocre
+    # documentation correctly...
     shadow: "full"
     wrapper:
         "0.51.3/bio/bwa/mem"
