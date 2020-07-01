@@ -9,11 +9,7 @@ import gzip
 # a single argument to a `samples.tsv` file or directory containing such a file.
 
 # Get the samples file to parse.
-smpfile = "samples.tsv"
-if len(sys.argv) >= 2:
-    smpfile = sys.argv[1]
-if os.path.isdir( smpfile ):
-    smpfile = os.path.join(smpfile, "samples.tsv")
+smpfile = sys.argv[1]
 print "Summarizing", smpfile, "\n"
 
 # Change to the dir of the sample file, so that we can find sample files relative to it.
