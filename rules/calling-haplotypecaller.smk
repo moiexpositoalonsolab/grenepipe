@@ -59,10 +59,29 @@ rule call_variants:
 #     Combining Calls
 # =================================================================================================
 
+# Stupid GATK sometimes writes out index files, and sometimes not, and it is not clear at all
+# when that is happening and when not. Let's try with a rule, and see if it works even if the file
+# is present sometimes... hopefully snakemake is smart enough for that.
+rule vcf_index_gatk:
+    input:
+        config["rundir"] + "called/{file}.g.vcf.gz"
+    output:
+        config["rundir"] + "called/{file}.g.vcf.gz.tbi"
+    params:
+        # pass arguments to tabix (e.g. index a vcf)
+        "-p vcf"
+    log:
+        config["rundir"] + "logs/tabix/{file}.log"
+    group:
+        "gatk_calls"
+    wrapper:
+        "0.55.1/bio/tabix"
+
 rule combine_calls:
     input:
         ref=config["data"]["reference"]["genome"],
-        gvcfs=expand(config["rundir"] + "called/{sample}.{{contig}}.g.vcf.gz", sample=sample_names)
+        gvcfs=expand(config["rundir"] + "called/{sample}.{{contig}}.g.vcf.gz", sample=sample_names),
+        indices=expand(config["rundir"] + "called/{sample}.{{contig}}.g.vcf.gz.tbi", sample=sample_names)
     output:
         gvcf=temp(config["rundir"] + "called/all.{contig}.g.vcf.gz")
     log:
