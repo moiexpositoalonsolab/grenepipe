@@ -13,10 +13,10 @@ import slurm_utils
 workingdir = os.getcwd()
 
 def write_debug_log(msg):
-    pass
-    # with open( os.path.join(workingdir, "slurm-debug.log"), "a") as debug:
-    #     now = datetime.datetime.now()
-    #     debug.write(now.strftime("%Y-%m-%d %H:%M:%S") + "\t" + str(msg) + "\n")
+    with open( os.path.join(workingdir, "slurm-debug.log"), "a") as debug:
+        now = datetime.datetime.now()
+        debug.write(now.strftime("%Y-%m-%d %H:%M:%S") + "\t" + str(msg) + "\n")
+    # pass
 
 # cookiecutter arguments
 SBATCH_DEFAULTS = """"""
