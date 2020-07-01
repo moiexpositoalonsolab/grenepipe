@@ -1,24 +1,25 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import pandas as pd
 # from tabulate import tabulate
 import os, sys
 import gzip
 
-# Usage: Call with no arguments to load `samples.tsv` from the current dir, or provide
-# a single argument to a `samples.tsv` file or directory containing such a file.
-
 # Get the samples file to parse.
-smpfile = sys.argv[1]
-print "Summarizing", smpfile, "\n"
+smpfile = snakemake.params[0]
+# smpfile = sys.argv[1]
 
-# Change to the dir of the sample file, so that we can find sample files relative to it.
-os.chdir(os.path.dirname(smpfile))
+# sys.stdout = open(snakemake.output[0], 'w')
+# print ("Summarizing", smpfile, "\n")
 
 # Read samples and units table
 samples = pd.read_csv(smpfile, sep='\t', dtype=str)
 # samples = pd.read_csv(smpfile, sep='\t', dtype=str).set_index(["sample", "unit"], drop=False)
 # samples.index = samples.index.set_levels([i.astype(str) for i in samples.index.levels])  # enforce str in index
+
+# Change to the dir of the sample file, so that we can find sample files relative to it.
+olddir=os.getcwd()
+os.chdir(os.path.dirname(smpfile))
 
 # Add the file sizes as
 samples["fq1_size"] = [
@@ -56,5 +57,7 @@ samples["fq2_seqs"] = [
     ) for f in samples["fq2"]
 ]
 
-print samples
+os.chdir(olddir)
+samples.to_csv(snakemake.output[0], index = False)
+# print (samples)
 # print( tabulate( samples ))

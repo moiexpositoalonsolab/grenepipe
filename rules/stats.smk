@@ -51,4 +51,4 @@ rule seqs_per_sample:
     params:
         samples = config["data"]["samples"]
     script:
-        "../scripts/sample-sizes.py {params.samples} > {output}"
+        "../scripts/sample-sizes.py"
