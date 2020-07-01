@@ -21,5 +21,5 @@ map_reads:
 
 call_variants:
   partition: DPB # Use DPB only, as it as inf time limit
-  time: 1-0
+  # time: 1-0 # commented out, since this is set directly by the rule now
   cpus-per-task: 2
