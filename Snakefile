@@ -17,9 +17,10 @@ rule all:
         # Quality control
         config["rundir"] + "qc/multiqc.html",
 
-        # Stats. Deactivated for now, as they run out of memory for our dataset
+        # Stats. Some deactivated for now, as they run out of memory for our dataset
         # config["rundir"] + "plots/depths.svg",
-        # config["rundir"] + "plots/allele-freqs.svg"
+        # config["rundir"] + "plots/allele-freqs.svg,"
+        config["rundir"] + "tables/sample-sizes.tsv"
 
 # The main `all` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.

@@ -49,6 +49,6 @@ rule seqs_per_sample:
     output:
         config["rundir"] + "tables/sample-sizes.tsv"
     params:
-        samples: config["data"]["samples"]
+        samples = config["data"]["samples"]
     script:
         "../scripts/sample-sizes.py {params.samples} > {output}"
