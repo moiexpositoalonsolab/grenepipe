@@ -8,19 +8,19 @@ def get_vartype_arg(wildcards):
 rule select_calls:
     input:
         ref=config["data"]["reference"]["genome"],
-        vcf=config["rundir"] + "genotyped/all.vcf.gz",
+        vcf="genotyped/all.vcf.gz",
 
         # bcftools does not automatically create vcf index files, so we need to specifically request them...
         # ... but the picard merge tool that we use right now does create tbi files, so all good atm.
-        # tbi=config["rundir"] + "genotyped/all.vcf.gz.tbi" if config["settings"]["calling-tool"] == "bcftools" else []
+        # tbi="genotyped/all.vcf.gz.tbi" if config["settings"]["calling-tool"] == "bcftools" else []
     output:
-        vcf=temp(config["rundir"] + "filtered/all.select-{vartype}.vcf.gz")
+        vcf=temp("filtered/all.select-{vartype}.vcf.gz")
     params:
         extra=get_vartype_arg
     log:
-        config["rundir"] + "logs/gatk/selectvariants/{vartype}.log"
+        "logs/gatk/selectvariants/{vartype}.log"
     benchmark:
-        config["rundir"] + "benchmarks/gatk/selectvariants/{vartype}.bench.log"
+        "benchmarks/gatk/selectvariants/{vartype}.bench.log"
     group:
         "filtering"
     wrapper:
@@ -37,15 +37,15 @@ def get_filter(wildcards):
 rule hard_filter_calls:
     input:
         ref=config["data"]["reference"]["genome"],
-        vcf=config["rundir"] + "filtered/all.select-{vartype}.vcf.gz"
+        vcf="filtered/all.select-{vartype}.vcf.gz"
     output:
-        vcf=temp(config["rundir"] + "filtered/all.{vartype}.hardfiltered.vcf.gz")
+        vcf=temp("filtered/all.{vartype}.hardfiltered.vcf.gz")
     params:
         filters=get_filter
     log:
-        config["rundir"] + "logs/gatk/variantfiltration/{vartype}.log"
+        "logs/gatk/variantfiltration/{vartype}.log"
     benchmark:
-        config["rundir"] + "benchmarks/gatk/variantfiltration/{vartype}.bench.log"
+        "benchmarks/gatk/variantfiltration/{vartype}.bench.log"
     group:
         "filtering"
     wrapper:
@@ -55,15 +55,15 @@ rule hard_filter_calls:
 # To use this, set the settings:vqsr switch to true in the config.yaml
 rule recalibrate_calls:
     input:
-        vcf=config["rundir"] + "filtered/all.select-{vartype}.vcf.gz"
+        vcf="filtered/all.select-{vartype}.vcf.gz"
     output:
-        vcf=temp(config["rundir"] + "filtered/all.{vartype}.recalibrated.vcf.gz")
+        vcf=temp("filtered/all.{vartype}.recalibrated.vcf.gz")
     params:
         extra=config["params"]["gatk"]["VariantRecalibrator"]
     log:
-        config["rundir"] + "logs/gatk/variantrecalibrator/{vartype}.log"
+        "logs/gatk/variantrecalibrator/{vartype}.log"
     benchmark:
-        config["rundir"] + "benchmarks/gatk/variantrecalibrator/{vartype}.bench.log"
+        "benchmarks/gatk/variantrecalibrator/{vartype}.bench.log"
     group:
         "filtering"
     wrapper:
@@ -75,15 +75,15 @@ rule recalibrate_calls:
 
 rule merge_calls:
     input:
-        vcf=expand(config["rundir"] + "filtered/all.{vartype}.{filtertype}.vcf.gz",
+        vcf=expand("filtered/all.{vartype}.{filtertype}.vcf.gz",
                    vartype=["snvs", "indels"],
                    filtertype="recalibrated" if config["settings"]["vqsr"] else "hardfiltered")
     output:
-        vcf=protected(config["rundir"] + "filtered/all.vcf.gz")
+        vcf=protected("filtered/all.vcf.gz")
     log:
-        config["rundir"] + "logs/picard/merge-filtered.log"
+        "logs/picard/merge-filtered.log"
     benchmark:
-        config["rundir"] + "benchmarks/picard/merge-filtered.bench.log"
+        "benchmarks/picard/merge-filtered.bench.log"
     group:
         "filtering"
     wrapper:

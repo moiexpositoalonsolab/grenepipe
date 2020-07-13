@@ -33,13 +33,13 @@ rule call_variants:
         bai=get_sample_bais_wildcard,
         ref=config["data"]["reference"]["genome"],
         known=config["data"]["reference"].get("known-variants"), # empty if key not present
-        regions=config["rundir"] + "called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
     output:
-        gvcf=protected(config["rundir"] + "called/{sample}.{contig}.g.vcf.gz")
+        gvcf=protected("called/{sample}.{contig}.g.vcf.gz")
     log:
-        config["rundir"] + "logs/gatk/haplotypecaller/{sample}.{contig}.log"
+        "logs/gatk/haplotypecaller/{sample}.{contig}.log"
     benchmark:
-        config["rundir"] + "benchmarks/gatk/haplotypecaller/{sample}.{contig}.bench.log"
+        "benchmarks/gatk/haplotypecaller/{sample}.{contig}.bench.log"
     threads:
         # Need to set threads here so that snakemake can plan the job scheduling properly
         config["params"]["gatk"]["HaplotypeCaller-threads"]
@@ -64,14 +64,14 @@ rule call_variants:
 # is present sometimes... hopefully snakemake is smart enough for that.
 rule vcf_index_gatk:
     input:
-        config["rundir"] + "called/{file}.g.vcf.gz"
+        "called/{file}.g.vcf.gz"
     output:
-        config["rundir"] + "called/{file}.g.vcf.gz.tbi"
+        "called/{file}.g.vcf.gz.tbi"
     params:
         # pass arguments to tabix (e.g. index a vcf)
         "-p vcf"
     log:
-        config["rundir"] + "logs/tabix/{file}.log"
+        "logs/tabix/{file}.log"
     group:
         "gatk_calls"
     wrapper:
@@ -80,14 +80,14 @@ rule vcf_index_gatk:
 rule combine_calls:
     input:
         ref=config["data"]["reference"]["genome"],
-        gvcfs=expand(config["rundir"] + "called/{sample}.{{contig}}.g.vcf.gz", sample=sample_names),
-        indices=expand(config["rundir"] + "called/{sample}.{{contig}}.g.vcf.gz.tbi", sample=sample_names)
+        gvcfs=expand("called/{sample}.{{contig}}.g.vcf.gz", sample=sample_names),
+        indices=expand("called/{sample}.{{contig}}.g.vcf.gz.tbi", sample=sample_names)
     output:
-        gvcf=temp(config["rundir"] + "called/all.{contig}.g.vcf.gz")
+        gvcf=temp("called/all.{contig}.g.vcf.gz")
     log:
-        config["rundir"] + "logs/gatk/combine-gvcfs/{contig}.log"
+        "logs/gatk/combine-gvcfs/{contig}.log"
     benchmark:
-        config["rundir"] + "benchmarks/gatk/combine-gvcfs/{contig}.bench.log"
+        "benchmarks/gatk/combine-gvcfs/{contig}.bench.log"
     group:
         "gatk_calls"
     wrapper:
@@ -96,15 +96,15 @@ rule combine_calls:
 rule genotype_variants:
     input:
         ref=config["data"]["reference"]["genome"],
-        gvcf=config["rundir"] + "called/all.{contig}.g.vcf.gz"
+        gvcf="called/all.{contig}.g.vcf.gz"
     output:
-        vcf=temp(config["rundir"] + "genotyped/all.{contig}.vcf.gz")
+        vcf=temp("genotyped/all.{contig}.vcf.gz")
     params:
         extra=config["params"]["gatk"]["GenotypeGVCFs"]
     log:
-        config["rundir"] + "logs/gatk/genotype-gvcfs/{contig}.log"
+        "logs/gatk/genotype-gvcfs/{contig}.log"
     benchmark:
-        config["rundir"] + "benchmarks/gatk/genotype-gvcfs/{contig}.bench.log"
+        "benchmarks/gatk/genotype-gvcfs/{contig}.bench.log"
     group:
         "gatk_calls"
     wrapper:
@@ -117,12 +117,12 @@ rule genotype_variants:
 rule merge_variants:
     input:
         ref=get_fai(), # fai is needed to calculate aggregation over contigs below
-        vcfs=lambda w: expand(config["rundir"] + "genotyped/all.{contig}.vcf.gz", contig=get_contigs())
+        vcfs=lambda w: expand("genotyped/all.{contig}.vcf.gz", contig=get_contigs())
     output:
-        vcf=config["rundir"] + "genotyped/all.vcf.gz"
+        vcf="genotyped/all.vcf.gz"
     log:
-        config["rundir"] + "logs/picard/merge-genotyped.log"
+        "logs/picard/merge-genotyped.log"
     benchmark:
-        config["rundir"] + "benchmarks/picard/merge-genotyped.bench.log"
+        "benchmarks/picard/merge-genotyped.bench.log"
     wrapper:
         "0.51.3/bio/picard/mergevcfs"

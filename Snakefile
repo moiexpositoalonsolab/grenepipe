@@ -10,17 +10,17 @@ include: "rules/common.smk"
 rule all:
     input:
         # Basic steps
-        config["rundir"] + "genotyped/all.vcf.gz",
-        config["rundir"] + "filtered/all.vcf.gz",
-        config["rundir"] + "annotated/all.vcf.gz",
+        "genotyped/all.vcf.gz",
+        "filtered/all.vcf.gz",
+        "annotated/all.vcf.gz",
 
         # Quality control
-        config["rundir"] + "qc/multiqc.html",
+        "qc/multiqc.html",
 
         # Stats. Some deactivated for now, as they run out of memory for our dataset
-        # config["rundir"] + "plots/depths.svg",
-        # config["rundir"] + "plots/allele-freqs.svg,"
-        config["rundir"] + "tables/sample-sizes.tsv"
+        # "plots/depths.svg",
+        # "plots/allele-freqs.svg,"
+        "tables/sample-sizes.tsv"
 
 # The main `all` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.

@@ -13,13 +13,13 @@ rule call_variants:
         indices=get_all_bais(),
 
         # If we use restricted regions, set them here
-        regions=config["rundir"] + "called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
     output:
-        pipe(config["rundir"] + "called/{contig}.vcf")
+        pipe("called/{contig}.vcf")
     log:
-        config["rundir"] + "logs/freebayes/{contig}.log"
+        "logs/freebayes/{contig}.log"
     benchmark:
-        config["rundir"] + "benchmarks/freebayes/{contig}.bench.log"
+        "benchmarks/freebayes/{contig}.bench.log"
     params:
         extra=config["params"]["freebayes"]["extra"],         # optional parameters
         chunksize=config["params"]["freebayes"]["chunksize"]  # reference genome chunk size for parallelization (default: 100000)
@@ -32,11 +32,11 @@ rule call_variants:
 # an unfortunate detour via vcf, and compress on-the-fly using a piped rule from above.
 rule compress_vcf:
     input:
-        config["rundir"] + "called/{contig}.vcf"
+        "called/{contig}.vcf"
     output:
-        protected(config["rundir"] + "called/{contig}.vcf.gz")
+        protected("called/{contig}.vcf.gz")
     log:
-        config["rundir"] + "logs/compress_vcf/{contig}.log"
+        "logs/compress_vcf/{contig}.log"
     conda:
         "../envs/tabix.yaml"
     threads:
@@ -55,12 +55,12 @@ rule merge_variants:
         ref=get_fai(), # fai is needed to calculate aggregation over contigs below
 
         # The wrapper expects input to be called `vcfs`, but we can use `vcf.gz` as well.
-        vcfs=lambda w: expand(config["rundir"] + "called/{contig}.vcf.gz", contig=get_contigs())
+        vcfs=lambda w: expand("called/{contig}.vcf.gz", contig=get_contigs())
     output:
-        vcf=config["rundir"] + "genotyped/all.vcf.gz"
+        vcf="genotyped/all.vcf.gz"
     log:
-        config["rundir"] + "logs/picard/merge-genotyped.log"
+        "logs/picard/merge-genotyped.log"
     benchmark:
-        config["rundir"] + "benchmarks/picard/merge-genotyped.bench.log"
+        "benchmarks/picard/merge-genotyped.bench.log"
     wrapper:
         "0.51.3/bio/picard/mergevcfs"

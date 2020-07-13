@@ -31,9 +31,9 @@ rule call_variants:
 
         # If we use restricted regions, set them here. If not, empty, which will propagate to the
         # get_mpileup_params function as well
-        regions=config["rundir"] + "called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
     output:
-        vcf=protected(config["rundir"] + "called/{contig}.vcf.gz")
+        vcf=protected("called/{contig}.vcf.gz")
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
         mpileup=get_mpileup_params,
@@ -41,9 +41,9 @@ rule call_variants:
         # Optional parameters for bcftools call (except -v, -o, -m).
         call=config["params"]["bcftools"]["call"]
     log:
-        config["rundir"] + "logs/bcftools/call-{contig}.log"
+        "logs/bcftools/call-{contig}.log"
     benchmark:
-        config["rundir"] + "benchmarks/bcftools/call-{contig}.bench.log"
+        "benchmarks/bcftools/call-{contig}.bench.log"
     conda:
         "../envs/bcftools.yaml"
     threads:
@@ -68,11 +68,11 @@ rule call_variants:
 # Cannot use bcftools concat, as it does not except vcf/bcf files without any calls in them.
 # rule merge_variants:
 #     input:
-#         calls=lambda w: expand(config["rundir"] + "called/{contig}.bcf", contig=get_contigs())
+#         calls=lambda w: expand("called/{contig}.bcf", contig=get_contigs())
 #     output:
-#         config["rundir"] + "genotyped/all.vcf.gz"
+#         "genotyped/all.vcf.gz"
 #     log:
-#         config["rundir"] + "logs/bcftools/concat.log"
+#         "logs/bcftools/concat.log"
 #     params:
 #         # optional parameters for bcftools concat (except -o)
 #         "--output-type z " + config["params"]["bcftools"]["call"]
@@ -84,13 +84,13 @@ rule merge_variants:
         ref=get_fai(), # fai is needed to calculate aggregation over contigs below
 
         # The wrapper expects input to be called `vcfs`, but we can use `vcf.gz` as well.
-        vcfs=lambda w: expand(config["rundir"] + "called/{contig}.vcf.gz", contig=get_contigs())
+        vcfs=lambda w: expand("called/{contig}.vcf.gz", contig=get_contigs())
     output:
-        vcf=config["rundir"] + "genotyped/all.vcf.gz"
+        vcf="genotyped/all.vcf.gz"
     log:
-        config["rundir"] + "logs/picard/merge-genotyped.log"
+        "logs/picard/merge-genotyped.log"
     benchmark:
-        config["rundir"] + "benchmarks/picard/merge-genotyped.bench.log"
+        "benchmarks/picard/merge-genotyped.bench.log"
     wrapper:
         "0.51.3/bio/picard/mergevcfs"
 
@@ -105,6 +105,6 @@ rule merge_variants:
 #         # pass arguments to tabix (e.g. index a vcf)
 #         "-p vcf"
 #     log:
-#             config["rundir"] + "logs/tabix/{prefix}.log"
+#             "logs/tabix/{prefix}.log"
 #     wrapper:
 #         "0.55.1/bio/tabix"

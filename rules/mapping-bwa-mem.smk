@@ -6,11 +6,11 @@ rule map_reads:
     input:
         reads=get_trimmed_reads
     output:
-        config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
+        "mapped/{sample}-{unit}.sorted.bam"
     log:
-        config["rundir"] + "logs/bwa-mem/{sample}-{unit}.log"
+        "logs/bwa-mem/{sample}-{unit}.log"
     benchmark:
-        config["rundir"] + "benchmarks/bwa-mem/{sample}-{unit}.bench.log"
+        "benchmarks/bwa-mem/{sample}-{unit}.bench.log"
     params:
         index=config["data"]["reference"]["genome"],
 

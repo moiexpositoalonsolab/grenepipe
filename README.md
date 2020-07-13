@@ -7,6 +7,7 @@ Input:
   - Reference genome
   - Per-sample `fastq` files, either single end or paired end, and potentially with multiple units,
     that is, different sequencing runs or multiple lanes per sample
+  - Optionally, a vcf file of known variants to restrict the variant calling process.
 
 Process:
   - Read trimming
@@ -72,25 +73,44 @@ for the whole pipeline.
 ### Advanced Usage
 
 The above call will produce output files in the main directory. This might get crowded.
-We hence offer a convenient run directory (`rundir`), into which all output is written:
+Also, one might want to use different configurations, i.e., different sets of input data,
+different choices of tools and their parameters, etc.
 
-    snakemake --cores 6 --use-conda --config rundir=my-test
+Hence, the snakemake `--directory` can be set, from which the config file is read and to which
+output files are written:
 
-This writes all output into `my-test` instead.
+    --directory my-test
 
-Furthermore, the `rundir` can also contain its own copy of of the `config.yaml`.
-In that case, the configuration file in the main directory is ignored, and this run-specific
-configuration is used instead. This is useful if one wants to test different mapping or calling
-tools, or see the effect of different parameters for these tools. Simply copy the config into
-a subdirectory, edit as needed, and use that subdirectory as `rundir`.
+Caveat: With that setup, snakemake unfortunately stores all conda environments inside the specified
+directory. That means, all conda environments are downloaded again and again for each `--directory`
+that we use. This is of course not desirable (and it is mysterious why snakemake behaves that way),
+so let's avoid that by setting
+
+    --conda-prefix /path/to/some/stable/conda/directory
+
+This setup also allows to run snakemake with different datasets at the same time, e.g,
+in a cluster environment.
+
+### Cluster Environments
+
+To fully leverage cluster environments, rules can be executed as individual jobs in parallel.
+Snakemake provides so-called [profiles](https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles)
+to wrap the configurations necessary for each cluster enviroment.
+
+For our purposes, we have adapted and refined the [slurm profile](https://github.com/Snakemake-Profiles/slurm),
+which can be activated by calling
+
+    --profile profiles/slurm
+
+See the [profiles readme](profiles/README.md) for details.
 
 ### Report
 
 We also offer to automatically generate a Snakemake report for a run of the pipeline
 
-    snakemake --config rundir=my-test --report my-test/report.html
+    snakemake --directory my-test --report my-test/report.html
 
-This can of course also be used without the `rundir`.
+This can of course also be used without the `--directory` option.
 
 For this to work, the Python packages networkx and pygraphviz must be installed:
 

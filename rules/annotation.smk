@@ -13,7 +13,7 @@ rule snpeff_db:
         # wildcard {reference} may be anything listed in the first column of `snpeff databases`
         directory(get_snpeff_db_path() + "{reference}")
     log:
-        config["rundir"] + "logs/snpeff-download-{reference}.log"
+        "logs/snpeff-download-{reference}.log"
     group:
         "snpeff"
     params:
@@ -31,21 +31,21 @@ localrules: snpeff_db
 rule snpeff:
     input:
         # (vcf, bcf, or vcf.gz)
-        calls=config["rundir"] + "filtered/all.vcf.gz",
+        calls="filtered/all.vcf.gz",
 
         # path to reference db downloaded with the snpeff download wrapper above
         db=get_snpeff_db_path() + config["data"]["reference"]["name"]
     output:
         # annotated calls (vcf, bcf, or vcf.gz)
-        calls=report(config["rundir"] + "annotated/all.vcf.gz", caption="../reports/vcf.rst", category="Calls"),
+        calls=report("annotated/all.vcf.gz", caption="../reports/vcf.rst", category="Calls"),
 
         # summary statistics (in HTML), optional
-        stats=report(config["rundir"] + "snpeff/all.html", category="Calls"),
+        stats=report("snpeff/all.html", category="Calls"),
 
         # summary statistics in CSV, optional
-        csvstats=config["rundir"] + "snpeff/all.csv"
+        csvstats="snpeff/all.csv"
     log:
-        config["rundir"] + "logs/snpeff.log"
+        "logs/snpeff.log"
     group:
         "snpeff"
     params:

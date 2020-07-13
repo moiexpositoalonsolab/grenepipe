@@ -4,11 +4,11 @@
 
 rule vcf_to_tsv:
     input:
-        config["rundir"] + "annotated/all.vcf.gz"
+        "annotated/all.vcf.gz"
     output:
-        report(config["rundir"] + "tables/calls.tsv.gz", caption="../reports/calls.rst", category="Calls")
+        report("tables/calls.tsv.gz", caption="../reports/calls.rst", category="Calls")
     log:
-        config["rundir"] + "logs/vcf_to_tsv.log"
+        "logs/vcf_to_tsv.log"
     conda:
         "../envs/rbt.yaml"
     group:
@@ -28,12 +28,12 @@ rule vcf_to_tsv:
 
 rule plot_stats:
     input:
-        config["rundir"] + "tables/calls.tsv.gz"
+        "tables/calls.tsv.gz"
     output:
-        depths=report(config["rundir"] + "plots/depths.svg", caption="../reports/depths.rst", category="Plots"),
-        freqs=report(config["rundir"] + "plots/allele-freqs.svg", caption="../reports/freqs.rst", category="Plots")
+        depths=report("plots/depths.svg", caption="../reports/depths.rst", category="Plots"),
+        freqs=report("plots/allele-freqs.svg", caption="../reports/freqs.rst", category="Plots")
     log:
-        config["rundir"] + "logs/plot-depths.log"
+        "logs/plot-depths.log"
     conda:
         "../envs/stats.yaml"
     group:
@@ -47,7 +47,7 @@ rule plot_stats:
 
 rule seqs_per_sample:
     output:
-        config["rundir"] + "tables/sample-sizes.tsv"
+        "tables/sample-sizes.tsv"
     params:
         samples = config["data"]["samples"]
     script:

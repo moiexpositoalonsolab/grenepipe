@@ -24,14 +24,14 @@ else:
 
 rule mark_duplicates:
     input:
-        config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
+        "mapped/{sample}-{unit}.sorted.bam"
     output:
-        bam=config["rundir"] + "dedup/{sample}-{unit}.bam",
-        metrics=config["rundir"] + "qc/dedup/{sample}-{unit}.metrics.txt"
+        bam="dedup/{sample}-{unit}.bam",
+        metrics="qc/dedup/{sample}-{unit}.metrics.txt"
     log:
-        config["rundir"] + "logs/picard/dedup/{sample}-{unit}.log"
+        "logs/picard/dedup/{sample}-{unit}.log"
     benchmark:
-        config["rundir"] + "benchmarks/picard/dedup/{sample}-{unit}.bench.log"
+        "benchmarks/picard/dedup/{sample}-{unit}.bench.log"
     params:
         config["params"]["picard"]["MarkDuplicates"]
     group:
@@ -45,11 +45,11 @@ rule mark_duplicates:
 
 def get_recal_input(bai=False):
     # case 1: no duplicate removal
-    f = config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
+    f = "mapped/{sample}-{unit}.sorted.bam"
 
     if config["settings"]["remove-duplicates"]:
         # case 2: remove duplicates
-        f = config["rundir"] + "dedup/{sample}-{unit}.bam"
+        f = "dedup/{sample}-{unit}.bam"
 
     if bai:
         if config["settings"].get("restrict-regions"):
@@ -78,13 +78,13 @@ rule recalibrate_base_qualities:
         ref=config["data"]["reference"]["genome"],
         known=config["data"]["reference"].get("known-variants") # empty if key not present
     output:
-        bam=protected(config["rundir"] + "recal/{sample}-{unit}.bam")
+        bam=protected("recal/{sample}-{unit}.bam")
     params:
         extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"]
     log:
-        config["rundir"] + "logs/gatk/bqsr/{sample}-{unit}.log"
+        "logs/gatk/bqsr/{sample}-{unit}.log"
     benchmark:
-        config["rundir"] + "benchmarks/gatk/bqsr/{sample}-{unit}.bench.log"
+        "benchmarks/gatk/bqsr/{sample}-{unit}.bench.log"
     group:
         "mapping-extra"
     wrapper:
@@ -96,11 +96,11 @@ rule recalibrate_base_qualities:
 
 rule bam_index:
     input:
-        config["rundir"] + "{prefix}.bam"
+        "{prefix}.bam"
     output:
-        config["rundir"] + "{prefix}.bam.bai"
+        "{prefix}.bam.bai"
     log:
-        config["rundir"] + "logs/samtools/index/{prefix}.log"
+        "logs/samtools/index/{prefix}.log"
     group:
         "mapping-extra"
     wrapper:
@@ -115,15 +115,15 @@ rule bam_index:
 
 def get_mapping_result(bai=False):
     # case 1: no duplicate removal
-    f = config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
+    f = "mapped/{sample}-{unit}.sorted.bam"
 
     # case 2: remove duplicates
     if config["settings"]["remove-duplicates"]:
-        f = config["rundir"] + "dedup/{sample}-{unit}.bam"
+        f = "dedup/{sample}-{unit}.bam"
 
     # case 3: recalibrate base qualities
     if config["settings"]["recalibrate-base-qualities"]:
-        f = config["rundir"] + "recal/{sample}-{unit}.bam"
+        f = "recal/{sample}-{unit}.bam"
 
     # Additionally, this function is run for getting bai files as well
     if bai:

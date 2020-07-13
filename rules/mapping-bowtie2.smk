@@ -42,7 +42,7 @@ rule map_reads:
         bowtie_rev1=config["data"]["reference"]["genome"] + ".rev.1.bt2",
         bowtie_rev2=config["data"]["reference"]["genome"] + ".rev.2.bt2"
     output:
-        pipe(config["rundir"] + "mapped/{sample}-{unit}.bam")
+        pipe("mapped/{sample}-{unit}.bam")
     params:
         # Prefix of reference genome index (built with bowtie2-build)
         index=config["data"]["reference"]["genome"],
@@ -57,9 +57,9 @@ rule map_reads:
         # Increase time limit in factors of 2h, if the job fails due to time limit.
         time = lambda wildcards, attempt: int(120 * int(attempt))
     log:
-        config["rundir"] + "logs/bowtie2/{sample}-{unit}.log"
+        "logs/bowtie2/{sample}-{unit}.log"
     benchmark:
-        config["rundir"] + "benchmarks/bowtie2/{sample}-{unit}.bench.log"
+        "benchmarks/bowtie2/{sample}-{unit}.bench.log"
     group:
         "mapping"
     wrapper:
@@ -70,15 +70,15 @@ rule map_reads:
 # At least, we can pipe the files from above to here, so this should not slow us down.
 rule sort_reads:
     input:
-        config["rundir"] + "mapped/{sample}-{unit}.bam"
+        "mapped/{sample}-{unit}.bam"
     output:
-        config["rundir"] + "mapped/{sample}-{unit}.sorted.bam"
+        "mapped/{sample}-{unit}.sorted.bam"
     params:
         "-m 4G"
     threads:  # Samtools takes additional threads through its option -@
         1     # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
-        config["rundir"] + "logs/samtools/sort/{sample}-{unit}.log"
+        "logs/samtools/sort/{sample}-{unit}.log"
     group:
         "mapping"
     wrapper:

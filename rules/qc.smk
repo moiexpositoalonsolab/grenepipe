@@ -6,12 +6,12 @@ rule fastqc:
     input:
         unpack(get_fastq)
     output:
-        html=config["rundir"] + "qc/fastqc/{sample}-{unit}.html",
-        zip=config["rundir"] + "qc/fastqc/{sample}-{unit}.zip"
+        html="qc/fastqc/{sample}-{unit}.html",
+        zip="qc/fastqc/{sample}-{unit}.zip"
     log:
-        config["rundir"] + "logs/fastqc/{sample}-{unit}.log"
+        "logs/fastqc/{sample}-{unit}.log"
     benchmark:
-        config["rundir"] + "benchmarks/fastqc/{sample}-{unit}.bench.log"
+        "benchmarks/fastqc/{sample}-{unit}.bench.log"
     group:
         "qc"
     wrapper:
@@ -21,11 +21,11 @@ rule samtools_stats:
     input:
         get_mapping_result()
     output:
-        config["rundir"] + "qc/samtools-stats/{sample}-{unit}.txt"
+        "qc/samtools-stats/{sample}-{unit}.txt"
     log:
-        config["rundir"] + "logs/samtools-stats/{sample}-{unit}.log"
+        "logs/samtools-stats/{sample}-{unit}.log"
     benchmark:
-        config["rundir"] + "benchmarks/samtools-stats/{sample}-{unit}.bench.log"
+        "benchmarks/samtools-stats/{sample}-{unit}.bench.log"
     group:
         "qc"
     wrapper:
@@ -40,14 +40,14 @@ rule samtools_stats:
 # Hence, we here do not use the wrapper, but instead call the command manually.
 rule multiqc:
     input:
-        expand(config["rundir"] + "qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
-        expand(config["rundir"] + "qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
-        expand(config["rundir"] + "qc/dedup/{u.sample}-{u.unit}.metrics.txt", u=samples.itertuples()),
-        config["rundir"] + "snpeff/all.csv"
+        expand("qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
+        expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
+        expand("qc/dedup/{u.sample}-{u.unit}.metrics.txt", u=samples.itertuples()),
+        "snpeff/all.csv"
     output:
-        report(config["rundir"] + "qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
+        report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
     log:
-        config["rundir"] + "logs/multiqc.log"
+        "logs/multiqc.log"
     conda:
         "../envs/multiqc.yaml"
     wrapper:
