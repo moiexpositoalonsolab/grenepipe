@@ -19,7 +19,7 @@ rule all:
 
         # Stats. Some deactivated for now, as they run out of memory for our dataset
         # "plots/depths.svg",
-        # "plots/allele-freqs.svg,"
+        # "plots/allele-freqs.svg",
         "tables/sample-sizes.tsv"
 
 # The main `all` rule is local. It does not do anything anyway,

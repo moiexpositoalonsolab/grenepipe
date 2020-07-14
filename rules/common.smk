@@ -7,6 +7,7 @@ import os
 
 # Ensure min Snakemake version
 snakemake.utils.min_version("5.7")
+basedir = workflow.basedir
 
 # =================================================================================================
 #     Basic Configuration

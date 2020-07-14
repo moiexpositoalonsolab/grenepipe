@@ -39,7 +39,7 @@ rule plot_stats:
     group:
         "stats"
     script:
-        "{workflow.basedir}/scripts/plot-depths.py"
+        basedir + "/scripts/plot-depths.py"
 
 # =================================================================================================
 #     Sequences per Sample
@@ -51,4 +51,4 @@ rule seqs_per_sample:
     params:
         samples = config["data"]["samples"]
     script:
-        "{workflow.basedir}/scripts/sample-sizes.py"
+        basedir + "/scripts/sample-sizes.py"
