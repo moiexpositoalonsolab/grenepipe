@@ -34,7 +34,7 @@ properties:
         type: boolean
       trimming-tool:
         type: string
-        enum: ["trimmomatic", "skewer"]
+        enum: ["cutadapt", "trimmomatic", "skewer"]
       mapping-tool:
         type: string
         enum: ["bwamem", "bowtie2"]

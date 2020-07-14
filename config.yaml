@@ -2,7 +2,7 @@
 #     Input Data
 # =================================================================================================
 
-# Set the input data, using file paths relative to the main snakemake directory
+# Set the input data, using file paths relative to the directory where this config file is located.
 data:
 
   # Input table that lists all samples with their units and fastq files.
@@ -33,8 +33,8 @@ settings:
   recalibrate-base-qualities: false
 
   # Select the tool used for read trimming.
-  # Valid values: "trimmomatic", "skewer"
-  trimming-tool: "trimmomatic"
+  # Valid values: "cutadapt", "trimmomatic", "skewer"
+  trimming-tool: "skewer"
 
   # Select the tool used for read mapping.
   # Valid values: "bwamem", "bowtie2"
@@ -63,19 +63,39 @@ settings:
 params:
 
   # ----------------------------------------------------------------------
+  #     cutadapt
+  # ----------------------------------------------------------------------
+
+  cutadapt:
+    threads: 4
+
+    # See cutadapt manual:
+    # https://cutadapt.readthedocs.io/en/stable/guide.html#adapter-types
+    # Set params for single end files end such as "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC -q 20" here.
+    se: ""
+
+    # Set params for paired end files end such as
+    # adapters: "-a AGAGCACACGTCTGAACTCCAGTCAC -g AGATCGGAAGAGCACACGT -A AGAGCACACGTCTGAACTCCAGTCAC -G AGATCGGAAGAGCACACGT"
+    # others: "--minimum-length 1 -q 20"
+    # https://cutadapt.readthedocs.io/en/stable/guide.html
+    pe:
+      adapters: ""
+      others: ""
+
+  # ----------------------------------------------------------------------
   #     trimmomatic
   # ----------------------------------------------------------------------
 
   trimmomatic:
     threads: 6
-    pe:
+    se:
       trimmer:
         # See trimmomatic manual for adding additional options, e.g. for adapter trimming.
         - "LEADING:3"
         - "TRAILING:3"
         - "SLIDINGWINDOW:4:15"
         - "MINLEN:36"
-    se:
+    pe:
       trimmer:
         # See trimmomatic manual for adding additional options, e.g. for adapter trimming.
         - "LEADING:3"
