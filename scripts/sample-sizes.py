@@ -19,21 +19,22 @@ samples = pd.read_csv(smpfile, sep='\t', dtype=str)
 
 # Change to the dir of the sample file, so that we can find sample files relative to it.
 olddir=os.getcwd()
-os.chdir(os.path.dirname(smpfile))
+os.chdir(os.path.dirname(smpfile) if os.path.dirname(smpfile) else ".")
 
 # Add the file sizes as
 samples["fq1_size"] = [
-    os.path.getsize(str(f))
-    if os.path.isfile(str(f))
-    else os.path.getsize("../" + str(f))
-    for f in samples["fq1"]
-]
-samples["fq2_size"] = [
-    os.path.getsize(str(f))
+    (os.path.getsize(str(f))
     if os.path.isfile(str(f))
     else (
         os.path.getsize("../" + str(f)) if os.path.isfile("../" + str(f)) else 0
-    ) for f in samples["fq2"]
+    )) for f in samples["fq1"]
+]
+samples["fq2_size"] = [
+    (os.path.getsize(str(f))
+    if os.path.isfile(str(f))
+    else (
+        os.path.getsize("../" + str(f)) if os.path.isfile("../" + str(f)) else 0
+    )) for f in samples["fq2"]
 ]
 
 def count_fastq_gzip_lines(fastqfile):

@@ -44,7 +44,7 @@ rule compress_vcf:
     shell:
         # We need to "force" overwriting the file, because snakemake creates a named pipe,
         # which then already exists once bgzip gets active.
-        "bgzip --force --threads {threads} {input[0]} > {output[0]} 2> {log} "
+        "bgzip --force --threads {threads} {input[0]} > {output[0]} 2> {log}"
 
 # =================================================================================================
 #     Combining Calls

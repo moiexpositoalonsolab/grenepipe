@@ -42,7 +42,7 @@ rule multiqc:
     input:
         expand("qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
         expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
-        expand("qc/dedup/{u.sample}-{u.unit}.metrics.txt", u=samples.itertuples()),
+        # expand("qc/dedup/{u.sample}-{u.unit}.metrics.txt", u=samples.itertuples()),
         "snpeff/all.csv"
     output:
         report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
