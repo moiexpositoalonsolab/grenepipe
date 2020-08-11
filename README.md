@@ -106,6 +106,9 @@ See the [profiles readme](profiles/README.md) for details.
 
 ### Report
 
+Many tools report their output statistics via [MultiQC](https://multiqc.info/).
+We store the resulting `html` file in `qc/multiqc.html` for each run.
+
 We also offer to automatically generate a Snakemake report for a run of the pipeline
 
     snakemake --directory my-test --report my-test/report.html

@@ -35,9 +35,30 @@ rule samtools_stats:
 #     MultiQC
 # =================================================================================================
 
-# Different dedup tools produce different summary files. This function simply returns these file
+# Different trimming tools produce different summary files. This function simply returns these file
 # names as strings, without replacing the wildcards. Then, when the function is called below,
 # these are expanded.
+def get_trimming_report():
+    result=[]
+    for smp in samples.itertuples():
+        # Get the corret suffix for single and paired end fastq files.
+        # We need this, as otherwise the trimming rules have colliding output.
+        suffix = "se" if is_single_end(smp.sample, smp.unit) else "pe"
+
+        # Now append the file for the sample to the result list
+        if config["settings"]["trimming-tool"] == "adapterremoval":
+            result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-trimmed-" + suffix + ".settings" )
+        elif config["settings"]["trimming-tool"] == "cutadapt":
+            pass
+        elif config["settings"]["trimming-tool"] == "skewer":
+            pass
+        elif config["settings"]["trimming-tool"] == "trimmomatic":
+            pass
+        else:
+            raise Exception("Unknown trimming-tool: " + config["settings"]["trimming-tool"])
+    return result
+
+# Different dedup tools produce different summary files. See above for details.
 def get_dedup_report():
     # Switch to the chosen duplicate marker tool
     if config["settings"]["duplicates-tool"] == "picard":
@@ -54,6 +75,7 @@ rule multiqc:
         expand("qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
         expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
         expand(get_dedup_report(), u=samples.itertuples()),
+        get_trimming_report(),
         "snpeff/all.csv"
     output:
         report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")

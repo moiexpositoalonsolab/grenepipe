@@ -7,7 +7,7 @@ rule trim_reads_se:
         unpack(get_fastq)
     output:
         r1=temp("trimmed/{sample}-{unit}-trimmed.fastq.gz"),
-        settings="trimmed/{sample}-{unit}-trimmed.settings"
+        settings="trimmed/{sample}-{unit}-trimmed-se.settings"
     params:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["se"],
@@ -30,7 +30,7 @@ rule trim_reads_pe:
     output:
         r1=temp("trimmed/{sample}-{unit}-trimmed-pair1.fastq.gz"),
         r2=temp("trimmed/{sample}-{unit}-trimmed-pair2.fastq.gz"),
-        settings="trimmed/{sample}-{unit}-trimmed.settings"
+        settings="trimmed/{sample}-{unit}-trimmed-pe.settings"
     params:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["pe"],
