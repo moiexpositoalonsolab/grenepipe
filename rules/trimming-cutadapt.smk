@@ -7,7 +7,7 @@ rule trim_reads_se:
         unpack(get_fastq)
     output:
         fastq=temp("trimmed/{sample}-{unit}.fastq.gz"),
-        qc="trimmed/{sample}-{unit}.qc.txt"
+        qc="trimmed/{sample}-{unit}.qc-se.txt"
     params:
         config["params"]["cutadapt"]["se"]
     threads:
@@ -25,7 +25,7 @@ rule trim_reads_pe:
     output:
         fastq1=temp("trimmed/{sample}-{unit}.1.fastq.gz"),
         fastq2=temp("trimmed/{sample}-{unit}.2.fastq.gz"),
-        qc="trimmed/{sample}-{unit}.qc.txt"
+        qc="trimmed/{sample}-{unit}.qc-pe.txt"
     params:
         adapters = config["params"]["cutadapt"]["pe"]["adapters"],
         others = config["params"]["cutadapt"]["pe"]["others"]

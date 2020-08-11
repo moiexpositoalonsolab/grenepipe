@@ -49,7 +49,7 @@ def get_trimming_report():
         if config["settings"]["trimming-tool"] == "adapterremoval":
             result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-trimmed-" + suffix + ".settings" )
         elif config["settings"]["trimming-tool"] == "cutadapt":
-            pass
+            result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".qc-" + suffix + ".txt" )
         elif config["settings"]["trimming-tool"] == "skewer":
             pass
         elif config["settings"]["trimming-tool"] == "trimmomatic":
