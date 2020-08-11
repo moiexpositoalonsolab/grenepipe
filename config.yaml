@@ -33,7 +33,7 @@ settings:
   recalibrate-base-qualities: false
 
   # Select the tool used for read trimming.
-  # Valid values: "cutadapt", "trimmomatic", "skewer"
+  # Valid values: "adapterremoval", "cutadapt", "trimmomatic", "skewer"
   trimming-tool: "skewer"
 
   # Select the tool used for read mapping.
@@ -65,6 +65,22 @@ settings:
 # =================================================================================================
 
 params:
+
+  # ----------------------------------------------------------------------
+  #     adapterremoval
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:trimming-tool == adapterremoval
+  # See adapterremoval manual: https://adapterremoval.readthedocs.io/en/latest/
+  # amd https://adapterremoval.readthedocs.io/en/latest/manpage.html
+  adapterremoval:
+    threads: 4
+
+    # Params for single reads
+    se: ""
+
+    # Params for paired end reads
+    pe: ""
 
   # ----------------------------------------------------------------------
   #     cutadapt
