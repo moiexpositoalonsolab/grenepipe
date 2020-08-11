@@ -14,11 +14,13 @@
 # can be leveraged here by declaring the unsorted, weirdly named dedup output file as a temp file,
 # and then feed that into samtools for sorting, after which the dedup file will be deleted again.
 # At least a little bit of comfort!
+# Lastly, we also keep the json file for reporting with multiqc.
 rule mark_duplicates:
     input:
         "mapped/{sample}-{unit}.sorted.bam"
     output:
-        temp("dedup/{sample}-{unit}.sorted_rmdup.bam")
+        bam=temp("dedup/{sample}-{unit}.sorted_rmdup.bam"),
+        metrics="dedup/{sample}-{unit}.sorted.dedup.json"
     log:
         "logs/dedup/{sample}-{unit}.log"
     benchmark:
