@@ -40,6 +40,10 @@ settings:
   # Valid values: "bwamem", "bowtie2"
   mapping-tool: "bwamem"
 
+  # Select the tool to mark duplicates.
+  # Valud values: "picard", "dedup"
+  duplicates-tool: "picard"
+
   # Select the tool used for SNP calling.
   # Valid values: "haplotypecaller", "bcftools", "freebayes"
   calling-tool: "haplotypecaller"
@@ -66,6 +70,7 @@ params:
   #     cutadapt
   # ----------------------------------------------------------------------
 
+  # Used only if settings:trimming-tool == cutadapt
   cutadapt:
     threads: 4
 
@@ -86,6 +91,7 @@ params:
   #     trimmomatic
   # ----------------------------------------------------------------------
 
+  # Used only if settings:trimming-tool == trimmomatic
   trimmomatic:
     threads: 6
     se:
@@ -107,6 +113,7 @@ params:
   #     skewer
   # ----------------------------------------------------------------------
 
+  # Used only if settings:trimming-tool == skewer
   skewer:
     threads: 4
     se: "--mode any"
@@ -132,8 +139,17 @@ params:
   #     picard
   # ----------------------------------------------------------------------
 
+  # Used only if settings:duplicates-tool == picard
   picard:
     MarkDuplicates: "REMOVE_DUPLICATES=true"
+
+  # ----------------------------------------------------------------------
+  #     dedup
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:duplicates-tool == dedup
+  dedup:
+    extra: "-m"
 
   # ----------------------------------------------------------------------
   #     bcftools

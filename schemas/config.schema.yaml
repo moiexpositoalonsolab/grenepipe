@@ -38,6 +38,9 @@ properties:
       mapping-tool:
         type: string
         enum: ["bwamem", "bowtie2"]
+      duplicates-tool:
+        type: string
+        enum: ["picard", "dedup"]
       calling-tool:
         type: string
         enum: ["haplotypecaller", "freebayes", "bcftools"]
@@ -93,6 +96,11 @@ properties:
             type: string
         required:
           - MarkDuplicates
+      dedup:
+        type: object
+        properties:
+          extra:
+            type: string
       bcftools:
         type: object
         properties:

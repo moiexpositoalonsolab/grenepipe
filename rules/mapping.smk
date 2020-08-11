@@ -22,22 +22,19 @@ else:
 #     Mark Duplicates
 # =================================================================================================
 
-rule mark_duplicates:
-    input:
-        "mapped/{sample}-{unit}.sorted.bam"
-    output:
-        bam="dedup/{sample}-{unit}.bam",
-        metrics="qc/dedup/{sample}-{unit}.metrics.txt"
-    log:
-        "logs/picard/dedup/{sample}-{unit}.log"
-    benchmark:
-        "benchmarks/picard/dedup/{sample}-{unit}.bench.log"
-    params:
-        config["params"]["picard"]["MarkDuplicates"]
-    group:
-        "mapping-extra"
-    wrapper:
-        "0.51.3/bio/picard/markduplicates"
+# Switch to the chosen duplicate marker tool
+if config["settings"]["duplicates-tool"] == "picard":
+
+    # Use `picard`
+    include: "duplicates-picard.smk"
+
+elif config["settings"]["duplicates-tool"] == "dedup":
+
+    # Use `dedup`
+    include: "duplicates-dedup.smk"
+
+else:
+    raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
 
 # =================================================================================================
 #     Base Quality Score Recalibration
