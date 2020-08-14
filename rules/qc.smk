@@ -53,7 +53,7 @@ def get_trimming_report():
         elif config["settings"]["trimming-tool"] == "skewer":
             result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-trimmed.log" )
         elif config["settings"]["trimming-tool"] == "trimmomatic":
-            pass
+            result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".trimlog.log" )
         else:
             raise Exception("Unknown trimming-tool: " + config["settings"]["trimming-tool"])
     return result
@@ -72,10 +72,17 @@ def get_dedup_report():
 # https://github.com/ewels/MultiQC/issues/484 ... If you run into this issue, try running it locally.
 rule multiqc:
     input:
+        # Trimming
+        get_trimming_report(),
+
+        # Dedup
+        expand(get_dedup_report(), u=samples.itertuples()),
+
+        # QC tools
         expand("qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
         expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
-        expand(get_dedup_report(), u=samples.itertuples()),
-        get_trimming_report(),
+
+        # Annotation
         "snpeff/all.csv"
     output:
         report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")

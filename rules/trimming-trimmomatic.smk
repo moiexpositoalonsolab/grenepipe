@@ -7,8 +7,9 @@ rule trim_reads_se:
         unpack(get_fastq)
     output:
         temp("trimmed/{sample}-{unit}.fastq.gz")
+        # trimlog="trimmed/{sample}-{unit}-se.trimlog.log"
     params:
-        extra="",
+        # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         **config["params"]["trimmomatic"]["se"]
     threads:
         config["params"]["trimmomatic"]["threads"]
@@ -26,10 +27,10 @@ rule trim_reads_pe:
         r1=temp("trimmed/{sample}-{unit}.1.fastq.gz"),
         r2=temp("trimmed/{sample}-{unit}.2.fastq.gz"),
         r1_unpaired=temp("trimmed/{sample}-{unit}.1.unpaired.fastq.gz"),
-        r2_unpaired=temp("trimmed/{sample}-{unit}.2.unpaired.fastq.gz"),
-        trimlog="trimmed/{sample}-{unit}.trimlog.txt"
+        r2_unpaired=temp("trimmed/{sample}-{unit}.2.unpaired.fastq.gz")
+        # trimlog="trimmed/{sample}-{unit}-pe.trimlog.log"
     params:
-        extra=lambda w, output: "-trimlog {}".format(output.trimlog),
+        # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         **config["params"]["trimmomatic"]["pe"]
     threads:
         config["params"]["trimmomatic"]["threads"]
@@ -56,3 +57,14 @@ def get_trimmed_reads(wildcards):
     else:
         # paired-end sample
         return expand("trimmed/{sample}-{unit}.{group}.fastq.gz", group=[1, 2], **wildcards)
+
+# MultiQC expects the normal stdout log files from trimmomatic, but as we use a wrapper for the latter,
+# we cannot also declare the log files as output files, because snakemake...
+# Instead, we copy them afterwards. This is dirty, but that's how the snake rolls...
+rule trimmomatic_multiqc_log:
+    input:
+        get_trimmed_reads
+    output:
+        "trimmed/{sample}-{unit}.trimlog.log"
+    shell:
+        "cp logs/trimmomatic/{wildcards.sample}-{wildcards.unit}.log {output}"
