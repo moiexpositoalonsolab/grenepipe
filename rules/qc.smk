@@ -47,11 +47,11 @@ def get_trimming_report():
 
         # Now append the file for the sample to the result list
         if config["settings"]["trimming-tool"] == "adapterremoval":
-            result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-trimmed-" + suffix + ".settings" )
+            result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + ".settings" )
         elif config["settings"]["trimming-tool"] == "cutadapt":
             result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".qc-" + suffix + ".txt" )
         elif config["settings"]["trimming-tool"] == "skewer":
-            pass
+            result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-trimmed.log" )
         elif config["settings"]["trimming-tool"] == "trimmomatic":
             pass
         else:

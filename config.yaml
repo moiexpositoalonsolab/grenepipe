@@ -33,7 +33,7 @@ settings:
   recalibrate-base-qualities: false
 
   # Select the tool used for read trimming.
-  # Valid values: "adapterremoval", "cutadapt", "trimmomatic", "skewer"
+  # Valid values: "adapterremoval", "cutadapt", "skewer", "trimmomatic"
   trimming-tool: "skewer"
 
   # Select the tool used for read mapping.

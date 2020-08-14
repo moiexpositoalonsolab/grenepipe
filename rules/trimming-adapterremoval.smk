@@ -6,12 +6,12 @@ rule trim_reads_se:
     input:
         unpack(get_fastq)
     output:
-        r1=temp("trimmed/{sample}-{unit}-trimmed.fastq.gz"),
-        settings="trimmed/{sample}-{unit}-trimmed-se.settings"
+        r1=temp("trimmed/{sample}-{unit}.fastq.gz"),
+        log="trimmed/{sample}-{unit}-se.settings"
     params:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["se"],
-        basename="trimmed/{sample}-{unit}-trimmed"
+        basename="trimmed/{sample}-{unit}"
     threads:
         config["params"]["adapterremoval"]["threads"]
     log:
@@ -22,19 +22,19 @@ rule trim_reads_se:
         "../envs/adapterremoval.yaml"
     shell:
         "AdapterRemoval --file1 {input.r1} {params.extra} {params.params} --threads {threads} "
-        "--basename {params.basename} --output1 {output.r1} --settings {output.settings} > {log} 2>&1"
+        "--basename {params.basename} --output1 {output.r1} --settings {output.log} > {log} 2>&1"
 
 rule trim_reads_pe:
     input:
         unpack(get_fastq)
     output:
-        r1=temp("trimmed/{sample}-{unit}-trimmed-pair1.fastq.gz"),
-        r2=temp("trimmed/{sample}-{unit}-trimmed-pair2.fastq.gz"),
-        settings="trimmed/{sample}-{unit}-trimmed-pe.settings"
+        r1=temp("trimmed/{sample}-{unit}-pair1.fastq.gz"),
+        r2=temp("trimmed/{sample}-{unit}-pair2.fastq.gz"),
+        log="trimmed/{sample}-{unit}-pe.settings"
     params:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["pe"],
-        basename="trimmed/{sample}-{unit}-trimmed"
+        basename="trimmed/{sample}-{unit}"
     threads:
         config["params"]["adapterremoval"]["threads"]
     log:
@@ -45,7 +45,7 @@ rule trim_reads_pe:
         "../envs/adapterremoval.yaml"
     shell:
         "AdapterRemoval --file1 {input.r1} --file2 {input.r2} {params.extra} {params.params} --threads {threads} "
-        "--basename {params.basename} --output1 {output.r1} --output2 {output.r2} --settings {output.settings} > {log} 2>&1"
+        "--basename {params.basename} --output1 {output.r1} --output2 {output.r2} --settings {output.log} > {log} 2>&1"
 
 # =================================================================================================
 #     Trimming Results
@@ -59,7 +59,7 @@ def get_trimmed_reads(wildcards):
     """Get trimmed reads of given sample-unit."""
     if is_single_end(**wildcards):
         # single end sample
-        return [ "trimmed/{sample}-{unit}-trimmed.fastq.gz".format(**wildcards) ]
+        return [ "trimmed/{sample}-{unit}.fastq.gz".format(**wildcards) ]
     else:
         # paired-end sample
-        return expand("trimmed/{sample}-{unit}-trimmed-pair{group}.fastq.gz", group=[1, 2], **wildcards)
+        return expand("trimmed/{sample}-{unit}-pair{group}.fastq.gz", group=[1, 2], **wildcards)
