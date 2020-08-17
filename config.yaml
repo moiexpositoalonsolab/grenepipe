@@ -41,7 +41,7 @@ settings:
   mapping-tool: "bwamem"
 
   # Select the tool to mark duplicates.
-  # Valud values: "picard", "dedup"
+  # Valid values: "picard", "dedup"
   duplicates-tool: "picard"
 
   # Select the tool used for SNP calling.
