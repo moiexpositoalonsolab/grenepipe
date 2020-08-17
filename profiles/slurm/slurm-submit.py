@@ -105,7 +105,7 @@ write_debug_log( "S\t" + str(sbatch_options) + "\n")
 # the submission string here. Can beautify in the future.
 with open( os.path.join(extra_params["log_base"], "slurm-submissions.log"), "a") as slurmlog:
     now = datetime.datetime.now()
-    opt = [f"--{k}={v}" for k, v in sbatch_options.items()]
+    opt = ["--"+k+"="+v for k, v in sbatch_options.items()]
     cmd = ["sbatch"] + opt + [jobscript]
     slurmlog.write(now.strftime("%Y-%m-%d %H:%M:%S") + "\t" + extra_params["job_name"] + "\t" + ' '.join(cmd) + "\n")
 
