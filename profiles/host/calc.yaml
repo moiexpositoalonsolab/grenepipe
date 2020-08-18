@@ -1,8 +1,25 @@
 __default__:
-    account: lczech # your hpc account
-    mail-user: lczech@carnegiescience.edu # your email (optional)
-    partition: vGPU # the partition you use
-    time: 60 # default time (minutes)
-    mem: 5GB # default memory
-    nodes: 1
-    ntasks: 1
+  account: lczech # Your hpc account
+  mail-user: lczech@carnegiescience.edu # Your email (optional)
+  partition: DPB,SHARED # The partition you use
+  time: 120 # Default time (minutes). A time limit of zero requests that no time limit be imposed
+  mem: 10G # Default memory. A memory size specification of zero grants the job access to all of the memory on each node.
+  cpus-per-task: 1
+  nodes: 1
+  ntasks: 1
+
+trim_reads_se:
+  mem: 1G
+  cpus-per-task: 4
+
+trim_reads_pe:
+  mem: 1G
+  cpus-per-task: 4
+
+map_reads:
+  cpus-per-task: 12
+
+call_variants:
+  partition: DPB # Use DPB only, as it as inf time limit
+  # time: 1-0 # commented out, since this is set directly by the rule now
+  cpus-per-task: 2
