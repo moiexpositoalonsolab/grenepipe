@@ -27,6 +27,7 @@ The file `config.yaml` contains the basic configuration for the data and the too
  *  Settings for which tools to use and their parameters.
 
 Change this file to your needs.
+Note that absolute paths are needed!
 
 ### Samples Table
 
