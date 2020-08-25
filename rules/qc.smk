@@ -143,8 +143,8 @@ rule multiqc:
         config["params"]["multiqc"]["extra"],
     log:
         "logs/multiqc.log"
-    # conda:
-    #     "../envs/multiqc.yaml"
+    conda:
+        "../envs/multiqc.yaml"
     wrapper:
         "0.64.0/bio/multiqc"
 
