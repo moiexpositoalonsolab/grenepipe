@@ -31,6 +31,20 @@ rule samtools_stats:
     wrapper:
         "0.27.1/bio/samtools/stats"
 
+rule samtools_flagstat:
+    input:
+        get_mapping_result()
+    output:
+        "qc/samtools-flagstats/{sample}-{unit}.txt"
+    log:
+        "logs/samtools-flagstats/{sample}-{unit}.log"
+    benchmark:
+        "benchmarks/samtools-flagstats/{sample}-{unit}.bench.log"
+    group:
+        "qc"
+    wrapper:
+        "0.64.0/bio/samtools/flagstat"
+
 # =================================================================================================
 #     MultiQC
 # =================================================================================================
@@ -80,6 +94,7 @@ rule multiqc:
 
         # QC tools
         expand("qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
+        expand("qc/samtools-flagstats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
         expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
 
         # Annotation
