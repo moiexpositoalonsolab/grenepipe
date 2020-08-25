@@ -126,7 +126,14 @@ rule multiqc:
         expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
         expand("qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
         expand("qc/samtools-flagstats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
-        expand("qc/qualimap/{u.sample}-{u.unit}", u=samples.itertuples()),
+
+        # Qualimap
+        # expand("qc/qualimap/{u.sample}-{u.unit}", u=samples.itertuples()),
+        expand("qc/qualimap/{u.sample}-{u.unit}/genome_results.txt", u=samples.itertuples()),
+        expand("qc/qualimap/{u.sample}-{u.unit}/qualimapReport.html", u=samples.itertuples()),
+        expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/coverage_histogram.txt", u=samples.itertuples()),
+        expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/genome_fraction_coverage.txt", u=samples.itertuples()),
+        expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt", u=samples.itertuples()),
 
         # Annotation
         "snpeff/all.csv" if config["settings"]["snpeff"] else []

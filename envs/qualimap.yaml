@@ -1,6 +1,5 @@
 # Used by rules in qc.smk
 channels:
   - bioconda
-  - conda-forge
 dependencies:
   - qualimap ==2.2.2a

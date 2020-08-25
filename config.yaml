@@ -230,7 +230,7 @@ params:
   qualimap:
     # Additional parameter for qualimap
     extra: ""
-    threads: 4
+    threads: 2
 
   # ----------------------------------------------------------------------
   #     multiqc
