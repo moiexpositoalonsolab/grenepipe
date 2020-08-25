@@ -13,6 +13,11 @@ elif config["settings"]["trimming-tool"] == "cutadapt":
     # Use `cutadapt`
     include: "trimming-cutadapt.smk"
 
+elif config["settings"]["trimming-tool"] == "fastp":
+
+    # Use `fastp`
+    include: "trimming-fastp.smk"
+
 elif config["settings"]["trimming-tool"] == "skewer":
 
     # Use `skewer`

@@ -34,7 +34,7 @@ properties:
         type: boolean
       trimming-tool:
         type: string
-        enum: ["adapterremoval", "cutadapt", "trimmomatic", "skewer"]
+        enum: ["adapterremoval", "cutadapt", "fastp", "trimmomatic", "skewer"]
       mapping-tool:
         type: string
         enum: ["bwamem", "bowtie2"]
@@ -82,6 +82,15 @@ properties:
             type: string
           pe:
             type: object
+      fastp:
+        type: object
+        properties:
+          threads:
+            type: integer
+          se:
+            type: string
+          pe:
+            type: string
       trimmomatic:
         type: object
         properties:

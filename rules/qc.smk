@@ -93,6 +93,8 @@ def get_trimming_report():
             result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + ".settings" )
         elif config["settings"]["trimming-tool"] == "cutadapt":
             result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".qc-" + suffix + ".txt" )
+        elif config["settings"]["trimming-tool"] == "fastp":
+            result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-fastp.json" )
         elif config["settings"]["trimming-tool"] == "skewer":
             result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-trimmed.log" )
         elif config["settings"]["trimming-tool"] == "trimmomatic":
