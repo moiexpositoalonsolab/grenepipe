@@ -64,9 +64,9 @@ properties:
   params:
     type: object
     properties:
-      cutadapt:
+      adapterremoval:
         type: object
-        adapterremoval:
+        properties:
           threads:
             type: integer
           se:
@@ -91,11 +91,6 @@ properties:
             type: object
           pe:
             type: object
-      bwamem:
-        type: object
-        properties:
-          threads:
-            type: integer
       skewer:
         type: object
         properties:
@@ -105,6 +100,11 @@ properties:
             type: string
           pe:
             type: string
+      bwamem:
+        type: object
+        properties:
+          threads:
+            type: integer
       bowtie2:
         type: object
         properties:
@@ -169,11 +169,18 @@ properties:
         required:
           - snvs
           - indels
-    required:
-      - trimmomatic
-      - picard
-      - gatk
-      - variantfiltration-hard
+      qualimap:
+        type: object
+        properties:
+          extra:
+            type: string
+          threads:
+            type: integer
+      multiqc:
+        type: object
+        properties:
+          extra:
+            type: string
 
 required:
   - data

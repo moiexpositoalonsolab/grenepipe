@@ -224,9 +224,18 @@ params:
       "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0"
 
   # ----------------------------------------------------------------------
+  #     qualimap
+  # ----------------------------------------------------------------------
+
+  qualimap:
+    # Additional parameter for qualimap
+    extra: ""
+    threads: 4
+
+  # ----------------------------------------------------------------------
   #     multiqc
   # ----------------------------------------------------------------------
 
   multiqc:
-    # Additional parameter for calling multiqc
+    # Additional parameter for multiqc
     extra: ""

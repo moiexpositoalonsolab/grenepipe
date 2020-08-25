@@ -45,6 +45,36 @@ rule samtools_flagstat:
     wrapper:
         "0.64.0/bio/samtools/flagstat"
 
+rule qualimap:
+    input:
+        get_mapping_result()
+    output:
+        "qc/qualimap/{sample}-{unit}/genome_results.txt",
+        "qc/qualimap/{sample}-{unit}/qualimapReport.html",
+        "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/coverage_histogram.txt",
+        "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/genome_fraction_coverage.txt",
+        "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt"
+
+        # Alternatively, specify just the out dir.
+        # But that gives us less control over whether the rule executed succeeded.
+        # outdir=directory("qc/qualimap/{sample}-{unit}")
+    params:
+        extra=config["params"]["qualimap"]["extra"],
+        outdir="qc/qualimap/{sample}-{unit}"
+    threads:
+        config["params"]["qualimap"]["threads"]
+    log:
+        stderr="logs/qualimap/{sample}-{unit}_qualimap.stderr",
+        stdout="logs/qualimap/{sample}-{unit}_qualimap.stdout"
+    group:
+        "qc"
+    conda:
+        "../envs/qualimap.yaml"
+    shell:
+        "unset DISPLAY; qualimap bamqc -bam {input} -nt {threads} "
+        "-outdir {params.outdir} -outformat HTML "
+        "{params.extra} > {log.stdout} 2> {log.stderr}"
+
 # =================================================================================================
 #     MultiQC
 # =================================================================================================
@@ -93,9 +123,10 @@ rule multiqc:
         expand(get_dedup_report(), u=samples.itertuples()),
 
         # QC tools
+        expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
         expand("qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
         expand("qc/samtools-flagstats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
-        expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
+        expand("qc/qualimap/{u.sample}-{u.unit}", u=samples.itertuples()),
 
         # Annotation
         "snpeff/all.csv" if config["settings"]["snpeff"] else []
@@ -105,8 +136,8 @@ rule multiqc:
         config["params"]["multiqc"]["extra"],
     log:
         "logs/multiqc.log"
-    conda:
-        "../envs/multiqc.yaml"
+    # conda:
+    #     "../envs/multiqc.yaml"
     wrapper:
         "0.64.0/bio/multiqc"
 
