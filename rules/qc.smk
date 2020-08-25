@@ -6,8 +6,8 @@ rule fastqc:
     input:
         unpack(get_fastq)
     output:
-        html="qc/fastqc/{sample}-{unit}.html",
-        zip="qc/fastqc/{sample}-{unit}.zip"
+        html="qc/fastqc/{sample}-{unit}_fastqc.html",
+        zip="qc/fastqc/{sample}-{unit}_fastqc.zip"
     log:
         "logs/fastqc/{sample}-{unit}.log"
     benchmark:
@@ -49,15 +49,14 @@ rule qualimap:
     input:
         get_mapping_result()
     output:
-        "qc/qualimap/{sample}-{unit}/genome_results.txt",
-        "qc/qualimap/{sample}-{unit}/qualimapReport.html",
-        "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/coverage_histogram.txt",
-        "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/genome_fraction_coverage.txt",
-        "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt"
+        outdir=directory("qc/qualimap/{sample}-{unit}")
 
-        # Alternatively, specify just the out dir.
-        # But that gives us less control over whether the rule executed succeeded.
-        # outdir=directory("qc/qualimap/{sample}-{unit}")
+        # Alternatively, specify all individual files, which gives more control, but also more spammed ouutput
+        # "qc/qualimap/{sample}-{unit}/genome_results.txt",
+        # "qc/qualimap/{sample}-{unit}/qualimapReport.html",
+        # "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/coverage_histogram.txt",
+        # "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/genome_fraction_coverage.txt",
+        # "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt",
     params:
         extra=config["params"]["qualimap"]["extra"],
         outdir="qc/qualimap/{sample}-{unit}"
@@ -123,17 +122,17 @@ rule multiqc:
         expand(get_dedup_report(), u=samples.itertuples()),
 
         # QC tools
-        expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
+        expand("qc/fastqc/{u.sample}-{u.unit}_fastqc.zip", u=samples.itertuples()),
         expand("qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
         expand("qc/samtools-flagstats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
 
         # Qualimap
-        # expand("qc/qualimap/{u.sample}-{u.unit}", u=samples.itertuples()),
-        expand("qc/qualimap/{u.sample}-{u.unit}/genome_results.txt", u=samples.itertuples()),
-        expand("qc/qualimap/{u.sample}-{u.unit}/qualimapReport.html", u=samples.itertuples()),
-        expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/coverage_histogram.txt", u=samples.itertuples()),
-        expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/genome_fraction_coverage.txt", u=samples.itertuples()),
-        expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt", u=samples.itertuples()),
+        expand("qc/qualimap/{u.sample}-{u.unit}", u=samples.itertuples()),
+        # expand("qc/qualimap/{u.sample}-{u.unit}/genome_results.txt", u=samples.itertuples()),
+        # expand("qc/qualimap/{u.sample}-{u.unit}/qualimapReport.html", u=samples.itertuples()),
+        # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/coverage_histogram.txt", u=samples.itertuples()),
+        # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/genome_fraction_coverage.txt", u=samples.itertuples()),
+        # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt", u=samples.itertuples()),
 
         # Annotation
         "snpeff/all.csv" if config["settings"]["snpeff"] else []
