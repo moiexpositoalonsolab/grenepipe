@@ -78,9 +78,9 @@ rule qualimap:
 #     MultiQC
 # =================================================================================================
 
-# Different trimming tools produce different summary files. This function simply returns these file
-# names as strings, without replacing the wildcards. Then, when the function is called below,
-# these are expanded.
+# Different trimming tools produce different summary files. We here expand ourselves,
+# because we need to retrieve the correct file type for each of them (single or paired end),
+# which cannot easily be done with the simple snakemake expand function.
 def get_trimming_report():
     result=[]
     for smp in samples.itertuples():
@@ -104,6 +104,8 @@ def get_trimming_report():
     return result
 
 # Different dedup tools produce different summary files. See above for details.
+# This function simply returns these file names as strings, without replacing the wildcards.
+# Then, when the function is called below, these are expanded.
 def get_dedup_report():
     # Switch to the chosen duplicate marker tool
     if config["settings"]["duplicates-tool"] == "picard":
