@@ -60,6 +60,11 @@ settings:
   # of quality scores instead of hard filtering.
   vqsr: false
 
+  # Set to true in order to run snpeff annotations, which always requires the full SNP calling
+  # pipleline to run. Set to false instead if this is not required/desired, for example when
+  # using the workflow to only obtain quality control statistics.
+  snpeff: true
+
 # =================================================================================================
 #     Tool Parameters
 # =================================================================================================

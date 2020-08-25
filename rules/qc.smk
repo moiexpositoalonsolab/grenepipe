@@ -83,7 +83,7 @@ rule multiqc:
         expand("qc/fastqc/{u.sample}-{u.unit}.zip", u=samples.itertuples()),
 
         # Annotation
-        "snpeff/all.csv"
+        "snpeff/all.csv" if config["settings"]["snpeff"] else []
     output:
         report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
     params:

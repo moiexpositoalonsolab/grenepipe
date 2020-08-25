@@ -27,6 +27,22 @@ rule all:
 localrules: all
 
 # =================================================================================================
+#     All QC, but not SNP calling
+# =================================================================================================
+
+# This alternative target rule executes all quality control (QC) steps of read trimming and mapping,
+# but does not call SNPs, and does not call snpeff. The result is mainly the MultiQC report (without
+# the snpeff part however), as well as the fastqc reports.
+rule all_qc:
+    input:
+        # Quality control
+        "qc/multiqc.html"
+
+# The `all_qc` rule is local. It does not do anything anyway,
+# except requesting the other rules to run.
+localrules: all_qc
+
+# =================================================================================================
 #     Rule Modules
 # =================================================================================================
 
