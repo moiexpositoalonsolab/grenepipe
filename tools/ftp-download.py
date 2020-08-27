@@ -333,8 +333,12 @@ def ftp_download_all(host, user, passwd, target_dir):
     ftp.quit()
 
 # =================================================================================================
-#     Table of Sequencing Runs
+#     Main function to process the download table
 # =================================================================================================
+
+# Some nice error reporting on a common problem...
+if progressbar.__author__ != "Rick van Hattem (Wolph)":
+    raise Exception("You are using `progressbar`, instead of `progressbar2`. Please update.")
 
 if __name__ == "__main__":
     with open( run_table ) as csvfile:
