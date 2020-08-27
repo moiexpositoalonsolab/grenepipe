@@ -62,6 +62,17 @@ class FileInfo:
         self.local_md5_hash = None
         self.status = None
 
+# Translate our status codes into meaningful text.
+def file_status(status):
+    stati = {
+        'N': "None Existing ",
+        'S': "Skipped       ",
+        'R': "Replaced      ",
+        'D': "Downloaded    ",
+        'E': "Errored       ",
+    }
+    return stati.get(status, "Invalid")
+
 # =================================================================================================
 #     General Helpers
 # =================================================================================================
@@ -374,6 +385,12 @@ if __name__ == "__main__":
 
             ftp_download_all( row["host"], row["username"], row["password"], row[run_table_target_col] )
 
+    print(colored(
+        "===================================================================================\n",
+        "blue"
+    ))
     print("Summary:")
     for key, val in summary.items():
-        print(key + ": " + str(val))
+        print(file_status(key) + ": " + str(val))
+    if 'E' in summary:
+        print(colored("There were errors in the downloads! Please check!", "red"))
