@@ -204,7 +204,9 @@ def ftp_get_dirs(ftp, dir=None):
 # =================================================================================================
 
 # Download a specific file, and fill in the respective FileInfo data.
-def ftp_download_file(ftp, fileinfo):
+# This is the inner function, that we use to keep the control flow simple.
+# See ftp_download_file() for the actual function to be called.
+def ftp_download_file_inner(ftp, fileinfo):
     # Init the (expected) remote file size.
     fileinfo.remote_size = ftp.size(fileinfo.remote_path)
     if fileinfo.remote_size is None:
@@ -231,7 +233,7 @@ def ftp_download_file(ftp, fileinfo):
         os.mkdir(os.path.dirname( fileinfo.local_path ))
 
     # Report progress while downloading. We have gigabytes of data, so that is important.
-    print(colored("\nDownloading \"" + fileinfo.remote_path + "\"...", "blue"), flush=True)
+    print(colored("\nDownloading \"" + fileinfo.local_path + "\"...", "blue"), flush=True)
     pbar = progressbar.ProgressBar( max_value = (
         fileinfo.remote_size if fileinfo.remote_size is not None else progressbar.UnknownLength
     ))
@@ -263,6 +265,19 @@ def ftp_download_file(ftp, fileinfo):
     else:
         print(colored("Error downloading file!", "red"))
         fileinfo.status='E'
+
+# Download a specific file, fill in the respective FileInfo data,
+# and add the file to the log and summary.
+def ftp_download_file( ftp, fileinfo ):
+    ftp_download_file_inner( ftp, fileinfo )
+    write_ftp_download_log(fileinfo)
+
+    # Summary of all downloads. Cumbersome, because Python...
+    global summary
+    if fileinfo.status in summary:
+        summary[fileinfo.status] += 1
+    else:
+        summary[fileinfo.status] = 1
 
 # Download all files from an FTP server into a target directory.
 def ftp_download_all(host, user, passwd, target_dir):
@@ -333,7 +348,6 @@ def ftp_download_all(host, user, passwd, target_dir):
                 # Now, download it, and remove it from the file list, so that we don't download
                 # it again. Then, extract a dict of all hashes for the files.
                 ftp_download_file( ftp, md5_fileinfo )
-                write_ftp_download_log( md5_fileinfo )
                 files.remove(md5_remote_file)
                 md5_hashes = get_md5_hash_dict(md5_local_file)
 
@@ -352,13 +366,6 @@ def ftp_download_all(host, user, passwd, target_dir):
 
             # Download the file, do all checks, and write a log line about it.
             ftp_download_file( ftp, fileinfo )
-            write_ftp_download_log(fileinfo)
-
-            # Summary of all downloads. Cumbersome, because Python...
-            if fileinfo.status in summary:
-                summary[fileinfo.status] += 1
-            else:
-                summary[fileinfo.status] = 1
         print()
 
     # We are polite, and close the connection respectfully. Bye, host.
