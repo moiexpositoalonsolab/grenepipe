@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-import sys, os, stat
-import csv
 from ftplib import FTP
+import sys, os, stat
+import hashlib
+import csv
+import re
 import progressbar
 import datetime
 
@@ -20,26 +22,126 @@ run_table_target_col = "submission_date"
 # Log file where all FTP download attempts are logged
 ftp_download_log_file = "ftp-download.log"
 
+# File name search pattern (regex) for finding a file with md5 hashes of the files on the server.
+md5_file_re = ".*/md5\.txt"
+
 # Summary of all processed files
 summary = {}
+
+# =================================================================================================
+#     Structures
+# =================================================================================================
+
+# Plain data class of information about files we are downloading.
+# `status` is supposed to be a single character, which we use as follows:
+#  - 'N': file does not exists locally
+#  - 'S': file exists and has the correct size and md5 hash, so we can skip it
+#  - 'R': file exists, but has a different size or md5 hash than on the server, so we need to replace/re-download it
+#  - 'D': new download of non existing file
+#  - 'E': some error occurred
+class FileInfo:
+
+    # Init function that expects the minimum data that we need to get the file.
+    def __init__(self, host, user, remote_path, local_path):
+        # Where the file is downloaded from, and remote file information
+        self.host = host
+        self.user = user
+        self.remote_path = remote_path
+        self.remote_size = None
+        self.remote_md5_hash = None
+
+        # Local file information, and overall status
+        self.local_path = local_path
+        self.local_size = None
+        self.local_md5_hash = None
+        self.status = None
 
 # =================================================================================================
 #     General Helpers
 # =================================================================================================
 
-# We log each FTP download, to be sure we don't miss anything.
-# Status is supposed to be a single character, which we use as follows:
-#  - 'S': file exists and has the correct size, so we skip it
-#  - 'R': file exists, but has a different size than on the server, so we replace it
-#  - 'D': new download of non existing file
-#  - 'E': some error occurred
-def write_ftp_download_log(host, user, status, size, file):
+# We log each FTP download and its properties, to be sure we don't miss anything.
+# Expects a FileInfo object.
+def write_ftp_download_log(fileinfo):
     with open( ftp_download_log_file, "a") as logfile:
         now = datetime.datetime.now().strftime("%Y-%m-%d\t%H:%M:%S")
         logfile.write(
-            now + "\t" + str(host) + "\t" + str(user) + "\t" +
-            str(status) + "\t" + str(size) + "\t" + str(file) + "\n"
+            now + "\t" + str(fileinfo.host) + "\t" + str(fileinfo.user) + "\t" +
+            str(fileinfo.status) + "\t" + str(fileinfo.local_md5_hash) + "\t" + str(fileinfo.local_size) + "\t" +
+            str(fileinfo.local_path) + "\n"
         )
+
+# Given a file as produced by the unix `md5sum` command, return a dict from file names to
+# their hashes. The file is typically named `md5.txt`, and its expected file format consists
+# of rows of the format `<hash>  <filename>`.
+def get_md5_hash_dict(md5_file):
+    hashdict = {}
+    with open(md5_file) as fp:
+        for line in fp:
+            sl = [item for item in re.split("\s+", line) if item]
+            if len(sl) == 0:
+                continue
+            elif len(sl) > 2:
+                raise Exception("md5 file " + md5_file + " has a line with more than 2 columns.")
+            assert len(sl) == 2
+            if len(sl[0]) != 32:
+                raise Exception("md5 file " + md5_file + " has a line with an invalid md5 hash.")
+
+            if sl[1] in hashdict:
+                raise Exception("md5 file " + md5_file + " has multiple entries for file " + sl[1])
+            else:
+                hashdict[sl[1]] = sl[0]
+    return hashdict
+
+# Compute the md5 hash of a given local file, efficiently (hopefully?! not all to sure about large
+# file handling in python...) by using blocks of data instead of reading the (potentially huge)
+# files all at once in to memory.
+def get_file_md5(filename, blocksize=65536):
+    if not os.path.isfile(filename):
+        raise Exception("Cannot compute md5 hash for path \"" + filename + "\"")
+    md5_hash = hashlib.md5()
+    with open(filename, "rb") as f:
+        for chunk in iter(lambda: f.read(blocksize), b""):
+            md5_hash.update(chunk)
+    return md5_hash.hexdigest()
+
+# Check local file properties against remote: file size and md5 hash have to match.
+# Expects to be given a FileInfo object.
+# Return True if they match (file is good), or False if either is wrong (file needs to be
+# downloaded [again]). Also, fill in the values in the FileInfo while doing so.
+def get_and_check_file_properties( fileinfo ):
+    if not os.path.exists(fileinfo.local_path):
+        raise Exception("Local path \"" + fileinfo.local_path + "\" does not exists.")
+    if not os.path.isfile(fileinfo.local_path):
+        raise Exception("Local path \"" + fileinfo.local_path + "\" exists, but is not a file.")
+
+    # Get and check file size.
+    fileinfo.local_size = os.stat(fileinfo.local_path).st_size
+    if fileinfo.local_size != fileinfo.remote_size:
+        print(
+            "Local file \"" + fileinfo.local_path + "\" exists, but has size", str(fileinfo.local_size),
+            "instead of remote file size", str(fileinfo.remote_size) + "."
+        )
+        return False
+
+    # Compute local file md5 hash.
+    if fileinfo.remote_md5_hash:
+        fileinfo.local_md5_hash = get_file_md5( fileinfo.local_path )
+    else:
+        fileinfo.local_md5_hash = None
+
+    # Check that we got the correct md5 hash.
+    if fileinfo.local_md5_hash != fileinfo.remote_md5_hash:
+        print(
+            "Local file \"" + fileinfo.local_path + "\" exists, " +
+            "but its md5 hash does not match the remote md5 hash."
+        )
+        return False
+
+    # If we are here, everything is good.
+    assert fileinfo.local_size == fileinfo.remote_size
+    assert fileinfo.local_md5_hash == fileinfo.remote_md5_hash
+    return True
 
 # =================================================================================================
 #     FTP Helpers
@@ -82,67 +184,66 @@ def ftp_get_dirs(ftp, dir=None):
 #     FTP Download
 # =================================================================================================
 
-# Download a specific file. We return a status code and the remove file size. This is quick and dirty.
-# If we want to handle these information properly, and want more logging etc in the future,
-# refactor this to use a proper data structure that captures all details of a file download.
-def ftp_download_file(ftp, remote_file, local_file):
-    # Init our return values, which is status "Downloaded" (all good), and the file size.
-    status='D'
-    rsize = ftp.size(remote_file)
-    if rsize is None:
-        raise Exception("Cannot work with a server that does not support to retreive file sizes.")
+# Download a specific file, and fill in the respective FileInfo data.
+def ftp_download_file(ftp, fileinfo):
+    # Init the (expected) remote file size.
+    fileinfo.remote_size = ftp.size(fileinfo.remote_path)
+    if fileinfo.remote_size is None:
+        raise Exception(
+            "Cannot work with a server that does not support to retreive file sizes. " +
+            "Feel free however to refactor this script accordingly."
+        )
 
-    # Check that we do not overwrite files accidentally.
-    if os.path.exists(local_file):
-        if not os.path.isfile(local_file):
-            raise Exception("Local path \"" + local_file + "\" exists, but is not a file.")
-
-        # If the file sizes are identical, we can skip. If not, we download again.
-        lsize = os.stat(local_file).st_size
-        if rsize != lsize:
-            print(
-                "Local file \"" + local_file + "\" exists, but has size", str(lsize),
-                "instead of remote file size", str(rsize) + ".", flush=True
-            )
-            status='R'
+    # Check that we do not overwrite files accidentally, that is, only download again if the file
+    # does not match its expectations. If all is good, we can skip the file.
+    if os.path.exists(fileinfo.local_path):
+        if get_and_check_file_properties(fileinfo):
+            print("Local file \"" + fileinfo.local_path + "\" exists and is good. Skipping.")
+            fileinfo.status='S'
+            return
         else:
-            print("Local file \"" + local_file + "\" exists. Skipping.")
-            status='S'
-            return [status, rsize]
+            print(
+                "Will download the file again."
+            )
+            fileinfo.status='R'
 
     # Make the target dir if necessary.
-    if not os.path.exists(os.path.dirname( local_file )):
-        os.mkdir(os.path.dirname( local_file ))
+    if not os.path.exists(os.path.dirname( fileinfo.local_path )):
+        os.mkdir(os.path.dirname( fileinfo.local_path ))
 
     # Report progress while downloading. We have gigabytes of data, so that is important.
-    print("\nDownloading \"" + remote_file + "\"", flush=True)
-    pbar = progressbar.ProgressBar(max_value=(rsize if rsize is not None else progressbar.UnknownLength))
+    print("\nDownloading \"" + fileinfo.remote_path + "\"...", flush=True)
+    pbar = progressbar.ProgressBar( max_value = (
+        fileinfo.remote_size if fileinfo.remote_size is not None else progressbar.UnknownLength
+    ))
     pbar.start()
 
     # Open the file locally, and define a callback that writes to that file while reporting progress.
-    file = open(local_file, 'wb')
-    def file_write(data):
-        file.write(data)
+    filehandle = open(fileinfo.local_path, 'wb')
+    def file_write_callback(data):
+        filehandle.write(data)
         nonlocal pbar
         pbar += len(data)
 
-    # Go go gadget
+    # Go go gadget!
     try:
-        ftp.retrbinary("RETR " + remote_file, file_write)
+        ftp.retrbinary("RETR " + fileinfo.remote_path, file_write_callback)
     except ex:
         print("Error downloading file:", str(ex))
-        status='E'
+        fileinfo.status='E'
     pbar.finish()
-    file.close()
+    filehandle.close()
 
-    # Check that we got the correct size, if so, make it read-only, and return.
-    lsize = os.stat(local_file).st_size
-    if rsize != lsize:
-        print("Error downloading file: Downloaded size", str(lsize), "does not match remote size", str(rsize))
-        status='E'
+    # Check that we got the correct size, and the correct md5 hash,
+    # and if so, make it read-only, and return.
+    if get_and_check_file_properties(fileinfo):
+        print("Done. File passed file size and md5 hash checks.")
+        if fileinfo.status != 'R':
+            fileinfo.status='D'
+        os.chmod( fileinfo.local_path, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH )
     else:
-        os.chmod( local_file, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH )
-    return [status, rsize]
+        print("Error downloading file!")
+        fileinfo.status='E'
 
 # Download all files from an FTP server into a target directory.
 def ftp_download_all(host, user, passwd, target_dir):
@@ -157,33 +258,69 @@ def ftp_download_all(host, user, passwd, target_dir):
     ftp = FTP( host )
     ftp.login( user=user, passwd=passwd )
 
-    # We work ourselves through all directories on the server, and store them in a queue
-    # that we process dir by dir, pushing new (sub)dirs as we go.
+    # We work through all directories on the server, and store them in a queue
+    # that we process dir by dir, pushing new (sub)dirs as we discover them.
     # Initialize with the current dir (after login) of the server.
     queue = ftp_get_dirs(ftp)
     while len(queue) > 0:
         dir = queue.pop(0)
         print("-----------------------------------------------------------------------------------")
         print("Processing", dir)
-        print()
 
         # Add all subdirs of the current one to the queue.
         for f in ftp_get_dirs( ftp, dir ):
             queue.append( f )
 
-        # Get all files in the dir, and download them.
+        # Get list of all files in the dir.
         files = ftp_get_files( ftp, dir )
         # print("Files:", files)
+
+        # If there is an md5 hash file in that directory for the files in there, get that first,
+        # so that we can check hashes for each downloaded file.
+        md5_hashes = {}
+        if md5_file_re is not None:
+            # See if there is a file in the list that fits our regular expression.
+            md5_regex = re.compile(md5_file_re)
+            md5_match_list = list(filter(md5_regex.match, files))
+            if len(md5_match_list) > 1:
+                raise Exception("Multiple md5 hash files found. Refine your regex to find the file.")
+            elif len(md5_match_list) == 1:
+                # Get the md5 txt file, as produced by the unix `md5sum` command.
+                # First, prepare is properties.
+                md5_remote_file = md5_match_list[0]
+                print("Using md5 file", md5_remote_file)
+                md5_local_file = os.path.join( target_dir, md5_remote_file )
+                md5_fileinfo = FileInfo( host, user, md5_remote_file, md5_local_file )
+
+                # Now, download it, and remove it from the file list, so that we don't download
+                # it again. Then, extract a dict of all hashes for the files.
+                ftp_download_file( ftp, md5_fileinfo )
+                write_ftp_download_log( md5_fileinfo )
+                files.remove(md5_remote_file)
+                md5_hashes = get_md5_hash_dict(md5_local_file)
+
+        # Download them all!
+        print()
         for f in files:
-            result = ftp_download_file( ftp, f, os.path.join( target_dir, f ))
-            write_ftp_download_log(host, user, result[0], result[1], f)
+            # Initialize a FileInfo where we capture all info as we process that file.
+            fileinfo = FileInfo( host, user, f, os.path.join( target_dir, f ))
+
+            # See if there is an md5 hash that we can use to check the file contents.
+            fbn = os.path.basename(fileinfo.remote_path)
+            if fbn in md5_hashes:
+                fileinfo.remote_md5_hash = md5_hashes[fbn]
+            else:
+                fileinfo.remote_md5_hash = None
+
+            # Download the file, do all checks, and write a log line about it.
+            ftp_download_file( ftp, fileinfo )
+            write_ftp_download_log(fileinfo)
 
             # Summary of all downloads. Cumbersome, because Python...
-            if result[0] in summary:
-                summary[result[0]] += 1
+            if fileinfo.status in summary:
+                summary[fileinfo.status] += 1
             else:
-                summary[result[0]] = 1
-
+                summary[fileinfo.status] = 1
         print()
 
     # We are polite, and close the connection respectfully. Bye, host.
@@ -193,15 +330,16 @@ def ftp_download_all(host, user, passwd, target_dir):
 #     Table of Sequencing Runs
 # =================================================================================================
 
-with open( run_table ) as csvfile:
-    runreader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
-    for row in runreader:
-        print("===================================================================================")
-        print("Connecting to " + row["host"] + " as " + row["username"])
-        print()
+if __name__ == "__main__":
+    with open( run_table ) as csvfile:
+        runreader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
+        for row in runreader:
+            print("===================================================================================")
+            print("Connecting to " + row["host"] + " as " + row["username"])
+            print()
 
-        ftp_download_all( row["host"], row["username"], row["password"], row[run_table_target_col] )
+            ftp_download_all( row["host"], row["username"], row["password"], row[run_table_target_col] )
 
-print("Summary:")
-for key, val in summary.items():
-    print(key + ": " + str(val))
+    print("Summary:")
+    for key, val in summary.items():
+        print(key + ": " + str(val))
