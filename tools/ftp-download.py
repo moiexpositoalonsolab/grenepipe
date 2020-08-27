@@ -20,11 +20,16 @@ import datetime
 run_table = "runs.csv"
 run_table_target_col = "submission_date"
 
+# If the main directory of the FTP server where we land only has a single subdirectory which
+# contains all the data, there is no need to keep that subdirectory name in our local files as well.
+# Let's just pretend in that case that this single subdirectory is our actual main directory.
+descend_into_single_dir = True
+
 # Log file where all FTP download attempts are logged
 ftp_download_log_file = "ftp-download.log"
 
 # File name search pattern (regex) for finding a file with md5 hashes of the files on the server.
-md5_file_re = ".*/md5\.txt"
+md5_file_re = "(.*/md5\.txt)|md5\.txt"
 
 # Summary of all processed files
 summary = {}
@@ -240,7 +245,7 @@ def ftp_download_file(ftp, fileinfo):
     # Check that we got the correct size, and the correct md5 hash,
     # and if so, make it read-only, and return.
     if get_and_check_file_properties(fileinfo):
-        print(colored("Done. File passed file size and md5 hash checks.", "green"))
+        print(colored("Done. File passed checks.", "green"))
         if fileinfo.status != 'R':
             fileinfo.status='D'
         os.chmod( fileinfo.local_path, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH )
@@ -265,20 +270,36 @@ def ftp_download_all(host, user, passwd, target_dir):
     # that we process dir by dir, pushing new (sub)dirs as we discover them.
     # Initialize with the current dir (after login) of the server.
     queue = ftp_get_dirs(ftp)
+
+    # If there is only a single dir on the server, we might want to descend into that, and use
+    # that as our new main directory, to keep our local file structure a bit easier.
+    # That only works if there is just that directory, and no files.
+    # In that case, change to that dir, and load its subdirectories again.
+    if descend_into_single_dir and len(queue) == 1 and len(ftp_get_files(ftp)) == 0:
+        maindir = queue.pop(0)
+        print("Descending into directory " + maindir)
+        print()
+        ftp.cwd(maindir)
+        queue = ftp_get_dirs(ftp)
+
+    # We of course also want to download files from the current directory (either the main, or
+    # the one we descended into). In fact, make this the first directory to process.
+    queue.insert(0, ".")
+
     while len(queue) > 0:
-        dir = queue.pop(0)
+        remote_dir = queue.pop(0)
         print(colored(
             "-----------------------------------------------------------------------------------",
             "blue"
         ))
-        print(colored("Processing " + dir, "blue"))
+        print(colored("Processing directory " + remote_dir, "blue"))
 
         # Add all subdirs of the current one to the queue.
-        for f in ftp_get_dirs( ftp, dir ):
+        for f in ftp_get_dirs( ftp, remote_dir ):
             queue.append( f )
 
         # Get list of all files in the dir.
-        files = ftp_get_files( ftp, dir )
+        files = ftp_get_files( ftp, remote_dir )
         # print("Files:", files)
 
         # If there is an md5 hash file in that directory for the files in there, get that first,
@@ -348,7 +369,7 @@ if __name__ == "__main__":
                 "===================================================================================",
                 "blue"
             ))
-            print(colored("Connecting to " + row["host"] + " as " + row["username"], "blue"))
+            print(colored("Connecting to host " + row["host"] + " as user " + row["username"], "blue"))
             print()
 
             ftp_download_all( row["host"], row["username"], row["password"], row[run_table_target_col] )
