@@ -200,7 +200,7 @@ def ftp_get_dirs(ftp, dir=None):
     return [ n for n in names if not ftp_is_file(ftp, n) ]
 
 # =================================================================================================
-#     FTP Download
+#     FTP Download File
 # =================================================================================================
 
 # Download a specific file, and fill in the respective FileInfo data.
@@ -278,6 +278,10 @@ def ftp_download_file( ftp, fileinfo ):
         summary[fileinfo.status] += 1
     else:
         summary[fileinfo.status] = 1
+
+# =================================================================================================
+#     FTP Download All
+# =================================================================================================
 
 # Download all files from an FTP server into a target directory.
 def ftp_download_all(host, user, passwd, target_dir):
