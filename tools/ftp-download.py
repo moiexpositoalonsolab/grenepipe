@@ -292,9 +292,15 @@ def ftp_download_all(host, user, passwd, target_dir):
     else:
         os.mkdir(target_dir)
 
-    # Connect to FTP server.
-    ftp = FTP( host )
-    ftp.login( user=user, passwd=passwd )
+    # Connect to FTP server. If the remote host is not available, for example becaue the sequencing
+    # center already deleted the data, we simply skip it with a warning.
+    try:
+        ftp = FTP( host )
+        ftp.login( user=user, passwd=passwd )
+    except ex:
+        print(str(ex))
+        print(colored("Cannot connect to host, skipping.", "red"))
+        return
 
     # We work through all directories on the server, and store them in a queue
     # that we process dir by dir, pushing new (sub)dirs as we discover them.
