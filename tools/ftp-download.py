@@ -297,8 +297,7 @@ def ftp_download_all(host, user, passwd, target_dir):
     try:
         ftp = FTP( host )
         ftp.login( user=user, passwd=passwd )
-    except ex:
-        print(str(ex))
+    except:
         print(colored("Cannot connect to host, skipping.", "red"))
         return
 
