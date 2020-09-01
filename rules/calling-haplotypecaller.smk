@@ -51,13 +51,11 @@ rule call_variants:
         # Took me a while to figure this one out...
         # Contigs are used as long as no restrict-regions are given in the config file.
         extra=get_gatk_call_variants_params
+    group:
+        "gatk_call_variants"
     shadow: "full"
     wrapper:
         "0.51.3/bio/gatk/haplotypecaller"
-
-# =================================================================================================
-#     Combining Calls
-# =================================================================================================
 
 # Stupid GATK sometimes writes out index files, and sometimes not, and it is not clear at all
 # when that is happening and when not. Let's try with a rule, and see if it works even if the file
@@ -73,9 +71,13 @@ rule vcf_index_gatk:
     log:
         "logs/tabix/{file}.log"
     group:
-        "gatk_calls"
+        "gatk_call_variants"
     wrapper:
         "0.55.1/bio/tabix"
+
+# =================================================================================================
+#     Combining Calls
+# =================================================================================================
 
 rule combine_calls:
     input:
@@ -89,7 +91,7 @@ rule combine_calls:
     benchmark:
         "benchmarks/gatk/combine-gvcfs/{contig}.bench.log"
     group:
-        "gatk_calls"
+        "gatk_calls_combine"
     wrapper:
         "0.51.3/bio/gatk/combinegvcfs"
 
@@ -106,7 +108,7 @@ rule genotype_variants:
     benchmark:
         "benchmarks/gatk/genotype-gvcfs/{contig}.bench.log"
     group:
-        "gatk_calls"
+        "gatk_calls_combine"
     wrapper:
         "0.51.3/bio/gatk/genotypegvcfs"
 
