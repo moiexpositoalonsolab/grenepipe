@@ -4,6 +4,7 @@
 
 import pandas as pd
 import os
+import socket, platform
 
 # Ensure min Snakemake version
 snakemake.utils.min_version("5.7")
@@ -56,6 +57,7 @@ wildcard_constraints:
 logger.info("===========================================================================")
 logger.info("    GRENEPIPE")
 logger.info("")
+logger.info("    Host:               " + (socket.gethostname() + "; " + platform.node()))
 logger.info("    Snakefile:          " + (workflow.snakefile))
 logger.info("    Base directory:     " + (workflow.basedir))
 logger.info("    Working directory:  " + os.getcwd())
