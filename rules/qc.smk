@@ -81,26 +81,26 @@ rule qualimap:
 # Different trimming tools produce different summary files. We here expand ourselves,
 # because we need to retrieve the correct file type for each of them (single or paired end),
 # which cannot easily be done with the simple snakemake expand function.
-def get_trimming_report():
+def get_trimming_reports():
     result=[]
     for smp in samples.itertuples():
-        # Get the corret suffix for single and paired end fastq files.
-        # We need this, as otherwise the trimming rules have colliding output.
-        suffix = "se" if is_single_end(smp.sample, smp.unit) else "pe"
+        # The get_trimming_report() function is part of each trimming tool rule file.
+        # We here hence call the respective correct function for each tool.
+        result.append( get_trimming_report( smp.sample, smp.unit ))
 
         # Now append the file for the sample to the result list
-        if config["settings"]["trimming-tool"] == "adapterremoval":
-            result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + ".settings" )
-        elif config["settings"]["trimming-tool"] == "cutadapt":
-            result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".qc-" + suffix + ".txt" )
-        elif config["settings"]["trimming-tool"] == "fastp":
-            result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-fastp.json" )
-        elif config["settings"]["trimming-tool"] == "skewer":
-            result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-trimmed.log" )
-        elif config["settings"]["trimming-tool"] == "trimmomatic":
-            result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".trimlog.log" )
-        else:
-            raise Exception("Unknown trimming-tool: " + config["settings"]["trimming-tool"])
+        # if config["settings"]["trimming-tool"] == "adapterremoval":
+            # result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + ".settings" )
+        # elif config["settings"]["trimming-tool"] == "cutadapt":
+            # result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".qc-" + suffix + ".txt" )
+        # elif config["settings"]["trimming-tool"] == "fastp":
+        #     result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-fastp.json" )
+        # elif config["settings"]["trimming-tool"] == "skewer":
+        #     result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-trimmed.log" )
+        # elif config["settings"]["trimming-tool"] == "trimmomatic":
+        #     result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".trimlog.log" )
+        # else:
+        #     raise Exception("Unknown trimming-tool: " + config["settings"]["trimming-tool"])
     return result
 
 # Different dedup tools produce different summary files. See above for details.
@@ -120,7 +120,7 @@ def get_dedup_report():
 rule multiqc:
     input:
         # Trimming
-        get_trimming_report(),
+        get_trimming_reports(),
 
         # Dedup
         expand(get_dedup_report(), u=samples.itertuples()),

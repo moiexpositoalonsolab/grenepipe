@@ -30,6 +30,8 @@ properties:
     properties:
       remove-duplicates:
         type: boolean
+      merge-paired-end-reads:
+        type: boolean
       recalibrate-base-qualities:
         type: boolean
       trimming-tool:
@@ -54,6 +56,7 @@ properties:
         type: boolean
     required:
       - remove-duplicates
+      - merge-paired-end-reads
       - recalibrate-base-qualities
       - trimming-tool
       - mapping-tool

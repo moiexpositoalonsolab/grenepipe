@@ -6,7 +6,7 @@ rule trim_reads_se:
     input:
         unpack(get_fastq)
     output:
-        fastq=temp("trimmed/{sample}-{unit}.fastq.gz"),
+        fastq="trimmed/{sample}-{unit}.fastq.gz",
         qc="trimmed/{sample}-{unit}.qc-se.txt"
     params:
         config["params"]["cutadapt"]["se"]
@@ -23,8 +23,8 @@ rule trim_reads_pe:
     input:
         unpack(get_fastq)
     output:
-        fastq1=temp("trimmed/{sample}-{unit}.1.fastq.gz"),
-        fastq2=temp("trimmed/{sample}-{unit}.2.fastq.gz"),
+        fastq1="trimmed/{sample}-{unit}.1.fastq.gz",
+        fastq2="trimmed/{sample}-{unit}.2.fastq.gz",
         qc="trimmed/{sample}-{unit}.qc-pe.txt"
     params:
         adapters = config["params"]["cutadapt"]["pe"]["adapters"],
@@ -51,6 +51,21 @@ def get_trimmed_reads(wildcards):
     if is_single_end(**wildcards):
         # single end sample
         return [ "trimmed/{sample}-{unit}.fastq.gz".format(**wildcards) ]
+    elif config["settings"]["merge-paired-end-reads"]:
+        # merged paired-end samples
+        raise Exception("Trimming tool 'cutadapt' cannot be used with the option 'merge-paired-end-reads'")
     else:
         # paired-end sample
         return expand("trimmed/{sample}-{unit}.{group}.fastq.gz", group=[1, 2], **wildcards)
+
+def get_trimming_report(sample, unit):
+    """Get the report needed for MultiQC."""
+    if is_single_end(sample, unit):
+        # single end sample
+        return "trimmed/" + sample + "-" + unit + ".qc-se.txt"
+    elif config["settings"]["merge-paired-end-reads"]:
+        # merged paired-end samples
+        raise Exception("Trimming tool 'cutadapt' cannot be used with the option 'merge-paired-end-reads'")
+    else:
+        # paired-end sample
+        return "trimmed/" + sample + "-" + unit + ".qc-pe.txt"

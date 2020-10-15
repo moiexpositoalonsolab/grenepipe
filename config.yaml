@@ -29,12 +29,17 @@ settings:
   # Select whether to mark and remove duplicates after mapping, using picard/markduplicates
   remove-duplicates: true
 
+  # Select whether to merge paired end reads into a single read while trimming.
+  # Only works with adapterremoval and fastp;
+  # cannot be used with cutadapt, skewer, or trimmomatic, as those do not support merging reads.
+  merge-paired-end-reads: false
+
   # Select whether to recalibrate base frequencies after mapping, using gatk/baserecalibrator
   recalibrate-base-qualities: false
 
   # Select the tool used for read trimming.
   # Valid values: "adapterremoval", "cutadapt", "fastp", "skewer", "trimmomatic"
-  trimming-tool: "skewer"
+  trimming-tool: "trimmomatic"
 
   # Select the tool used for read mapping.
   # Valid values: "bwamem", "bowtie2"
