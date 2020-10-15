@@ -2,6 +2,10 @@
 #     Variant Calling
 # =================================================================================================
 
+if config["data"]["reference"].get("known-variants"):
+    raise Exception("Calling tool 'bcftools' cannot be used with the option 'known-variants'")
+
+
 def get_mpileup_params(wildcards, input):
     # Start with the user-specified params from the config file
     params = config["params"]["bcftools"]["mpileup"]

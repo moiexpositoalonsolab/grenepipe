@@ -2,6 +2,12 @@
 #     Variant Calling
 # =================================================================================================
 
+def know_variants_extra():
+    if config["data"]["reference"].get("known-variants"):
+        return " --haplotype-basis-alleles " + config["data"]["reference"].get("known-variants")
+    else:
+        return ""
+
 rule call_variants:
     input:
         ref=config["data"]["reference"]["genome"],
@@ -12,7 +18,7 @@ rule call_variants:
         samples=get_all_bams(),
         indices=get_all_bais(),
 
-        # If we use restricted regions, set them here
+        known=config["data"]["reference"].get("known-variants"), # empty if key not present
         regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
     output:
         pipe("called/{contig}.vcf")
@@ -21,7 +27,8 @@ rule call_variants:
     benchmark:
         "benchmarks/freebayes/{contig}.bench.log"
     params:
-        extra=config["params"]["freebayes"]["extra"],         # optional parameters
+        # optional parameters
+        extra=config["params"]["freebayes"]["extra"] + know_variants_extra(),
         chunksize=config["params"]["freebayes"]["chunksize"]  # reference genome chunk size for parallelization (default: 100000)
     threads:
         config["params"]["freebayes"]["threads"]

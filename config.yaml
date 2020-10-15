@@ -16,7 +16,8 @@ data:
     # Path to the reference genome, using the file ideally as it is provided by the GATK bundle.
     genome: "data/genome.fa"
 
-    # Path to any database of known variants, ideally as it is provided by the GATK bundle.
+    # Path to any database of known variants (in vcf or vcf.gz format),
+    # ideally as it is provided by the GATK bundle.
     # If no such file is available, use an empty list or string instead.
     known-variants: ""
 
