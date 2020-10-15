@@ -139,7 +139,11 @@ rule multiqc:
         # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt", u=samples.itertuples()),
 
         # Annotation
-        "snpeff/all.csv" if config["settings"]["snpeff"] else []
+        "snpeff/all.csv" if config["settings"]["snpeff"] else [],
+
+        # Damage
+        expand("mapdamage/{u.sample}-{u.unit}/Runtime_log.txt", u=samples.itertuples())  if config["settings"]["mapdamage"] else [],
+        expand("damageprofiler/{u.sample}-{u.unit}/DamageProfiler.log", u=samples.itertuples())  if config["settings"]["damageprofiler"] else []
     output:
         report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
     params:

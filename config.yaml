@@ -71,6 +71,12 @@ settings:
   # using the workflow to only obtain quality control statistics.
   snpeff: true
 
+  # Set to true in order to run mapDamage.
+  mapdamage: false
+
+  # Set to true in order to run DamageProfiler.
+  damageprofiler: false
+
 # =================================================================================================
 #     Tool Parameters
 # =================================================================================================
@@ -246,9 +252,27 @@ params:
   # ----------------------------------------------------------------------
 
   qualimap:
-    # Additional parameter for qualimap
+    # Additional parameters for qualimap
     extra: ""
     threads: 2
+
+  # ----------------------------------------------------------------------
+  #     mapdamage
+  # ----------------------------------------------------------------------
+
+  mapdamage:
+    # Additional parameters for mapdamage, see http://ginolhac.github.io/mapDamage/
+    # Used only if settings:mapdamage == true
+    extra: ""
+
+  # ----------------------------------------------------------------------
+  #     damageprofiler
+  # ----------------------------------------------------------------------
+
+  damageprofiler:
+    # Additional parameters for damageprofiler, see https://damageprofiler.readthedocs.io/en/latest/contents/generalUsage.html
+    # Used only if settings:damageprofiler == true
+    extra: ""
 
   # ----------------------------------------------------------------------
   #     multiqc
