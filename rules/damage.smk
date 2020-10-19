@@ -30,18 +30,11 @@ rule damageprofiler:
     params:
         index=config["data"]["reference"]["genome"],
         extra=config["params"]["damageprofiler"]["extra"],
-        outdir="damageprofiler/{sample}-{unit}",
-
-        # Unfortunately, the tool creates another output folder below the specified one,
-        # contraticting its documentation. Grrrrr. So, we have to move the files ourselves...
-        bogus_outdir="damageprofiler/{sample}-{unit}/{sample}-{unit}.sorted"
+        outdir="damageprofiler/{sample}-{unit}"
     log:
         "logs/damageprofiler/{sample}-{unit}.log"
     conda:
         "../envs/damageprofiler.yaml"
     shell:
-        "damageprofiler -i {input} -r {params.index} -o {params.outdir} "
-        "{params.extra} > {log} 2>&1 ;"
-        "mv {params.bogus_outdir}/* {params.outdir}; "
-        "rm -r {params.bogus_outdir}"
+        "damageprofiler -i {input} -r {params.index} -o {params.outdir} {params.extra} > {log} 2>&1"
         # "java -jar DamageProfiler-0.5.0.jar "

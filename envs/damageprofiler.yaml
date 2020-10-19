@@ -3,4 +3,4 @@ channels:
   - bioconda
   - conda-forge
 dependencies:
-  - damageprofiler ==0.5.0
+  - damageprofiler ==1.1
