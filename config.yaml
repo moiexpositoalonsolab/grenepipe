@@ -2,7 +2,8 @@
 #     Input Data
 # =================================================================================================
 
-# Set the input data, using file paths relative to the directory where this config file is located.
+# Set the input data, using absolute file paths (relative paths do not work well with some
+# of the snakemake tools we are using in the pipeline, such as shadow directories).
 data:
 
   # Input table that lists all samples with their units and fastq files.
