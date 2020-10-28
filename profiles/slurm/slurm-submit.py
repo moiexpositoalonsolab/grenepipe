@@ -26,6 +26,8 @@ ADVANCED_ARGUMENT_CONVERSION = {"yes": True, "no": False}["no"]
 curfiledir=os.path.dirname(os.path.realpath(__file__))
 CLUSTER_CONFIG = os.path.join(curfiledir, "../host/" + socket.gethostname().split('.', 1)[0] + ".yaml")
 if not os.path.exists(CLUSTER_CONFIG):
+    CLUSTER_CONFIG = os.path.join(curfiledir, "../host/default.yaml")
+if not os.path.exists(CLUSTER_CONFIG):
     CLUSTER_CONFIG = ""
 
 RESOURCE_MAPPING = {
@@ -41,6 +43,7 @@ job_properties = read_job_properties(jobscript)
 
 sbatch_options = {}
 cluster_config = slurm_utils.load_cluster_config(CLUSTER_CONFIG)
+write_debug_log( "c\t" + str(cluster_config))
 
 # 1) sbatch default arguments
 sbatch_options.update(slurm_utils.parse_sbatch_defaults(SBATCH_DEFAULTS))
