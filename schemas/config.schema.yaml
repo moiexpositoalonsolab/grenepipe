@@ -63,6 +63,8 @@ properties:
       - calling-tool
       - vqsr
       - snpeff
+      - mapdamage
+      - damageprofiler
 
   params:
     type: object
