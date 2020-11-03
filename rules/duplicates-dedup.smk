@@ -31,7 +31,7 @@ rule mark_duplicates:
     conda:
         "../envs/dedup.yaml"
     group:
-        "mapping-extra"
+        "mapping_extra"
     shadow: "full"
     shell:
         "dedup -i {input} -o {params.out_dir} {params.extra} > {log} 2>&1"
@@ -48,6 +48,6 @@ rule sort_reads_dedup:
     log:
         "logs/samtools/sort/{sample}-{unit}-dedup.log"
     group:
-        "mapping-extra"
+        "mapping_extra"
     wrapper:
         "0.58.0/bio/samtools/sort"

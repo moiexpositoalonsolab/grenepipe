@@ -17,6 +17,6 @@ rule mark_duplicates:
     params:
         config["params"]["picard"]["MarkDuplicates"]
     group:
-        "mapping-extra"
+        "mapping_extra"
     wrapper:
         "0.51.3/bio/picard/markduplicates"
