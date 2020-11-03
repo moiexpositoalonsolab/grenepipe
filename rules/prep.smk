@@ -19,8 +19,8 @@ include: "common.smk"
 # Get file names from config file
 genome=config["data"]["reference"]["genome"]
 if not config["data"]["reference"]["known-variants"]:
-    variants=[]
-    variants_index=[]
+    variants=""
+    variants_index=""
 else:
     variants=config["data"]["reference"]["known-variants"]
     if os.path.splitext(variants)[1] == ".vcf":
@@ -29,7 +29,22 @@ else:
         raise Exception("Invalid known variants file type: " + variants )
     variants_index = variants + ".tbi"
 
-genomedir=os.path.dirname(config["data"]["reference"]["genome"]) + "/"
+# We need to remove absolute paths here, otherwise the log files will contain broken paths.
+genomedir  = os.path.dirname(config["data"]["reference"]["genome"]) + "/"
+genomename = os.path.basename(config["data"]["reference"]["genome"])
+
+# The snake strikes again. For the "all" preparation rule below, we need `variants` to be either
+# an actual file path, or an empty list, as Snakemake does not recognize empty strings properly...
+# However, for the rules that work on the variants, we cannot use a list, so we need to provide
+# (empty) strings in these cases. So ugly.
+variantsdir  = os.path.dirname(variants) + "/"
+variantsname = os.path.basename(variants)
+if variants:
+    variants_target=variants
+    variants_index_target=variants_index
+else:
+    variants_target=[]
+    variants_index_target=[]
 
 # =================================================================================================
 #     Main Rule
@@ -44,8 +59,8 @@ rule preparation:
         sa=genome + ".sa",
         fai=genome + ".fai",
         dict=os.path.splitext(genome)[0] + ".dict",
-        vcf=variants,
-        vcfi=variants_index
+        vcf=variants_target,
+        vcfi=variants_index_target
     group:
         "prep"
 
@@ -56,6 +71,12 @@ localrules: preparation, decompress_genome, bwa_index, samtools_faidx, sequence_
 #     Prepare Genome
 # =================================================================================================
 
+# In all rules below, we use hard coded file names (no wildcards), as stupid snakemake cannot
+# handle absolute file paths properly and gives us no reasonable way to use lambdas in the `log`
+# part of the rule, which hence would lead to log file paths containing the absolute file path
+# of our input genome. We do not want that - and as this whole prep script here only serves
+# one purpose (prepare one genome for a given config file), we just hard code for simplicity.
+
 # We provide our test data in gz-compressed form, in order to keep data in the git repo low.
 # Hence, we have to decompress first.
 rule decompress_genome:
@@ -64,7 +85,7 @@ rule decompress_genome:
     output:
         genome
     log:
-        genomedir + "logs/" + genome + ".decompress.log"
+        genomedir + "logs/" + genomename + ".decompress.log"
     group:
         "prep"
     shell:
@@ -73,19 +94,19 @@ rule decompress_genome:
 # Write indices for a given fasta reference genome file
 rule bwa_index:
     input:
-        "{genome}"
+        genome
     output:
-        "{genome}.amb",
-        "{genome}.ann",
-        "{genome}.bwt",
-        "{genome}.pac",
-        "{genome}.sa"
+        genome + ".amb",
+        genome + ".ann",
+        genome + ".bwt",
+        genome + ".pac",
+        genome + ".sa"
     log:
-        genomedir + "logs/{genome}.bwa_index.log"
+        genomedir + "logs/" + genomename + ".bwa_index.log"
     group:
         "prep"
     params:
-        prefix="{genome}",
+        prefix=genome,
         algorithm="bwtsw"
     wrapper:
         "0.51.3/bio/bwa/index"
@@ -93,11 +114,11 @@ rule bwa_index:
 # Write more indices for the fasta reference genome file
 rule samtools_faidx:
     input:
-        "{genome}"
+        genome
     output:
-        "{genome}.fai"
+        genome + ".fai"
     log:
-        genomedir + "logs/{genome}.samtools_faidx.log"
+        genomedir + "logs/" + genomename + ".samtools_faidx.log"
     group:
         "prep"
     params:
@@ -106,31 +127,32 @@ rule samtools_faidx:
         "0.51.3/bio/samtools/faidx"
 
 # Write a dictionary file for the genome.
-# This file is expected to replace the file extension, instead of adding to it.
-# We also add the genome file itself as an input, so that it is decompressed.
+# The input file extension is replaced by `dict`, instead of adding to it, so we have to trick
+# around with the output file name here.
 rule sequence_dictionary:
     input:
-        base="{genome}" + os.path.splitext(genome)[1],
-        file=genome
+        genome
     output:
-        "{genome}.dict"
+        os.path.splitext(genome)[0] + ".dict"
+    # params:
+    #     base= lambda wc: os.path.splitext(genome)[0],
     log:
-        genomedir + "logs/{genome}.sequence_dictionary.log"
+        genomedir + "logs/" + genomename + ".sequence_dictionary.log"
     group:
         "prep"
     conda:
         "../envs/prep.yaml"
     shell:
-        "gatk CreateSequenceDictionary -R {input.base} -O {output} > {log} 2>&1"
+        "gatk CreateSequenceDictionary -R {input} -O {output} > {log} 2>&1"
 
 # Compress a vcf file using gzip
 rule vcf_compress:
     input:
-        "{prefix}.vcf"
+        variants
     output:
-        "{prefix}.vcf.gz"
+        variants + ".gz"
     log:
-        genomedir + "logs/{prefix}.vcf_compress.log"
+        genomedir + "logs/" + variantsname + ".vcf_compress.log"
     group:
         "prep"
     wrapper:
@@ -138,13 +160,13 @@ rule vcf_compress:
 
 rule vcf_index:
     input:
-        "{prefix}.vcf.gz"
+        variants
     output:
-        "{prefix}.vcf.gz.tbi"
+        variants + ".tbi"
     params:
         # pass arguments to tabix (e.g. index a vcf)
         "-p vcf"
     log:
-        genomedir + "logs/{prefix}.vcf_index.log"
+        genomedir + "logs/" + variantsname + ".vcf_index.log"
     wrapper:
         "0.55.1/bio/tabix"
