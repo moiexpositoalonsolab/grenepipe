@@ -83,7 +83,7 @@ rule recalibrate_base_qualities:
     benchmark:
         "benchmarks/gatk/bqsr/{sample}-{unit}.bench.log"
     group:
-        "mapping-extra"
+        "mapping_extra"
     wrapper:
         "0.51.3/bio/gatk/baserecalibrator"
 
@@ -99,7 +99,7 @@ rule bam_index:
     log:
         "logs/samtools/index/{prefix}.log"
     group:
-        "mapping-extra"
+        "mapping_extra"
     wrapper:
         "0.51.3/bio/samtools/index"
 

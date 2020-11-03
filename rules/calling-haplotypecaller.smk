@@ -45,7 +45,7 @@ rule call_variants:
         config["params"]["gatk"]["HaplotypeCaller-threads"]
     resources:
         # Increase time limit in factors of 24h, if the job fails due to time limit.
-        time = lambda wildcards, attempt: int(1440 * int(attempt))
+        time = lambda wildcards, input, threads, attempt: int(1440 * int(attempt))
     params:
         # The function here is where the contig variable is propagated to haplotypecaller.
         # Took me a while to figure this one out...
