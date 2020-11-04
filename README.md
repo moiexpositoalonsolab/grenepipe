@@ -167,6 +167,11 @@ For it to work, we need to select a reference genome that snpEff understands.
     snpEff databases | grep -i "thaliana"
     ```
 
-2.  The first column of the output is what we are looking for:
+3.  The first column of the output is what we are looking for:
     `Arabidopsis_thaliana` is the name of the reference genome for A. thaliana in the snpEff database.
     Put this name into the `config.yaml` file at the `data --> reference --> name` key.
+
+Also note that SnpEff changed its output format at some point, which can be changed for backwards
+compatibility via the `-formatEff` option, see https://pcingola.github.io/SnpEff/se_commandline/
+for details. That option can set via our `config.yaml` file (along with other needed options of
+course) as needed.
