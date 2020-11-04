@@ -51,7 +51,7 @@ rule snpeff:
     params:
         # optional parameters (e.g., max memory 4g)
         # For finding the chromosome names used by snpeff, add `-v` here
-        extra="-Xmx4g"
+        extra=config["params"]["snpeff"]["extra"]
     wrapper:
         "0.55.1/bio/snpeff/annotate"
 

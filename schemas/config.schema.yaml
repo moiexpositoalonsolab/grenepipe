@@ -190,6 +190,21 @@ properties:
             type: string
           threads:
             type: integer
+      snpeff:
+        type: object
+        properties:
+          extra:
+            type: string
+      mapdamage:
+        type: object
+        properties:
+          extra:
+            type: string
+      damageprofiler:
+        type: object
+        properties:
+          extra:
+            type: string
       multiqc:
         type: object
         properties:
