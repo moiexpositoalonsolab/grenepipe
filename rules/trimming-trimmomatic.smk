@@ -6,8 +6,8 @@ rule trim_reads_se:
     input:
         unpack(get_fastq)
     output:
-        "trimmed/{sample}-{unit}.fastq.gz",
-        trimlog="trimmed/{sample}-{unit}-se.trimlog.log"
+        "trimmed/{sample}-{unit}.fastq.gz"
+        # trimlog="trimmed/{sample}-{unit}-se.trimlog.log"
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         **config["params"]["trimmomatic"]["se"]
@@ -27,8 +27,8 @@ rule trim_reads_pe:
         r1="trimmed/{sample}-{unit}.1.fastq.gz",
         r2="trimmed/{sample}-{unit}.2.fastq.gz",
         r1_unpaired="trimmed/{sample}-{unit}.1.unpaired.fastq.gz",
-        r2_unpaired="trimmed/{sample}-{unit}.2.unpaired.fastq.gz",
-        trimlog="trimmed/{sample}-{unit}-pe.trimlog.log"
+        r2_unpaired="trimmed/{sample}-{unit}.2.unpaired.fastq.gz"
+        # trimlog="trimmed/{sample}-{unit}-pe.trimlog.log"
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         **config["params"]["trimmomatic"]["pe"]
@@ -66,6 +66,7 @@ def get_trimmed_reads(wildcards):
 # Instead, we copy them afterwards. This is dirty, but that's how the snake rolls...
 rule trimmomatic_multiqc_log:
     input:
+        # Take the trimming result as dummy input, so that this rule here is always executed afterwards
         get_trimmed_reads
     output:
         "trimmed/{sample}-{unit}.trimlog.log"
@@ -76,10 +77,10 @@ def get_trimming_report(sample, unit):
     """Get the report needed for MultiQC."""
     if is_single_end(sample, unit):
         # single end sample
-        return "trimmed/" + sample + "-" + unit + "-se.trimlog.log"
+        return "trimmed/" + sample + "-" + unit + ".trimlog.log"
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
         raise Exception("Trimming tool 'trimmomatic' cannot be used with the option 'merge-paired-end-reads'")
     else:
         # paired-end sample
-        return "trimmed/" + sample + "-" + unit + "-pe.trimlog.log"
+        return "trimmed/" + sample + "-" + unit + ".trimlog.log"
