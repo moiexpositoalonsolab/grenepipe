@@ -35,7 +35,7 @@ if "restrict-regions" not in config["settings"] or not config["settings"]["restr
 # =================================================================================================
 
 # Read samples and units table
-samples = pd.read_table(config["data"]["samples"], dtype=str).set_index(["sample", "unit"], drop=False)
+samples = pd.read_csv(config["data"]["samples"], sep='\t', dtype=str).set_index(["sample", "unit"], drop=False)
 samples.index = samples.index.set_levels([i.astype(str) for i in samples.index.levels])  # enforce str in index
 snakemake.utils.validate(samples, schema="../schemas/samples.schema.yaml")
 
