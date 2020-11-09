@@ -93,14 +93,15 @@ params:
 
   # Used only if settings:trimming-tool == adapterremoval
   # See adapterremoval manual: https://adapterremoval.readthedocs.io/en/latest/
-  # amd https://adapterremoval.readthedocs.io/en/latest/manpage.html
+  # and https://adapterremoval.readthedocs.io/en/latest/manpage.html
   adapterremoval:
     threads: 4
 
-    # Params for single reads
+    # Params for single reads. Param `--gzip` is alreaday set internally.
     se: ""
 
-    # Params for paired end reads
+    # Params for paired end reads. Param `--gzip` is alreaday set internally,
+    # as well as `--collapse` if settings:merge-paired-end-reads is set to true above.
     pe: ""
 
   # ----------------------------------------------------------------------
@@ -163,6 +164,7 @@ params:
   # ----------------------------------------------------------------------
 
   # Used only if settings:trimming-tool == skewer
+  # By default, we internally already set the options `--format sanger --compress`
   skewer:
     threads: 4
     se: "--mode any"
