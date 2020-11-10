@@ -2,20 +2,35 @@
 #     Basic QC Stats
 # =================================================================================================
 
+def get_fastqc_input(wildcards):
+    if config["params"]["fastqc"]["input"] == "samples":
+        return get_fastq(wildcards)
+    elif config["params"]["fastqc"]["input"] == "trimmed":
+        return get_trimmed_reads(wildcards)
+    else:
+        raise Exception("Unknown fastqc input setting: " + config["params"]["fastqc"]["input"])
+
 rule fastqc:
     input:
-        unpack(get_fastq)
+        unpack(get_fastqc_input)
     output:
         html="qc/fastqc/{sample}-{unit}_fastqc.html",
         zip="qc/fastqc/{sample}-{unit}_fastqc.zip"
+    params:
+        config["params"]["fastqc"]["extra"]
     log:
         "logs/fastqc/{sample}-{unit}.log"
     benchmark:
         "benchmarks/fastqc/{sample}-{unit}.bench.log"
     group:
         "qc"
-    wrapper:
-        "0.27.1/bio/fastqc"
+    conda:
+        "../envs/fastqc.yaml"
+    script:
+        # We use our own version of the wrapper here, as that wrapper is just badly implemented.
+        "../scripts/fastqc.py"
+    # wrapper:
+    #     "0.27.1/bio/fastqc"
 
 rule samtools_stats:
     input:

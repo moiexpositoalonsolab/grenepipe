@@ -183,6 +183,13 @@ properties:
         required:
           - snvs
           - indels
+      fastqc:
+        type: object
+        properties:
+          input:
+            type: string
+          extra:
+            type: string
       qualimap:
         type: object
         properties:

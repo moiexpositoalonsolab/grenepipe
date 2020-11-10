@@ -1,0 +1,7 @@
+# Used by rule fastqc in qc.smk
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - fastqc ==0.11.9

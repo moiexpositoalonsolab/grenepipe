@@ -254,6 +254,18 @@ params:
       "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0"
 
   # ----------------------------------------------------------------------
+  #     fastqc
+  # ----------------------------------------------------------------------
+
+  fastqc:
+    # Select input files for fastqc: either "samples" for the raw sequence input files,
+    # or "trimmed" for the fastq files resulting from the trimming step.
+    input: "trimmed"
+
+    # Additional parameters for fastqc
+    extra: ""
+
+  # ----------------------------------------------------------------------
   #     qualimap
   # ----------------------------------------------------------------------
 
