@@ -217,6 +217,26 @@ properties:
         properties:
           extra:
             type: string
+    required:
+      - adapterremoval
+      - cutadapt
+      - fastp
+      - trimmomatic
+      - skewer
+      - bwamem
+      - bowtie2
+      - picard
+      - dedup
+      - bcftools
+      - freebayes
+      - gatk
+      - variantfiltration-hard
+      - fastqc
+      - qualimap
+      - snpeff
+      - mapdamage
+      - damageprofiler
+      - multiqc
 
 required:
   - data
