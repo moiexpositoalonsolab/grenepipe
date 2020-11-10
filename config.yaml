@@ -260,7 +260,7 @@ params:
   fastqc:
     # Select input files for fastqc: either "samples" for the raw sequence input files,
     # or "trimmed" for the fastq files resulting from the trimming step.
-    input: "trimmed"
+    input: "samples"
 
     # Additional parameters for fastqc
     extra: ""
