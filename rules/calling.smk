@@ -29,7 +29,7 @@ def get_fai():
 
 # contigs in reference genome
 def get_contigs():
-    return pd.read_table(get_fai(), header=None, usecols=[0], squeeze=True, dtype=str)
+    return pd.read_csv(get_fai(), sep='\t', header=None, usecols=[0], squeeze=True, dtype=str)
 
 # =================================================================================================
 #     Variant Calling
