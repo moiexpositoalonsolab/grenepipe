@@ -12,7 +12,7 @@ rule all:
         # Basic steps
         "genotyped/all.vcf.gz",
         "filtered/all.vcf.gz",
-        "annotated/all.vcf.gz",
+        "annotated/all.vcf.gz" if config["settings"]["snpeff"] else [],
 
         # Quality control
         "qc/multiqc.html",
