@@ -301,7 +301,7 @@ def ftp_download_all(url, user, passwd, target_dir):
     path = parsed_url.path
     if not host:
         host = url.split('/', 1)[0]
-        path = url.split('/', 1)[1]
+        path = url.split('/', 1)[1] if len(url.split('/', 1)) > 1 else ""
 
     # User output.
     print(colored(
