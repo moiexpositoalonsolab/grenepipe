@@ -2,6 +2,8 @@
 
 from ftplib import FTP
 from termcolor import colored
+import ftplib
+import urllib.parse
 import sys, os, stat
 import hashlib
 import csv
@@ -14,11 +16,13 @@ import datetime
 # =================================================================================================
 
 # CSV table listing all the FTP server/user combinations that we want to get files from.
-# The table needs to have at least the following columns: host,username,password, as well as a column
-# that specifies the target directory to which the files from that server/user are downloaded to.
-# The name of that column can be set with run_table_target_col
+# The table needs to have at least the following columns:
+#   * active: "true" if that dataset shall be downloaded, or "false" if not (skip it)
+#   * date: The date when this was downloaded. Needed to keep track.
+#   * target: The local target directory to write files to. Recommended to start with the date as well.
+#   * url: The url to download from. Can be just a host, or contain protocal and/or path as well.
+#   * username, password: If needed to connect to the host. Empty strings are okay if not needed.
 run_table = "runs.csv"
-run_table_target_col = "submission_date"
 
 # If the main directory of the FTP server where we land only has a single subdirectory which
 # contains all the data, there is no need to keep that subdirectory name in our local files as well.
@@ -48,9 +52,9 @@ summary = {}
 class FileInfo:
 
     # Init function that expects the minimum data that we need to get the file.
-    def __init__(self, host, user, remote_path, local_path):
+    def __init__(self, url, user, remote_path, local_path):
         # Where the file is downloaded from, and remote file information
-        self.host = host
+        self.url = url
         self.user = user
         self.remote_path = remote_path
         self.remote_size = None
@@ -83,9 +87,13 @@ def write_ftp_download_log(fileinfo):
     with open( ftp_download_log_file, "a") as logfile:
         now = datetime.datetime.now().strftime("%Y-%m-%d\t%H:%M:%S")
         logfile.write(
-            now + "\t" + str(fileinfo.host) + "\t" + str(fileinfo.user) + "\t" +
-            str(fileinfo.status) + "\t" + str(fileinfo.local_md5_hash) + "\t" + str(fileinfo.local_size) + "\t" +
-            str(fileinfo.local_path) + "\n"
+            now +
+            "\t" + str(fileinfo.url) +
+            "\t" + str(fileinfo.user) +
+            "\t" + str(fileinfo.status) +
+            "\t" + str(fileinfo.local_md5_hash) +
+            "\t" + str(fileinfo.local_size) +
+            "\t" + str(fileinfo.local_path) + "\n"
         )
 
 # Given a file as produced by the unix `md5sum` command, return a dict from file names to
@@ -182,8 +190,9 @@ def ftp_get_list(ftp, dir=None):
             names = ftp.nlst(dir)
         else:
             names = ftp.nlst()
-    except( ftplib.error_perm, resp ):
-        if str(resp) == "550 No files found":
+    except ftplib.error_perm as resp:
+        # No files found / Can't check for file existence
+        if str(resp).startswith( "550" ):
             return []
         else:
             raise
@@ -230,7 +239,7 @@ def ftp_download_file_inner(ftp, fileinfo):
 
     # Make the target dir if necessary.
     if not os.path.exists(os.path.dirname( fileinfo.local_path )):
-        os.mkdir(os.path.dirname( fileinfo.local_path ))
+        os.makedirs(os.path.dirname( fileinfo.local_path ))
 
     # Report progress while downloading. We have gigabytes of data, so that is important.
     print(colored("\nDownloading \"" + fileinfo.local_path + "\"...", "blue"), flush=True)
@@ -284,7 +293,24 @@ def ftp_download_file( ftp, fileinfo ):
 # =================================================================================================
 
 # Download all files from an FTP server into a target directory.
-def ftp_download_all(host, user, passwd, target_dir):
+def ftp_download_all(url, user, passwd, target_dir):
+    # Get host name components. We allow with or without protocol, for simplicity.
+    # But that means that we have to do a bit more parsing here...
+    parsed_url = urllib.parse.urlparse(url)
+    host = parsed_url.netloc
+    path = parsed_url.path
+    if not host:
+        host = url.split('/', 1)[0]
+        path = url.split('/', 1)[1]
+
+    # User output.
+    print(colored(
+        "===================================================================================",
+        "blue"
+    ))
+    print(colored("Connecting to host " + host + ( " as user " + user if user else "" ), "blue"))
+    print()
+
     # Check target.
     if os.path.exists(target_dir):
         if not os.path.isdir(target_dir):
@@ -296,7 +322,12 @@ def ftp_download_all(host, user, passwd, target_dir):
     # center already deleted the data, we simply skip it with a warning.
     try:
         ftp = FTP( host )
-        ftp.login( user=user, passwd=passwd )
+        if user or passwd:
+            ftp.login( user=user, passwd=passwd )
+        else:
+            ftp.login()
+        if path:
+            ftp.cwd( path )
     except:
         print(colored("Cannot connect to host, skipping.", "red"))
         return
@@ -319,10 +350,13 @@ def ftp_download_all(host, user, passwd, target_dir):
 
     # We of course also want to download files from the current directory (either the main, or
     # the one we descended into). In fact, make this the first directory to process.
-    queue.insert(0, ".")
+    if not "." in queue:
+        queue.insert(0, ".")
 
     while len(queue) > 0:
         remote_dir = queue.pop(0)
+        if remote_dir == ".." or remote_dir.startswith("./") or remote_dir.endswith("/.") or remote_dir.endswith("/.."):
+            continue
         print(colored(
             "-----------------------------------------------------------------------------------",
             "blue"
@@ -352,7 +386,7 @@ def ftp_download_all(host, user, passwd, target_dir):
                 md5_remote_file = md5_match_list[0]
                 print("Using md5 hash check file", md5_remote_file)
                 md5_local_file = os.path.join( target_dir, md5_remote_file )
-                md5_fileinfo = FileInfo( host, user, md5_remote_file, md5_local_file )
+                md5_fileinfo = FileInfo( url, user, md5_remote_file, md5_local_file )
 
                 # Now, download it, and remove it from the file list, so that we don't download
                 # it again. Then, extract a dict of all hashes for the files.
@@ -364,7 +398,7 @@ def ftp_download_all(host, user, passwd, target_dir):
         print()
         for f in files:
             # Initialize a FileInfo where we capture all info as we process that file.
-            fileinfo = FileInfo( host, user, f, os.path.join( target_dir, f ))
+            fileinfo = FileInfo( url, user, f, os.path.join( target_dir, f ))
 
             # See if there is an md5 hash that we can use to check the file contents.
             fbn = os.path.basename(fileinfo.remote_path)
@@ -391,15 +425,20 @@ if progressbar.__author__ != "Rick van Hattem (Wolph)":
 if __name__ == "__main__":
     with open( run_table ) as csvfile:
         runreader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
-        for row in runreader:
-            print(colored(
-                "===================================================================================",
-                "blue"
-            ))
-            print(colored("Connecting to host " + row["host"] + " as user " + row["username"], "blue"))
-            print()
+        exp_cols = ['active', 'date', 'target', 'url', 'username', 'password']
+        if(not all(x in runreader.fieldnames for x in exp_cols)):
+            raise Exception(
+                "Run table " + run_table + " does not contain all needed fields [" +
+                ", ".join(exp_cols) + "], but instead contains [" + ", ".join(runreader.fieldnames) + "]"
+            )
 
-            ftp_download_all( row["host"], row["username"], row["password"], row[run_table_target_col] )
+        for row in runreader:
+            if row["active"] == "true":
+                ftp_download_all(
+                    row["url"], row["username"], row["password"], row["target"]
+                )
+            else:
+                print("Skipping inactive run", row["url"], "from", row["date"])
 
     print(colored(
         "===================================================================================\n",
