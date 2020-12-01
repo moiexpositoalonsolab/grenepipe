@@ -249,7 +249,7 @@ def ftp_download_file_inner(ftp, fileinfo):
     # Go go gadget!
     try:
         ftp.retrbinary("RETR " + fileinfo.remote_path, file_write_callback)
-    except ex:
+    except Exception as ex:
         print(colored("Error downloading file: " + str(ex), "red"))
         fileinfo.status='E'
     pbar.finish()
