@@ -12,7 +12,7 @@ properties:
     description: unit id
   platform:
     type: string
-    enum: ["CAPILLARY", "LS454", "ILLUMINA", "SOLID", "HELICOS", "IONTORRENT", "ONT", "PACBIO"]
+    # enum: ["CAPILLARY", "LS454", "ILLUMINA", "SOLID", "HELICOS", "IONTORRENT", "ONT", "PACBIO"]
   fq1:
     type: string
     description: path to FASTQ file
