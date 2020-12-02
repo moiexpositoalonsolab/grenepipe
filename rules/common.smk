@@ -53,11 +53,15 @@ wildcard_constraints:
 #     Pipeline User Output
 # =================================================================================================
 
+# Get a nicely formatted hostname
+hostname = socket.gethostname()
+hostname = hostname + ("; " + platform.node() if platform.node() != socket.gethostname() else "")
+
 # Some helpful messages
 logger.info("===========================================================================")
 logger.info("    GRENEPIPE")
 logger.info("")
-logger.info("    Host:               " + (socket.gethostname() + "; " + platform.node()))
+logger.info("    Host:               " + hostname)
 logger.info("    Snakefile:          " + (workflow.snakefile))
 logger.info("    Base directory:     " + (workflow.basedir))
 logger.info("    Working directory:  " + os.getcwd())
