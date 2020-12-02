@@ -165,10 +165,13 @@ rule multiqc:
         config["params"]["multiqc"]["extra"],
     log:
         "logs/multiqc.log"
-    conda:
-        "../envs/multiqc.yaml"
     wrapper:
         "0.64.0/bio/multiqc"
+    # conda:
+    #     "../envs/multiqc.yaml"
+    # script:
+    #     # We use our own version of the wrapper here, to troubleshoot dependecy issues...
+    #     "../scripts/multiqc.py"
 
 # Rule is not submitted as a job to the cluster.
 localrules: multiqc

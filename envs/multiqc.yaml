@@ -5,4 +5,5 @@ channels:
   - defaults
 dependencies:
   - multiqc ==1.9
-  - python ==3.7
+  # - python ==3.7
+  # - urllib3 ==1.24
