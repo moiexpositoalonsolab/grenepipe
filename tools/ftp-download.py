@@ -33,7 +33,7 @@ descend_into_single_dir = True
 ftp_download_log_file = "ftp-download.log"
 
 # File name search pattern (regex) for finding a file with md5 hashes of the files on the server.
-md5_file_re = "(.*/md5\.txt)|(md5\.txt)"
+md5_file_re = "(.*/)?md5(sum)?\.txt"
 
 # Summary of all processed files
 summary = {}
