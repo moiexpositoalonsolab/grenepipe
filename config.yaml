@@ -218,6 +218,7 @@ params:
   # ----------------------------------------------------------------------
 
   # Used only if settings:calling-tool == freebayes
+  # `chunksize` and `threads` are currently ignored, due to issues with the snakemake wrapper
   freebayes:
     extra: ""
     chunksize: 100000

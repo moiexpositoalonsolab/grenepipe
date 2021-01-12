@@ -27,11 +27,17 @@ rule call_variants:
     benchmark:
         "benchmarks/freebayes/{contig}.bench.log"
     params:
-        # optional parameters
-        extra=config["params"]["freebayes"]["extra"] + know_variants_extra(),
+        # Optional parameters. This is also where we limit freebayes to run just on the contig
+        # wildcard, which however currently does not work with multiple threads, as the wrapper
+        # script that we use here would overwrite the regions and mess things up.
+        extra=config["params"]["freebayes"]["extra"] + know_variants_extra() + ( " --region {contig}" if not config["settings"].get("restrict-regions") else "" ),
         chunksize=config["params"]["freebayes"]["chunksize"]  # reference genome chunk size for parallelization (default: 100000)
     threads:
-        config["params"]["freebayes"]["threads"]
+        # As of now, we have to use one thread here, as otherwise, the automatic parallelization
+        # of the wrapper will kick in, which does not work with our above --region specification,
+        # and instead runs some weird messed up calling...
+        1
+        # config["params"]["freebayes"]["threads"]
     wrapper:
         "0.55.1/bio/freebayes"
 
