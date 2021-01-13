@@ -22,11 +22,10 @@ def write_debug_log(msg):
 SBATCH_DEFAULTS = """"""
 ADVANCED_ARGUMENT_CONVERSION = {"yes": True, "no": False}["no"]
 
-# Try to find a cluster config for the current host. If not found, reset to empty config file.
-curfiledir=os.path.dirname(os.path.realpath(__file__))
-CLUSTER_CONFIG = os.path.join(curfiledir, "../host/" + socket.gethostname().split('.', 1)[0] + ".yaml")
-if not os.path.exists(CLUSTER_CONFIG):
-    CLUSTER_CONFIG = os.path.join(curfiledir, "../host/default.yaml")
+# Try to find a cluster config in the dir where the current script is located at;
+# this supposedly also works if we use a symlink to the script.
+# If no config file found, reset to empty config file.
+CLUSTER_CONFIG = os.path.join( os.path.dirname(__file__), "cluster_config.yaml" )
 if not os.path.exists(CLUSTER_CONFIG):
     CLUSTER_CONFIG = ""
 
