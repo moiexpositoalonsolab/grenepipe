@@ -1,8 +1,8 @@
 # Default settings of the cookiecutter setup
 restart-times: 3
 jobscript: "slurm-jobscript.sh"
-cluster: "slurm/slurm-submit.py"
-cluster-status: "slurm/slurm-status.py"
+cluster: "slurm-submit.py"
+cluster-status: "slurm-status.py"
 max-jobs-per-second: 1
 max-status-checks-per-second: 10
 local-cores: 1
