@@ -1,4 +1,4 @@
-Snakemake pipeline for variant calling from raw sample sequences with a lot of bells and whistles.
+Snakemake pipeline for variant calling from raw sample sequences, with lots of bells and whistles.
 
 ![grenepipe logo](/doc/logo/grenepipe.png?raw=true)
 
@@ -56,3 +56,6 @@ Getting Started
 -------------------
 
 See [**the Wiki pages**](https://github.com/lczech/grenepipe/wiki) for setup and documentation.
+
+For **bug reports and feature requests**, please
+[open an issue on our GitHub page](https://github.com/lczech/grenepipe/issues).
