@@ -1,18 +1,17 @@
+Snakemake pipeline for variant calling from raw sample sequences with a lot of bells and whistles.
+
 ![grenepipe logo](/doc/logo/grenepipe.png?raw=true)
 
-Snakemake pipeline for variant calling from raw sample sequences.
-The pipeline roughly follows the [GATK best practices workflow](https://gatk.broadinstitute.org/hc/en-us/sections/360007226651-Best-Practices-Workflows), but with a lot of additional options and tool choices.
-
-Overview
+Pipeline Overview
 -------------------
 
-Minimal input:
+**Minimal input:**
 
   - Reference genome `fasta` file
   - Per-sample `fastq` files
   - Optionally, a `vcf` file of known variants to restrict the variant calling process
 
-Process and available tools:
+**Process and available tools:**
 
   - Read trimming (single or paired end)
     - [AdapterRemoval](https://adapterremoval.readthedocs.io/en/latest/)
@@ -44,7 +43,8 @@ Process and available tools:
     - [snpEff](https://pcingola.github.io/SnpEff/)
     - [MultiQC](https://multiqc.info/)
 
-Output:
+**Output:**
+
   - Variant calls `vcf`
   - MultiQC report (includes summaries of most other tools)
   - Snakemake report (optional)
