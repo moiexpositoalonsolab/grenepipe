@@ -50,7 +50,7 @@ Pipeline Overview
   - Snakemake report (optional)
 
 Additionally, there are some tools used for gluing between the steps.
-If you are interested in the details, have a look at the snakemake [rules](tree/master/rules) for each step.
+If you are interested in the details, have a look at the snakemake [rules](https://github.com/lczech/grenepipe/tree/master/rules) for each step.
 
 Getting Started
 -------------------
