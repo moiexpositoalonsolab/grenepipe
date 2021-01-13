@@ -12,7 +12,8 @@ data:
 
   reference:
 
-    # Name of the reference genome. This has to be a valid snpeff database genome name.
+    # Name of the reference genome. Only used if settings:snpeff is set to `true`.
+    # This has to be a valid snpeff database genome name.
     name: "Arabidopsis_thaliana"
 
     # Path to the reference genome, using the file ideally as it is provided by the GATK bundle.
