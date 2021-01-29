@@ -33,7 +33,7 @@ descend_into_single_dir = True
 ftp_download_log_file = "ftp-download.log"
 
 # File name search pattern (regex) for finding a file with md5 hashes of the files on the server.
-md5_file_re = "(.*/)?md5(sum)?\.txt"
+md5_file_re = "(.*/)?(md5|MD5)(sum)?\.txt"
 
 # Summary of all processed files
 summary = {}
@@ -267,7 +267,8 @@ def ftp_download_file_inner(ftp, fileinfo):
     # Check that we got the correct size, and the correct md5 hash,
     # and if so, make it read-only, and return.
     if get_and_check_file_properties(fileinfo):
-        print(colored("Done. File passed checks.", "green"))
+        withmd5 = ", including MD5." if fileinfo.local_md5_hash else "."
+        print(colored("Done. File passed checks" + withmd5, "green"))
         if fileinfo.status != 'R':
             fileinfo.status='D'
         os.chmod( fileinfo.local_path, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH )
