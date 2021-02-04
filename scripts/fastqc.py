@@ -5,8 +5,9 @@
 # Snakemake wrapper for fastqc, adapted from the wrapper script at
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/fastqc.html,
 # but edited, because the original just causes too much trouble due to the tmp dir
-# (e.g., in cluster environments), and also silences the logging, which is bad for debugging.
-# We here do not use the --quite option, so that we can see what went wrong.
+# (e.g., in cluster environments), has a bug concerning gzipped files that do not end in `.fastq.gz`
+# (see below in the code for details), and also silences the logging, which is bad for debugging.
+# We here do not use the --quite option, so that we can see if something went wrong.
 
 # =================================================================================================
 #     Dependencies and Setup
