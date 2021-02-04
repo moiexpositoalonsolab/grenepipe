@@ -13,6 +13,7 @@
 # =================================================================================================
 
 from os import path
+import re
 from tempfile import TemporaryDirectory
 from snakemake.shell import shell
 
@@ -23,8 +24,24 @@ def basename_without_ext(file_path):
 
     base = path.basename(file_path)
 
-    split_ind = 2 if base.endswith(".fastq.gz") else 1
-    base = ".".join(base.split(".")[:-split_ind])
+    # Original line that does not work with fq and the like
+    # split_ind = 2 if base.endswith(".fastq.gz") else 1
+    # base = ".".join(base.split(".")[:-split_ind])
+
+    # Minimalistic fix to at least get fq extensions to work
+    # split_ind = 2 if base.endswith(".fastq.gz") or base.endswith(".fq.gz") else 1
+    # base = ".".join(base.split(".")[:-split_ind])
+
+    # Proper solution that follows the actual fastqc code.
+    # Proposed for the snakemake wrapper that this script is based on:
+    # https://github.com/snakemake/snakemake-wrappers/issues/288
+    base = re.sub('\\.gz$', '', base)
+    base = re.sub('\\.bz2$', '', base)
+    base = re.sub('\\.txt$', '', base)
+    base = re.sub('\\.fastq$', '', base)
+    base = re.sub('\\.fq$', '', base)
+    base = re.sub('\\.sam$', '', base)
+    base = re.sub('\\.bam$', '', base)
 
     return base
 
@@ -40,12 +57,14 @@ with TemporaryDirectory() as tempdir:
 
     # More verbose output than the wrapper, for debugging
     shell(
+        # "echo \"{tempdir:q}\" ; "
         "echo \"Input:       {snakemake.input[0]:q}\" > {tempdir:q}/log.txt ; "
         "echo \"Output zip:  {snakemake.output.zip:q}\" >> {tempdir:q}/log.txt ; "
         "echo \"Output html: {snakemake.output.html:q}\" >> {tempdir:q}/log.txt ; "
         "echo -e \"\n--\n\" >> {tempdir:q}/log.txt ; "
         "fastqc {snakemake.params} -t {snakemake.threads} "
-        "--outdir {tempdir:q} {snakemake.input[0]:q} >> {tempdir:q}/log.txt 2>&1"
+        "--outdir {tempdir:q} {snakemake.input[0]:q} >> {tempdir:q}/log.txt 2>&1 ;"
+        # "ls {tempdir:q}"
     )
 
     # Move outputs into proper position.
