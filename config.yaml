@@ -32,7 +32,8 @@ data:
 
 settings:
 
-  # Select whether to mark and remove duplicates after mapping, using picard/markduplicates
+  # Select whether to mark and remove duplicates after mapping,
+  # using either picard/markduplicates or dedup, depending on "settings: duplicates-tool"
   remove-duplicates: true
 
   # Select whether to merge paired end reads into a single read while trimming.
