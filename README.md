@@ -1,6 +1,6 @@
-Snakemake pipeline for variant calling from raw sample sequences, with lots of bells and whistles.
-
 ![grenepipe logo](/doc/logo/grenepipe.png?raw=true)
+
+Snakemake pipeline for variant calling from raw sample sequences, with lots of bells and whistles.
 
 Pipeline Overview
 -------------------
