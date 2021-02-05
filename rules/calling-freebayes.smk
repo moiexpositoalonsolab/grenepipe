@@ -39,7 +39,12 @@ rule call_variants:
         # Reference genome chunk size for parallelization (default: 100000)
         chunksize=config["params"]["freebayes"]["chunksize"]
     threads:
-        config["params"]["freebayes"]["threads"]
+        # Need to exclude threads that we need for compression
+        max(
+            1,
+            int(config["params"]["freebayes"]["threads"]) -
+            int(config["params"]["freebayes"]["compress-threads"])
+        )
     group:
         "call_variants"
     # wrapper:
