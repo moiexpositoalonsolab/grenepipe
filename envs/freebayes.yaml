@@ -1,0 +1,14 @@
+# Used in calling-freebayes.smk
+# Copied from https://github.com/snakemake/snakemake-wrappers/blob/52c4a4a4a8fb388e68b46c0a9982432ef86cd071/bio/freebayes/environment.yaml
+# but extended by bamtools and bedops (or not - both not needed at the moment)
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - freebayes =1.3.1
+  - bcftools =1.11
+  - parallel =20190522
+  - bedtools >=2.29
+  - sed =4.7
+  # - bamtools =2.5.1
+  # - bedops =2.4.39-0

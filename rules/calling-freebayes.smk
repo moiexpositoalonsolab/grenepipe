@@ -10,15 +10,21 @@ def know_variants_extra():
 
 rule call_variants:
     input:
+        # Our custom script needs the genome and its fai file.
         ref=config["data"]["reference"]["genome"],
+        fai=get_fai(),
 
         # Get the bam and bai files for all files. If this is too slow, we need to split,
         # similar to what our GATK HaplotypeCaller rule does.
-        # Without bai files, freebays claims that it recomputes them, but actually crashes...
+        # Without bai files, freebayes claims that it recomputes them, but actually crashes...
         samples=get_all_bams(),
         indices=get_all_bais(),
 
+        # If known variants are set, use this as input to ensure the file exists.
+        # We use the file via the know_variants_extra() function call below.
         known=config["data"]["reference"].get("known-variants"), # empty if key not present
+
+        # If we restict the calling to some regions, use this file here.
         regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
     output:
         pipe("called/{contig}.vcf")
@@ -27,19 +33,20 @@ rule call_variants:
     benchmark:
         "benchmarks/freebayes/{contig}.bench.log"
     params:
-        # Optional parameters. This is also where we limit freebayes to run just on the contig
-        # wildcard, which however currently does not work with multiple threads, as the wrapper
-        # script that we use here would overwrite the regions and mess things up.
-        extra=config["params"]["freebayes"]["extra"] + know_variants_extra() + ( " --region {contig}" if not config["settings"].get("restrict-regions") else "" ),
-        chunksize=config["params"]["freebayes"]["chunksize"]  # reference genome chunk size for parallelization (default: 100000)
+        # Optional extra parameters.
+        extra=config["params"]["freebayes"]["extra"] + know_variants_extra(),
+
+        # Reference genome chunk size for parallelization (default: 100000)
+        chunksize=config["params"]["freebayes"]["chunksize"]
     threads:
-        # As of now, we have to use one thread here, as otherwise, the automatic parallelization
-        # of the wrapper will kick in, which does not work with our above --region specification,
-        # and instead runs some weird messed up calling...
-        1
-        # config["params"]["freebayes"]["threads"]
-    wrapper:
-        "0.55.1/bio/freebayes"
+        config["params"]["freebayes"]["threads"]
+    # wrapper:
+    #     "0.55.1/bio/freebayes"
+    conda:
+        "../envs/freebayes.yaml"
+    script:
+        # We use our own version of the wrapper here, which improves cluster throughput.
+        "../scripts/freebayes.py"
 
 # Picard does not understand the bcf files that freebayes produces, so we have to take
 # an unfortunate detour via vcf, and compress on-the-fly using a piped rule from above.
