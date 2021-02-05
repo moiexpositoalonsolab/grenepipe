@@ -212,7 +212,7 @@ params:
   bcftools:
     mpileup: "--max-depth 10000"
     call: ""
-    threads: 6
+    threads: 8
     # concat: ""
 
   # ----------------------------------------------------------------------
@@ -224,7 +224,7 @@ params:
   freebayes:
     extra: ""
     chunksize: 100000
-    threads: 4
+    threads: 8
     compress-threads: 2
 
   # ----------------------------------------------------------------------

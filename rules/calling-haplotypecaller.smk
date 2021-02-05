@@ -43,16 +43,16 @@ rule call_variants:
     threads:
         # Need to set threads here so that snakemake can plan the job scheduling properly
         config["params"]["gatk"]["HaplotypeCaller-threads"]
-    resources:
+    # resources:
         # Increase time limit in factors of 24h, if the job fails due to time limit.
-        time = lambda wildcards, input, threads, attempt: int(1440 * int(attempt))
+        # time = lambda wildcards, input, threads, attempt: int(1440 * int(attempt))
     params:
         # The function here is where the contig variable is propagated to haplotypecaller.
         # Took me a while to figure this one out...
         # Contigs are used as long as no restrict-regions are given in the config file.
         extra=get_gatk_call_variants_params
     group:
-        "gatk_call_variants"
+        "call_variants"
     shadow: "full"
     wrapper:
         "0.51.3/bio/gatk/haplotypecaller"
@@ -71,7 +71,7 @@ rule vcf_index_gatk:
     log:
         "logs/tabix/{file}.log"
     group:
-        "gatk_call_variants"
+        "call_variants"
     wrapper:
         "0.55.1/bio/tabix"
 

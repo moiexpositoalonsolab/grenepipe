@@ -40,6 +40,8 @@ rule call_variants:
         chunksize=config["params"]["freebayes"]["chunksize"]
     threads:
         config["params"]["freebayes"]["threads"]
+    group:
+        "call_variants"
     # wrapper:
     #     "0.55.1/bio/freebayes"
     conda:
@@ -57,10 +59,12 @@ rule compress_vcf:
         protected("called/{contig}.vcf.gz")
     log:
         "logs/compress_vcf/{contig}.log"
-    conda:
-        "../envs/tabix.yaml"
     threads:
         config["params"]["freebayes"]["compress-threads"]
+    group:
+        "call_variants"
+    conda:
+        "../envs/tabix.yaml"
     shell:
         # We need to "force" overwriting the file, because snakemake creates a named pipe,
         # which then already exists once bgzip gets active.

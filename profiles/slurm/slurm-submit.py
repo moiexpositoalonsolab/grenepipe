@@ -58,8 +58,14 @@ sbatch_options.update(
 )
 write_debug_log( "3\t" + str(sbatch_options))
 
-# 4) cluster_config for particular rule
-sbatch_options.update(cluster_config.get(job_properties.get("rule"), {}))
+# 4) cluster_config for particular rule or group
+if job_properties["type"] == "single":
+    sbatch_options.update(cluster_config.get(job_properties.get("rule"), {}))
+elif job_properties["type"] == "group":
+    sbatch_options.update(cluster_config.get(job_properties.get("groupid"), {}))
+else:
+    print("Error: slurm-submit.py doesn't support job type {} yet!".format(job_properties["type"]))
+    sys.exit(1)
 write_debug_log( "4\t" + str(sbatch_options))
 
 # 5) cluster_config options
