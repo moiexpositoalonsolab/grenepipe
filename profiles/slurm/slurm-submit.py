@@ -10,10 +10,13 @@ import socket
 from snakemake.utils import read_job_properties
 import slurm_utils
 
+# Prepare directory and params for slurm log files
 workingdir = os.getcwd()
+extra_params = {}
+extra_params["log_base"] = os.path.join(workingdir, "slurm-logs")
 
 def write_debug_log(msg):
-    with open( os.path.join(workingdir, "slurm-debug.log"), "a") as debug:
+    with open( os.path.join(extra_params["log_base"], "slurm-debug.log"), "a") as debug:
         now = datetime.datetime.now()
         debug.write(now.strftime("%Y-%m-%d %H:%M:%S") + "\t" + str(msg) + "\n")
     # pass
@@ -80,10 +83,6 @@ write_debug_log( "6\t" + str(sbatch_options))
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 # Additional features that we want and need.
 # Inspiration from: https://github.com/bnprks/snakemake-slurm-profile
-
-# Prepare directory and params for slurm log files
-extra_params = {}
-extra_params["log_base"] = os.path.join(workingdir, "slurm-logs")
 
 def file_escape(string):
     return string.replace("/", "_").replace(" ", "_")
