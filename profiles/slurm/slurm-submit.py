@@ -14,6 +14,7 @@ import slurm_utils
 workingdir = os.getcwd()
 extra_params = {}
 extra_params["log_base"] = os.path.join(workingdir, "slurm-logs")
+os.makedirs(extra_params["log_base"], exist_ok=True)
 
 def write_debug_log(msg):
     with open( os.path.join(extra_params["log_base"], "slurm-debug.log"), "a") as debug:
