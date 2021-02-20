@@ -17,7 +17,8 @@
 # Lastly, we also keep the json file for reporting with multiqc.
 rule mark_duplicates:
     input:
-        "mapped/{sample}-{unit}.sorted.bam"
+        get_mapped_reads
+        # "mapped/{sample}-{unit}.sorted.bam"
     output:
         bam=temp("dedup/{sample}-{unit}.sorted_rmdup.bam"),
         metrics="dedup/{sample}-{unit}.sorted.dedup.json"

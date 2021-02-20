@@ -7,7 +7,7 @@
 data:
 
   # Input table that lists all samples with their units and fastq files.
-  # Paths in the table need to be absolute! No relative paths (e.g., `../data`)!
+  # Paths in the table need to be absolute! Best not to use relative paths (e.g., `../data`)!
   samples: "data/samples.tsv"
 
   reference:
@@ -16,14 +16,14 @@ data:
     # This has to be a valid snpeff database genome name.
     name: "Arabidopsis_thaliana"
 
-    # Path to the reference genome, using the file ideally as it is provided by the GATK bundle.
-    # Path needs to be absolute! No relative path (e.g., `../ref`)!
+    # Path to the reference genome in fasta format.
+    # Path needs to be absolute! Best not to use relative path (e.g., `../ref`)!
     genome: "data/genome.fa"
 
     # Path to any database of known variants (in vcf or vcf.gz format),
     # ideally as it is provided by the GATK bundle.
     # If no such file is available, use an empty list or string instead.
-    # Path needs to be absolute! No relative path (e.g., `../var`)!
+    # Path needs to be absolute! Best not to use relative path (e.g., `../var`)!
     known-variants: ""
 
 # =================================================================================================
@@ -32,29 +32,35 @@ data:
 
 settings:
 
-  # Select whether to mark and remove duplicates after mapping,
-  # using either picard/markduplicates or dedup, depending on "settings: duplicates-tool"
-  remove-duplicates: true
+  # Select the tool used for read trimming.
+  # Valid values: "adapterremoval", "cutadapt", "fastp", "skewer", "trimmomatic"
+  trimming-tool: "trimmomatic"
 
   # Select whether to merge paired end reads into a single read while trimming.
   # Only works with adapterremoval and fastp;
   # cannot be used with cutadapt, skewer, or trimmomatic, as those do not support merging reads.
   merge-paired-end-reads: false
 
-  # Select whether to recalibrate base frequencies after mapping, using gatk/baserecalibrator
-  recalibrate-base-qualities: false
-
-  # Select the tool used for read trimming.
-  # Valid values: "adapterremoval", "cutadapt", "fastp", "skewer", "trimmomatic"
-  trimming-tool: "trimmomatic"
-
   # Select the tool used for read mapping.
   # Valid values: "bwamem", "bowtie2"
   mapping-tool: "bwamem"
 
+  # After mapping, and before any subsequent steps (deduplication, variant calling etc),
+  # appy a filtering step using `samtools view`. If set to `true`,
+  # use 'params: samtools: view' below to set the actual filtering parameters being used.
+  # This step is for example useful when working with ancient DNA, where such filtering is common.
+  filter-mapped-reads: false
+
+  # Select whether to mark and remove duplicates after mapping,
+  # using either picard/markduplicates or dedup, depending on "settings: duplicates-tool"
+  remove-duplicates: true
+
   # Select the tool to mark duplicates.
   # Valid values: "picard", "dedup"
   duplicates-tool: "picard"
+
+  # Select whether to recalibrate base frequencies after mapping, using gatk/baserecalibrator
+  recalibrate-base-qualities: false
 
   # Select the tool used for SNP calling.
   # Valid values: "haplotypecaller", "bcftools", "freebayes"
@@ -187,6 +193,17 @@ params:
   # Used only if settings:mapping-tool == bowtie2
   bowtie2:
     threads: 12
+
+  # ----------------------------------------------------------------------
+  #     samtools view
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:filter-mapped-reads == true
+  # These are the optional filtering criteria that are used beween mapping and subsequent steps.
+  # We also always add `-b` to this, so that the output is in the binary format that we expect
+  # for our subsequent steps.
+  samtools:
+    view: "-q 1"
 
   # ----------------------------------------------------------------------
   #     picard

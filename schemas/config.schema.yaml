@@ -28,21 +28,23 @@ properties:
   settings:
     type: object
     properties:
-      remove-duplicates:
-        type: boolean
-      merge-paired-end-reads:
-        type: boolean
-      recalibrate-base-qualities:
-        type: boolean
       trimming-tool:
         type: string
         enum: ["adapterremoval", "cutadapt", "fastp", "trimmomatic", "skewer"]
+      merge-paired-end-reads:
+        type: boolean
       mapping-tool:
         type: string
         enum: ["bwamem", "bowtie2"]
+      filter-mapped-reads:
+        type: boolean
+      remove-duplicates:
+        type: boolean
       duplicates-tool:
         type: string
         enum: ["picard", "dedup"]
+      recalibrate-base-qualities:
+        type: boolean
       calling-tool:
         type: string
         enum: ["haplotypecaller", "freebayes", "bcftools"]
@@ -55,11 +57,13 @@ properties:
       snpeff:
         type: boolean
     required:
-      - remove-duplicates
-      - merge-paired-end-reads
-      - recalibrate-base-qualities
       - trimming-tool
+      - merge-paired-end-reads
       - mapping-tool
+      - filter-mapped-reads
+      - remove-duplicates
+      - duplicates-tool
+      - recalibrate-base-qualities
       - calling-tool
       - vqsr
       - snpeff
@@ -124,6 +128,11 @@ properties:
         properties:
           threads:
             type: integer
+      samtools:
+        type: object
+        properties:
+          view:
+            type: string
       picard:
         type: object
         properties:

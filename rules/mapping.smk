@@ -19,6 +19,27 @@ else:
     raise Exception("Unknown mapping-tool: " + config["settings"]["mapping-tool"])
 
 # =================================================================================================
+#     Filtering Mapped Reads
+# =================================================================================================
+
+rule filter_mapped_reads:
+    input:
+        "mapped/{sample}-{unit}.sorted.bam"
+    output:
+        "mapped/{sample}-{unit}.filtered.bam"
+    params:
+        config["params"]["samtools"]["view"] + " -b"
+    wrapper:
+        "0.72.0/bio/samtools/view"
+
+def get_mapped_reads(wildcards):
+    """Get mapped reads of given sample-unit, either filtered or unfiltered"""
+    if config["settings"]["filter-mapped-reads"]:
+        return "mapped/{sample}-{unit}.filtered.bam".format(**wildcards)
+    else:
+        return "mapped/{sample}-{unit}.sorted.bam".format(**wildcards)
+
+# =================================================================================================
 #     Mark Duplicates
 # =================================================================================================
 
@@ -44,17 +65,21 @@ def get_recal_input(bai=False):
     # case 1: no duplicate removal
     f = "mapped/{sample}-{unit}.sorted.bam"
 
+    # case 2: filtering via samtools view
+    if config["settings"]["filter-mapped-reads"]:
+        f = "mapped/{sample}-{unit}.filtered.bam"
+
     if config["settings"]["remove-duplicates"]:
-        # case 2: remove duplicates
+        # case 3: remove duplicates
         f = "dedup/{sample}-{unit}.bam"
 
     if bai:
         if config["settings"].get("restrict-regions"):
-            # case 3: need an index because random access is required
+            # case 4: need an index because random access is required
             f += ".bai"
             return f
         else:
-            # case 4: no index needed
+            # case 5: no index needed
             return []
     else:
         return f
@@ -114,11 +139,15 @@ def get_mapping_result(bai=False):
     # case 1: no duplicate removal
     f = "mapped/{sample}-{unit}.sorted.bam"
 
-    # case 2: remove duplicates
+    # case 2: filtering via samtools view
+    if config["settings"]["filter-mapped-reads"]:
+        f = "mapped/{sample}-{unit}.filtered.bam"
+
+    # case 3: remove duplicates
     if config["settings"]["remove-duplicates"]:
         f = "dedup/{sample}-{unit}.bam"
 
-    # case 3: recalibrate base qualities
+    # case 4: recalibrate base qualities
     if config["settings"]["recalibrate-base-qualities"]:
         f = "recal/{sample}-{unit}.bam"
 
