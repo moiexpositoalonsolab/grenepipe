@@ -4,4 +4,4 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - dedup ==0.12.6-0
+  - dedup ==0.12.8-0
