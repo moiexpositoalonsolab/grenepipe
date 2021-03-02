@@ -6,6 +6,8 @@
 
 rule mark_duplicates:
     input:
+        # Get either the normal mapping output, or, if additional filtering via `samtools view`
+        # is set in the config settings: filter-mapped-reads, use the filtered output instead.
         get_mapped_reads
         # "mapped/{sample}-{unit}.sorted.bam"
     output:
