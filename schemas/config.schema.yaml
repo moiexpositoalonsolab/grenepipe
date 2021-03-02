@@ -234,6 +234,7 @@ properties:
       - skewer
       - bwamem
       - bowtie2
+      - samtools
       - picard
       - dedup
       - bcftools
