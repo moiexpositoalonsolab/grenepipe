@@ -26,3 +26,6 @@ call_variants:
 
 combine_calls:
   time: 1-0
+
+gatk_calls_combine:
+  time: 1-0

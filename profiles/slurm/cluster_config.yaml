@@ -19,6 +19,3 @@ map_reads:
 call_variants:
   time: 1-0
   cpus-per-task: 8
-
-combine_calls:
-  time: 1-0
