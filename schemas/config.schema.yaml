@@ -138,8 +138,39 @@ properties:
         properties:
           MarkDuplicates:
             type: string
+          CollectMultipleMetrics:
+            properties:
+              AlignmentSummaryMetrics:
+                type: boolean
+              BaseDistributionByCycle:
+                type: boolean
+              GcBiasMetrics:
+                type: boolean
+              InsertSizeMetrics:
+                type: boolean
+              QualityByCycleMetrics:
+                type: boolean
+              QualityScoreDistributionMetrics:
+                type: boolean
+              QualityYieldMetrics:
+                type: boolean
+              # RnaSeqMetrics:
+              #   type: boolean
+              extra:
+                type: string
+            required:
+              - AlignmentSummaryMetrics
+              - BaseDistributionByCycle
+              - GcBiasMetrics
+              - InsertSizeMetrics
+              - QualityByCycleMetrics
+              - QualityScoreDistributionMetrics
+              - QualityYieldMetrics
+              # - RnaSeqMetrics
+              - extra
         required:
           - MarkDuplicates
+          - CollectMultipleMetrics
       dedup:
         type: object
         properties:

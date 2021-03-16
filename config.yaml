@@ -213,6 +213,24 @@ params:
   picard:
     MarkDuplicates: "REMOVE_DUPLICATES=true"
 
+    # Run several Picard QC tools, as needed, using Picard CollectMultipleMetrics.
+    # https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard-
+    CollectMultipleMetrics:
+      AlignmentSummaryMetrics: True
+      BaseDistributionByCycle: True
+      GcBiasMetrics: True
+      InsertSizeMetrics: True
+      QualityByCycleMetrics: True
+      QualityScoreDistributionMetrics: True
+      QualityYieldMetrics: True
+      # RnaSeqMetrics: False
+
+      # Extra params for CollectMultipleMetrics
+      extra:
+        # The others can be changed as needed.
+        "VALIDATION_STRINGENCY=LENIENT METRIC_ACCUMULATION_LEVEL=null METRIC_ACCUMULATION_LEVEL=SAMPLE"
+        # "REF_FLAT=ref_flat.txt"
+
   # ----------------------------------------------------------------------
   #     dedup
   # ----------------------------------------------------------------------

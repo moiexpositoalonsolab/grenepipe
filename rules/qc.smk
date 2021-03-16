@@ -90,6 +90,53 @@ rule qualimap:
         "{params.extra} > {log.stdout} 2> {log.stderr}"
 
 # =================================================================================================
+#     Picard CollectMultipleMetrics
+# =================================================================================================
+
+# The snakemake wrapper for picard/collectmultiplemetrics uses output file extensions
+# to select the different tools for the metrics.
+# Usable extensions (and which tools they implicitly call) are listed here:
+# https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/picard/collectmultiplemetrics.html
+def picard_collectmultiplemetrics_exts():
+    res = []
+    if config["params"]["picard"]["CollectMultipleMetrics"]["AlignmentSummaryMetrics"]:
+        res.append(".alignment_summary_metrics")
+    if config["params"]["picard"]["CollectMultipleMetrics"]["BaseDistributionByCycle"]:
+        res.append(".base_distribution_by_cycle_metrics")
+        res.append(".base_distribution_by_cycle.pdf")
+    if config["params"]["picard"]["CollectMultipleMetrics"]["GcBiasMetrics"]:
+        res.append(".gc_bias.detail_metrics")
+        res.append(".gc_bias.summary_metrics")
+        res.append(".gc_bias.pdf")
+    if config["params"]["picard"]["CollectMultipleMetrics"]["InsertSizeMetrics"]:
+        res.append(".insert_size_metrics")
+        res.append(".insert_size_histogram.pdf")
+    if config["params"]["picard"]["CollectMultipleMetrics"]["QualityByCycleMetrics"]:
+        res.append(".quality_by_cycle_metrics")
+        res.append(".quality_by_cycle.pdf")
+    if config["params"]["picard"]["CollectMultipleMetrics"]["QualityScoreDistributionMetrics"]:
+        res.append(".quality_distribution_metrics")
+        res.append(".quality_distribution.pdf")
+    if config["params"]["picard"]["CollectMultipleMetrics"]["QualityYieldMetrics"]:
+        res.append(".quality_yield_metrics")
+    # if config["params"]["picard"]["CollectMultipleMetrics"]["RnaSeqMetrics"]:
+    #     res.append(".rna_metrics")
+    return res
+
+rule picard_collectmultiplemetrics:
+    input:
+        bam=get_mapping_result(),
+        ref=config["data"]["reference"]["genome"]
+    output:
+        expand( "qc/picard/{{sample}}-{{unit}}{ext}", ext=picard_collectmultiplemetrics_exts())
+    log:
+        "logs/picard/multiple_metrics/{sample}-{unit}.log"
+    params:
+        config["params"]["picard"]["CollectMultipleMetrics"]["extra"]
+    wrapper:
+        "0.72.0/bio/picard/collectmultiplemetrics"
+
+# =================================================================================================
 #     MultiQC
 # =================================================================================================
 
@@ -152,6 +199,13 @@ rule multiqc:
         # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/coverage_histogram.txt", u=samples.itertuples()),
         # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/genome_fraction_coverage.txt", u=samples.itertuples()),
         # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt", u=samples.itertuples()),
+
+        # Picard CollectMultipleMetrics
+        expand(
+            "qc/picard/{u.sample}-{u.unit}{ext}",
+            u=samples.itertuples(),
+            ext=picard_collectmultiplemetrics_exts()
+        ),
 
         # Annotation
         "snpeff/all.csv" if config["settings"]["snpeff"] else [],
