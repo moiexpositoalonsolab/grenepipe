@@ -40,6 +40,7 @@ Pipeline Overview
     - [samtool stats](http://www.htslib.org/doc/samtools-stats.html)
     - [samtool flagstat](http://www.htslib.org/doc/samtools-flagstat.html)
     - [QualiMap](http://qualimap.conesalab.org/)
+    - [Picard CollectMultipleMetrics](https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard-)
     - [snpEff](https://pcingola.github.io/SnpEff/)
     - [MultiQC](https://multiqc.info/)
 
