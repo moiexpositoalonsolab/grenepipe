@@ -18,6 +18,8 @@ include: "common.smk"
 
 # Get file names from config file
 genome=config["data"]["reference"]["genome"]
+if genome.endswith(".gz"):
+    genome = os.path.splitext(genome)[0]
 if not config["data"]["reference"]["known-variants"]:
     variants=""
     variants_index=""
