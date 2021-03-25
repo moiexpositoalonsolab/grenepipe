@@ -30,6 +30,10 @@ if "known-variants" not in config["data"]["reference"] or not config["data"]["re
 if "restrict-regions" not in config["settings"] or not config["settings"]["restrict-regions"]:
     config["settings"]["restrict-regions"]=[]
 
+# We need to clean up the file name for the reference genome.
+if config["data"]["reference"]["genome"].endswith(".gz"):
+    config["data"]["reference"]["genome"] = os.path.splitext(config["data"]["reference"]["genome"])[0]
+
 # GATK only accepts reference genomes if their file ending is `fa` or `fasta`, at least in the
 # version that we are using. This has been updated later to also include `fas`, see here:
 # https://github.com/samtools/htsjdk/commit/657b0a6076d84582a19b741fc28cd3c9a12384bf#diff-77d63fdf4a920459b3a44ead94ad979b93115eba0749baa10a694d061b9d6c1f
