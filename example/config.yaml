@@ -1,0 +1,348 @@
+# =================================================================================================
+#     Input Data
+# =================================================================================================
+
+# Set the input data, using absolute file paths (relative paths do not work well with some
+# of the snakemake tools we are using in the pipeline, such as shadow directories).
+data:
+
+  # Input table that lists all samples with their units and fastq files.
+  # Paths in the table need to be absolute! No relative paths (e.g., `../data`)!
+  samples: "/path/to/grenepipe/example/samples.tsv"
+
+  reference:
+
+    # Name of the reference genome. Only used if settings:snpeff is set to `true`.
+    # This has to be a valid snpeff database genome name.
+    name: "Arabidopsis_thaliana"
+
+    # Path to the reference genome in fasta format.
+    # Path needs to be absolute! No relative path (e.g., `../ref`)!
+    genome: "/path/to/grenepipe/example/TAIR10_chr_all.fa.gz"
+
+    # Path to any database of known variants (in vcf or vcf.gz format),
+    # ideally as it is provided by the GATK bundle.
+    # If no such file is available, use an empty list or string instead.
+    # Path needs to be absolute! No relative path (e.g., `../var`)!
+    known-variants: ""
+
+# =================================================================================================
+#     Pipeline Settings
+# =================================================================================================
+
+settings:
+
+  # Select the tool used for read trimming.
+  # Valid values: "adapterremoval", "cutadapt", "fastp", "skewer", "trimmomatic"
+  trimming-tool: "trimmomatic"
+
+  # Select whether to merge paired end reads into a single read while trimming.
+  # Only works with adapterremoval and fastp;
+  # cannot be used with cutadapt, skewer, or trimmomatic, as those do not support merging reads.
+  merge-paired-end-reads: false
+
+  # Select the tool used for read mapping.
+  # Valid values: "bwamem", "bowtie2"
+  mapping-tool: "bwamem"
+
+  # After mapping, and before any subsequent steps (deduplication, variant calling etc),
+  # appy a filtering step using `samtools view`. If set to `true`,
+  # use 'params: samtools: view' below to set the actual filtering parameters being used.
+  # This step is for example useful when working with ancient DNA, where such filtering is common.
+  filter-mapped-reads: false
+
+  # Select whether to mark and remove duplicates after mapping,
+  # using either picard/markduplicates or dedup, depending on "settings: duplicates-tool"
+  remove-duplicates: true
+
+  # Select the tool to mark duplicates.
+  # Valid values: "picard", "dedup"
+  duplicates-tool: "picard"
+
+  # Select whether to recalibrate base frequencies after mapping, using gatk/baserecalibrator
+  recalibrate-base-qualities: false
+
+  # Select the tool used for SNP calling.
+  # Valid values: "haplotypecaller", "bcftools", "freebayes"
+  calling-tool: "haplotypecaller"
+
+  # Uncomment and point to a bed file with, e.g., captured regions if necessary,
+  # see https://gatkforums.broadinstitute.org/gatk/discussion/4133/when-should-i-use-l-to-pass-in-a-list-of-intervals
+  # restrict-regions: captured_regions.bed
+
+  # If regions are restricted, uncomment this to enlarge them by the given value
+  # in order to include flanking areas.
+  # region-padding: 100
+
+  # Set to true in order to apply machine learning based recalibration
+  # of quality scores instead of hard filtering.
+  vqsr: false
+
+  # Set to true in order to run snpeff annotations, which always requires the full SNP calling
+  # pipleline to run. Set to false instead if this is not required/desired, for example when
+  # using the workflow to only obtain quality control statistics.
+  snpeff: true
+
+  # Set to true in order to run mapDamage.
+  mapdamage: false
+
+  # Set to true in order to run DamageProfiler.
+  damageprofiler: false
+
+# =================================================================================================
+#     Tool Parameters
+# =================================================================================================
+
+params:
+
+  # ----------------------------------------------------------------------
+  #     adapterremoval
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:trimming-tool == adapterremoval
+  # See adapterremoval manual: https://adapterremoval.readthedocs.io/en/latest/
+  # and https://adapterremoval.readthedocs.io/en/latest/manpage.html
+  adapterremoval:
+    threads: 4
+
+    # Params for single reads. Param `--gzip` is alreaday set internally.
+    se: ""
+
+    # Params for paired end reads. Param `--gzip` is alreaday set internally,
+    # as well as `--collapse` if settings:merge-paired-end-reads is set to true above.
+    pe: ""
+
+  # ----------------------------------------------------------------------
+  #     cutadapt
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:trimming-tool == cutadapt
+  cutadapt:
+    threads: 4
+
+    # See cutadapt manual:
+    # https://cutadapt.readthedocs.io/en/stable/guide.html#adapter-types
+    # Set params for single end files end such as "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC -q 20" here.
+    se: ""
+
+    # Set params for paired end files end such as
+    # adapters: "-a AGAGCACACGTCTGAACTCCAGTCAC -g AGATCGGAAGAGCACACGT -A AGAGCACACGTCTGAACTCCAGTCAC -G AGATCGGAAGAGCACACGT"
+    # others: "--minimum-length 1 -q 20"
+    # https://cutadapt.readthedocs.io/en/stable/guide.html
+    pe:
+      adapters: ""
+      others: ""
+
+  # ----------------------------------------------------------------------
+  #     fastp
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:trimming-tool == fastp
+  fastp:
+    threads: 4
+
+    # See fastp manual: https://github.com/OpenGene/fastp
+    se: ""
+    pe: ""
+
+  # ----------------------------------------------------------------------
+  #     trimmomatic
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:trimming-tool == trimmomatic
+  trimmomatic:
+    threads: 6
+    se:
+      trimmer:
+        # See trimmomatic manual for adding additional options, e.g. for adapter trimming.
+        - "LEADING:3"
+        - "TRAILING:3"
+        - "SLIDINGWINDOW:4:15"
+        - "MINLEN:36"
+    pe:
+      trimmer:
+        # See trimmomatic manual for adding additional options, e.g. for adapter trimming.
+        - "LEADING:3"
+        - "TRAILING:3"
+        - "SLIDINGWINDOW:4:15"
+        - "MINLEN:36"
+
+  # ----------------------------------------------------------------------
+  #     skewer
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:trimming-tool == skewer
+  # By default, we internally already set the options `--format sanger --compress`
+  skewer:
+    threads: 4
+    se: "--mode any"
+    pe: "--mode pe"
+
+  # ----------------------------------------------------------------------
+  #     bwa mem
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:mapping-tool == bwamem
+  bwamem:
+    threads: 12
+
+  # ----------------------------------------------------------------------
+  #     bowtie2
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:mapping-tool == bowtie2
+  bowtie2:
+    threads: 12
+
+  # ----------------------------------------------------------------------
+  #     samtools view
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:filter-mapped-reads == true
+  # These are the optional filtering criteria that are used beween mapping and subsequent steps.
+  # We also always add `-b` to this, so that the output is in the binary format that we expect
+  # for our subsequent steps.
+  samtools:
+    view: "-q 1"
+
+  # ----------------------------------------------------------------------
+  #     picard
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:duplicates-tool == picard
+  picard:
+    MarkDuplicates: "REMOVE_DUPLICATES=true"
+
+    # Run several Picard QC tools, as needed, using Picard CollectMultipleMetrics.
+    # https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard-
+    CollectMultipleMetrics:
+      AlignmentSummaryMetrics: True
+      BaseDistributionByCycle: True
+      GcBiasMetrics: True
+      InsertSizeMetrics: True
+      QualityByCycleMetrics: True
+      QualityScoreDistributionMetrics: True
+      QualityYieldMetrics: True
+      # RnaSeqMetrics: False
+
+      # Extra params for CollectMultipleMetrics
+      extra:
+        # The others can be changed as needed.
+        "VALIDATION_STRINGENCY=LENIENT METRIC_ACCUMULATION_LEVEL=null METRIC_ACCUMULATION_LEVEL=SAMPLE"
+        # "REF_FLAT=ref_flat.txt"
+
+  # ----------------------------------------------------------------------
+  #     dedup
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:duplicates-tool == dedup
+  dedup:
+    extra: "-m"
+
+  # ----------------------------------------------------------------------
+  #     bcftools
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:calling-tool == bcftools
+  bcftools:
+    mpileup: "--max-depth 10000"
+    call: ""
+    threads: 8
+    # concat: ""
+
+  # ----------------------------------------------------------------------
+  #     freebayes
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:calling-tool == freebayes
+  # `chunksize` and `threads` are currently ignored, due to issues with the snakemake wrapper
+  freebayes:
+    extra: ""
+    chunksize: 100000
+    threads: 8
+    compress-threads: 2
+
+  # ----------------------------------------------------------------------
+  #     gatk
+  # ----------------------------------------------------------------------
+
+  gatk:
+    # Used only if settings:recalibrate-base-qualities == true
+    BaseRecalibrator: ""
+
+    # Used only if settings:calling-tool == haplotypecaller
+    HaplotypeCaller: ""
+    HaplotypeCaller-threads: 2
+    GenotypeGVCFs: ""
+
+    # Used only if settings:vqsr == true
+    VariantRecalibrator: ""
+
+  # ----------------------------------------------------------------------
+  #     gatk / variantfiltration
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:vqsr == false
+  variantfiltration-hard:
+    # Hard filtering as outlined in GATK docs
+    # (https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set)
+    snvs:
+      "QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0"
+    indels:
+      "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0"
+
+  # ----------------------------------------------------------------------
+  #     fastqc
+  # ----------------------------------------------------------------------
+
+  fastqc:
+    # Select input files for fastqc: either "samples" for the raw sequence input files,
+    # or "trimmed" for the fastq files resulting from the trimming step.
+    input: "samples"
+
+    # Additional parameters for fastqc
+    extra: ""
+
+  # ----------------------------------------------------------------------
+  #     qualimap
+  # ----------------------------------------------------------------------
+
+  qualimap:
+    # Additional parameters for qualimap
+    extra: ""
+    threads: 2
+
+  # ----------------------------------------------------------------------
+  #     snpeff
+  # ----------------------------------------------------------------------
+
+  snpeff:
+    # Additional parameters for snpeff, see https://pcingola.github.io/SnpEff/se_commandline/
+    # Used only if settings:snpeff == true
+    extra: "-Xmx4g"
+
+  # ----------------------------------------------------------------------
+  #     mapdamage
+  # ----------------------------------------------------------------------
+
+  mapdamage:
+    # Additional parameters for mapdamage, see http://ginolhac.github.io/mapDamage/
+    # Used only if settings:mapdamage == true
+    extra: ""
+
+  # ----------------------------------------------------------------------
+  #     damageprofiler
+  # ----------------------------------------------------------------------
+
+  damageprofiler:
+    # Additional parameters for damageprofiler, see https://damageprofiler.readthedocs.io/en/latest/contents/generalUsage.html
+    # Used only if settings:damageprofiler == true
+    extra: ""
+
+  # ----------------------------------------------------------------------
+  #     multiqc
+  # ----------------------------------------------------------------------
+
+  multiqc:
+    # Additional parameter for multiqc
+    extra: ""
