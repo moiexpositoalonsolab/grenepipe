@@ -30,6 +30,20 @@ if "known-variants" not in config["data"]["reference"] or not config["data"]["re
 if "restrict-regions" not in config["settings"] or not config["settings"]["restrict-regions"]:
     config["settings"]["restrict-regions"]=[]
 
+# GATK only accepts reference genomes if their file ending is `fa` or `fasta`, at least in the
+# version that we are using. This has been updated later to also include `fas`, see here:
+# https://github.com/samtools/htsjdk/commit/657b0a6076d84582a19b741fc28cd3c9a12384bf#diff-77d63fdf4a920459b3a44ead94ad979b93115eba0749baa10a694d061b9d6c1f
+# It would of course be better to check the file contents instead of the extenion, but okay...
+# So here, we check this, in order to provide some better error messages for users,
+# instead of having them run into cyrptic log messages "File is not a supported reference file type".
+# Add `".fas", ".fas.gz"` later if we upgrade GATK.
+fastaexts = ( ".fasta", ".fasta.gz", ".fa", ".fa.gz", ".fna" )
+if not config["data"]["reference"]["genome"].endswith( fastaexts ):
+    raise Exception(
+        "Reference genome file path does not end in " + str(fastaexts) + ", which unfortunately " +
+        "is needed by GATK. Please rename the file and change the path in the config.yaml"
+    )
+
 # =================================================================================================
 #     Read Samples File
 # =================================================================================================
