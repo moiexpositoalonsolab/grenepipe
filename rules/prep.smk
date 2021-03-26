@@ -16,10 +16,9 @@ import os
 # We need to load the config file
 include: "common.smk"
 
-# Get file names from config file
+# Get file names from config file. The reference genome file has already been stripped of the
+# `.gz` extension if present in common.
 genome=config["data"]["reference"]["genome"]
-if genome.endswith(".gz"):
-    genome = os.path.splitext(genome)[0]
 if not config["data"]["reference"]["known-variants"]:
     variants=""
     variants_index=""
