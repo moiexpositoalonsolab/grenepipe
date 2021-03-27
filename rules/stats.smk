@@ -39,7 +39,7 @@ rule plot_stats:
     group:
         "stats"
     script:
-        basedir + "/scripts/plot-depths.py"
+        "../scripts/plot-depths.py"
 
 # =================================================================================================
 #     Sequences per Sample
@@ -51,4 +51,20 @@ rule seqs_per_sample:
     params:
         samples = config["data"]["samples"]
     script:
-        basedir + "/scripts/sample-sizes.py"
+        "../scripts/sample-sizes.py"
+
+# =================================================================================================
+#     Allele Frequency Table
+# =================================================================================================
+
+rule frequency_table:
+    input:
+        "filtered/all.vcf.gz"
+    output:
+        "tables/frequencies.tsv"
+    log:
+        "logs/frequency-table.log"
+    conda:
+        "../envs/frequency-table.yaml"
+    script:
+        "../scripts/frequency-table.py"

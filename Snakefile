@@ -21,6 +21,7 @@ rule all:
         # "plots/depths.svg",
         # "plots/allele-freqs.svg",
         # "tables/sample-sizes.tsv"
+        "tables/frequencies.tsv" if config["settings"]["frequency-table"] else []
 
 # The main `all` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.
