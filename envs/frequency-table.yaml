@@ -4,5 +4,5 @@ channels:
 dependencies:
   # - python=2.7.13
   # - python =3.5
-  - vcfpy =0.11.2
+  - vcfpy =0.13.3
   # - pyvcf =0.6.8.dev0
