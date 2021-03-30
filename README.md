@@ -60,3 +60,15 @@ See [**the Wiki pages**](https://github.com/lczech/grenepipe/wiki) for setup and
 
 For **bug reports and feature requests**, please
 [open an issue on our GitHub page](https://github.com/lczech/grenepipe/issues).
+
+Reference
+-------------------
+
+When using grenepipe, please cite:
+
+> Lucas Czech, Moises Exposito-Alonso.<br/>
+> grenepipe: A flexible, scalable, and reproducible pipeline to automate variant and frequency calling from sequence reads.<br/>
+> arXiv. 2021.<br/>
+> [arXiv:2103.15167](https://arxiv.org/abs/2103.15167)
+
+Furthermore, please do not forget to cite all tools that you selected to be run for your analysis. See [our Wiki](https://github.com/moiexpositoalonsolab/grenepipe/wiki/Citation-and-References) for their references.
