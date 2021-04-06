@@ -29,3 +29,4 @@ combine_calls:
 
 gatk_calls_combine:
   time: 1-0
+  cpus-per-task: 8
