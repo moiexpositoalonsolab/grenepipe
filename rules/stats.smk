@@ -62,6 +62,8 @@ rule frequency_table:
         "filtered/all.vcf.gz"
     output:
         "tables/frequencies.tsv"
+    params:
+        fields=config["settings"]["frequency-table-fields"]
     log:
         "logs/frequency-table.log"
     conda:

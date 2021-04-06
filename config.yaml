@@ -90,14 +90,18 @@ settings:
   damageprofiler: false
 
   # Set to true to compute a table of allele frequencies from the filtered vcf,
-  # using the `AD` (allelic depth) field of the vcf for each sample to compute the frequency
-  # of REF/(REF+ALT) counts, for biallelic SNP sites.
+  # using the `AD` (allelic depth) field of the vcf for each sample to compute the total count
+  # (coverage), frequency of REF/(REF+ALT) counts, and REF and ALT counts, for biallelic SNP sites.
   # Note that this table only contains sites that are present in the filtered vcf.
   # Hence, for pool sequencing data, you also should consider to set thresholds for the calling
   # to low values so that sites are considered as variants that have low frequency alleles in the
   # pool. Typically, when working with individuals instead of pooled data, such sites would rather
   # be considered sequencing errors instead of low frequencies.
   frequency-table: false
+
+  # If the above flag is set to true, this comma separated list is used to decide which values
+  # to put into the table. Valid values: "COV,FREQ,REF_CNT,ALT_CNT"
+  frequency-table-fields: "COV,FREQ,REF_CNT,ALT_CNT"
 
 # =================================================================================================
 #     Tool Parameters

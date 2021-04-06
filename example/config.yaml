@@ -8,7 +8,7 @@ data:
 
   # Input table that lists all samples with their units and fastq files.
   # Paths in the table need to be absolute! No relative paths (e.g., `../data`)!
-  samples: "/path/to/grenepipe/example/samples.tsv"
+  samples: "/home/lucas/Dropbox/GitHub/grenepipe/example/samples.tsv"
 
   reference:
 
@@ -18,7 +18,7 @@ data:
 
     # Path to the reference genome in fasta format.
     # Path needs to be absolute! No relative path (e.g., `../ref`)!
-    genome: "/path/to/grenepipe/example/TAIR10_chr_all.fa.gz"
+    genome: "/home/lucas/Dropbox/GitHub/grenepipe/example/TAIR10_chr_all.fa.gz"
 
     # Path to any database of known variants (in vcf or vcf.gz format),
     # ideally as it is provided by the GATK bundle.
@@ -97,7 +97,11 @@ settings:
   # to low values so that sites are considered as variants that have low frequency alleles in the
   # pool. Typically, when working with individuals instead of pooled data, such sites would rather
   # be considered sequencing errors instead of low frequencies.
-  frequency-table: false
+  frequency-table: true
+
+  # If the above flag is set to true, this comma separated list is used to decide which values
+  # to put into the table. Valid values: "COV,FREQ,REF_CNT,ALT_CNT"
+  frequency-table-fields: "COV,FREQ"
 
 # =================================================================================================
 #     Tool Parameters
