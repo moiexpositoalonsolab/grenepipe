@@ -160,6 +160,11 @@ def get_mapping_result(bai=False):
 
     # case 4: recalibrate base qualities
     if config["settings"]["recalibrate-base-qualities"]:
+        if not config["data"]["reference"].get("known-variants"):
+            raise Exception(
+                "Setting recalibrate-base-qualities can only be activated if a known-variants "
+                "file is also provided."
+            )
         f = "recal/{sample}-{unit}.bam"
 
     # Additionally, this function is run for getting bai files as well
