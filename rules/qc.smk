@@ -133,8 +133,14 @@ rule picard_collectmultiplemetrics:
         "logs/picard/multiple_metrics/{sample}-{unit}.log"
     params:
         config["params"]["picard"]["CollectMultipleMetrics"]["extra"]
-    wrapper:
-        "0.72.0/bio/picard/collectmultiplemetrics"
+    conda:
+        "../envs/picard-collectmultiplemetrics.yaml"
+    script:
+        # We use our own version of the wrapper here, which fixes issues with missing files in cases
+        # where Picard does not have enough data for a specific metric to run.
+        "../scripts/picard-collectmultiplemetrics.py"
+    # wrapper:
+    #     "0.72.0/bio/picard/collectmultiplemetrics"
 
 # =================================================================================================
 #     MultiQC

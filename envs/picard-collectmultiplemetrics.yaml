@@ -1,0 +1,8 @@
+# Used by rules in qc.smk
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - picard ==2.23.0
+  - snakemake-wrapper-utils ==0.1.3
