@@ -15,12 +15,17 @@ rule map_reads:
         index=config["data"]["reference"]["genome"],
 
         # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
-        extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
+        extra=r"-R '@RG\tID:{sample}\tSM:{sample}' " + config["params"]["bwamem"]["extra"],
         # TODO add LD field as well for the unit?! http://www.htslib.org/workflow/
 
-        sort="samtools",         # Can be 'none', 'samtools' or 'picard'.
-        sort_order="coordinate", # Can be 'queryname' or 'coordinate'.
-        sort_extra=""            # Extra args for samtools/picard.
+        # Can be 'none', 'samtools' or 'picard'.
+        sort="samtools",
+
+        # Can be 'queryname' or 'coordinate'.
+        sort_order="coordinate",
+
+        # Extra args for samtools/picard.
+        sort_extra=config["params"]["bwamem"]["extra-sort"]
     threads:
         config["params"]["bwamem"]["threads"]
     resources:

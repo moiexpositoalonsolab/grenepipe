@@ -9,7 +9,8 @@ rule trim_reads_se:
         fastq="trimmed/{sample}-{unit}.fastq.gz",
         qc="trimmed/{sample}-{unit}.qc-se.txt"
     params:
-        config["params"]["cutadapt"]["se"]
+        adapters = config["params"]["cutadapt"]["se"]["adapters"],
+        extra    = config["params"]["cutadapt"]["se"]["extra"]
     threads:
         config["params"]["cutadapt"]["threads"]
     log:
@@ -17,7 +18,7 @@ rule trim_reads_se:
     benchmark:
         "benchmarks/cutadapt/{sample}-{unit}.bench.log"
     wrapper:
-        "0.63.0/bio/cutadapt/se"
+        "0.74.0/bio/cutadapt/se"
 
 rule trim_reads_pe:
     input:
@@ -28,7 +29,7 @@ rule trim_reads_pe:
         qc="trimmed/{sample}-{unit}.qc-pe.txt"
     params:
         adapters = config["params"]["cutadapt"]["pe"]["adapters"],
-        others = config["params"]["cutadapt"]["pe"]["others"]
+        extra    = config["params"]["cutadapt"]["pe"]["extra"]
     threads:
         config["params"]["cutadapt"]["threads"]
     log:
@@ -36,7 +37,7 @@ rule trim_reads_pe:
     benchmark:
         "benchmarks/cutadapt/{sample}-{unit}.bench.log"
     wrapper:
-        "0.63.0/bio/cutadapt/pe"
+        "0.74.0/bio/cutadapt/pe"
 
 # =================================================================================================
 #     Trimming Results

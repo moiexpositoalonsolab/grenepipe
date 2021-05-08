@@ -7,12 +7,10 @@ rule bowtie2_index:
     input:
         config["data"]["reference"]["genome"]
     output:
-        output1=config["data"]["reference"]["genome"] + ".1.bt2",
-        output2=config["data"]["reference"]["genome"] + ".2.bt2",
-        output3=config["data"]["reference"]["genome"] + ".3.bt2",
-        output4=config["data"]["reference"]["genome"] + ".4.bt2",
-        outputrev1=config["data"]["reference"]["genome"] + ".rev.1.bt2",
-        outputrev2=config["data"]["reference"]["genome"] + ".rev.2.bt2"
+        multiext(
+            config["data"]["reference"]["genome"],
+            ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"
+        )
     params:
         # Bowtie expects the prefix, and creates the above output files automatically.
         # So, let's do some snakemake magic to make this work.
@@ -35,21 +33,19 @@ localrules: bowtie2_index
 rule map_reads:
     input:
         sample=get_trimmed_reads,
-        bowtie_idx1=config["data"]["reference"]["genome"] + ".1.bt2",
-        bowtie_idx2=config["data"]["reference"]["genome"] + ".2.bt2",
-        bowtie_idx3=config["data"]["reference"]["genome"] + ".3.bt2",
-        bowtie_idx4=config["data"]["reference"]["genome"] + ".4.bt2",
-        bowtie_rev1=config["data"]["reference"]["genome"] + ".rev.1.bt2",
-        bowtie_rev2=config["data"]["reference"]["genome"] + ".rev.2.bt2"
+        indices=multiext(
+            config["data"]["reference"]["genome"],
+            ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"
+        )
     output:
         pipe("mapped/{sample}-{unit}.bam")
     params:
-        # Prefix of reference genome index (built with bowtie2-build)
+        # Prefix of reference genome index (built with bowtie2-build above)
         index=config["data"]["reference"]["genome"],
 
-        # Optional parameters.
+        # Optional and extra parameters.
         # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
-        extra="--rg-id {sample} --rg SM:{sample}"
+        extra="--rg-id {sample} --rg SM:{sample} " + config["params"]["bowtie2"]["extra"]
     threads:
         # Use at least two threads
         config["params"]["bowtie2"]["threads"]
@@ -63,7 +59,7 @@ rule map_reads:
     group:
         "mapping"
     wrapper:
-        "0.58.0/bio/bowtie2/align"
+        "0.74.0/bio/bowtie2/align"
 
 # The bowtie wrapper above is different from the bwa mem wrapper, and does not sort.
 # Why is everything so inconsistent? Anyway, that means we have to do the sorting step here.

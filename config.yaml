@@ -119,10 +119,10 @@ params:
   adapterremoval:
     threads: 4
 
-    # Params for single reads. Param `--gzip` is alreaday set internally.
+    # Extra parameters for single reads. Param `--gzip` is alreaday set internally.
     se: ""
 
-    # Params for paired end reads. Param `--gzip` is alreaday set internally,
+    # Extra parameters for paired end reads. Param `--gzip` is alreaday set internally,
     # as well as `--collapse` if settings:merge-paired-end-reads is set to true above.
     pe: ""
 
@@ -131,92 +131,118 @@ params:
   # ----------------------------------------------------------------------
 
   # Used only if settings:trimming-tool == cutadapt
+  # See cutadapt manual: https://cutadapt.readthedocs.io/en/stable/guide.html#adapter-types
   cutadapt:
     threads: 4
 
-    # See cutadapt manual:
-    # https://cutadapt.readthedocs.io/en/stable/guide.html#adapter-types
-    # Set params for single end files end such as "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC -q 20" here.
-    se: ""
+    # Set the adapters and any extra parameters.
+    # For example, adapters: "-a AGAGCACACGTCTGAACTCCAGTCAC -g AGATCGGAAGAGCACACGT -A AGAGCACACGTCTGAACTCCAGTCAC -G AGATCGGAAGAGCACACGT"
+    # extra: "--minimum-length 1 -q 20"
 
-    # Set params for paired end files end such as
-    # adapters: "-a AGAGCACACGTCTGAACTCCAGTCAC -g AGATCGGAAGAGCACACGT -A AGAGCACACGTCTGAACTCCAGTCAC -G AGATCGGAAGAGCACACGT"
-    # others: "--minimum-length 1 -q 20"
-    # https://cutadapt.readthedocs.io/en/stable/guide.html
+    # Extra parameters for single reads.
+    se:
+      adapters: "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
+      extra: "-q 20"
+
+    # Extra parameters for paired end reads.
     pe:
-      adapters: ""
-      others: ""
+      adapters: "-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC"
+      extra: "-q 20"
 
   # ----------------------------------------------------------------------
   #     fastp
   # ----------------------------------------------------------------------
 
   # Used only if settings:trimming-tool == fastp
+  # See fastp manual: https://github.com/OpenGene/fastp
   fastp:
     threads: 4
 
-    # See fastp manual: https://github.com/OpenGene/fastp
+    # Extra parameters for single reads.
     se: ""
+
+    # Extra parameters for paired end reads.
     pe: ""
-
-  # ----------------------------------------------------------------------
-  #     trimmomatic
-  # ----------------------------------------------------------------------
-
-  # Used only if settings:trimming-tool == trimmomatic
-  trimmomatic:
-    threads: 6
-    se:
-      trimmer:
-        # See trimmomatic manual for adding additional options, e.g. for adapter trimming.
-        - "LEADING:3"
-        - "TRAILING:3"
-        - "SLIDINGWINDOW:4:15"
-        - "MINLEN:36"
-    pe:
-      trimmer:
-        # See trimmomatic manual for adding additional options, e.g. for adapter trimming.
-        - "LEADING:3"
-        - "TRAILING:3"
-        - "SLIDINGWINDOW:4:15"
-        - "MINLEN:36"
 
   # ----------------------------------------------------------------------
   #     skewer
   # ----------------------------------------------------------------------
 
   # Used only if settings:trimming-tool == skewer
+  # See skewer manual: https://github.com/relipmoc/skewer
   # By default, we internally already set the options `--format sanger --compress`
   skewer:
     threads: 4
+
+    # Extra parameters for single reads.
     se: "--mode any"
+
+    # Extra parameters for paired end reads.
     pe: "--mode pe"
 
   # ----------------------------------------------------------------------
-  #     bwa mem
+  #     trimmomatic
   # ----------------------------------------------------------------------
 
-  # Used only if settings:mapping-tool == bwamem
-  bwamem:
-    threads: 12
+  # Used only if settings:trimming-tool == trimmomatic
+  # See trimmomatic manual: http://www.usadellab.org/cms/?page=trimmomatic
+  trimmomatic:
+    threads: 6
+    se:
+      extra: ""
+      trimmer:
+        - "LEADING:3"
+        - "TRAILING:3"
+        - "SLIDINGWINDOW:4:15"
+        - "MINLEN:36"
+    pe:
+      extra: ""
+      trimmer:
+        - "LEADING:3"
+        - "TRAILING:3"
+        - "SLIDINGWINDOW:4:15"
+        - "MINLEN:36"
 
   # ----------------------------------------------------------------------
   #     bowtie2
   # ----------------------------------------------------------------------
 
   # Used only if settings:mapping-tool == bowtie2
+  # See bowtie2 manual: http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
   bowtie2:
     threads: 12
+
+    # Extra parameters. We internally already set `--rg` and `--rg-id`
+    extra: ""
+
+  # ----------------------------------------------------------------------
+  #     bwa mem
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:mapping-tool == bwamem
+  # See bwa manual: http://bio-bwa.sourceforge.net/
+  bwamem:
+    threads: 12
+
+    # Extra parameters for bwa mem.
+    # We internally already set `-R` to use read group tags "ID" and "SM".
+    extra: ""
+
+    # Extra parameters for samtools/picard, which we use after bwa mem for sorting its output.
+    extra-sort: ""
 
   # ----------------------------------------------------------------------
   #     samtools view
   # ----------------------------------------------------------------------
 
   # Used only if settings:filter-mapped-reads == true
-  # These are the optional filtering criteria that are used beween mapping and subsequent steps.
-  # We also always add `-b` to this, so that the output is in the binary format that we expect
-  # for our subsequent steps.
+  # See http://www.htslib.org/doc/samtools.html
   samtools:
+
+    # Extra parameters for samtools/view.
+    # These are the optional filtering criteria that are used beween mapping and subsequent steps.
+    # We also always add `-b` to this, so that the output is in the binary format that we expect
+    # for our subsequent steps.
     view: "-q 1"
 
   # ----------------------------------------------------------------------
@@ -225,10 +251,12 @@ params:
 
   # Used only if settings:duplicates-tool == picard
   picard:
+    # Extra parameters for MarkDuplicates.
+    # See https://gatk.broadinstitute.org/hc/en-us/articles/360057439771-MarkDuplicates-Picard
     MarkDuplicates: "REMOVE_DUPLICATES=true"
 
     # Run several Picard QC tools, as needed, using Picard CollectMultipleMetrics.
-    # https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard-
+    # See https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard
     CollectMultipleMetrics:
       AlignmentSummaryMetrics: True
       BaseDistributionByCycle: True
@@ -239,17 +267,16 @@ params:
       QualityYieldMetrics: True
       # RnaSeqMetrics: False
 
-      # Extra params for CollectMultipleMetrics
+      # Extra parameters for CollectMultipleMetrics
       extra:
-        # The others can be changed as needed.
         "VALIDATION_STRINGENCY=LENIENT METRIC_ACCUMULATION_LEVEL=null METRIC_ACCUMULATION_LEVEL=SAMPLE"
-        # "REF_FLAT=ref_flat.txt"
 
   # ----------------------------------------------------------------------
   #     dedup
   # ----------------------------------------------------------------------
 
   # Used only if settings:duplicates-tool == dedup
+  # See https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/dedupe-guide/
   dedup:
     extra: "-m"
 
@@ -258,23 +285,30 @@ params:
   # ----------------------------------------------------------------------
 
   # Used only if settings:calling-tool == bcftools
+  # See http://samtools.github.io/bcftools/bcftools.html
   bcftools:
-    mpileup: "--max-depth 10000"
-    call: ""
     threads: 8
-    # concat: ""
+
+    # Extra parameters for the mpileup step.
+    mpileup: "--max-depth 10000"
+
+    # Extra parameters for the bcftools call step.
+    call: ""
 
   # ----------------------------------------------------------------------
   #     freebayes
   # ----------------------------------------------------------------------
 
   # Used only if settings:calling-tool == freebayes
-  # `chunksize` and `threads` are currently ignored, due to issues with the snakemake wrapper
+  # See https://github.com/freebayes/freebayes
   freebayes:
+    # Extra parameters for freebayes.
     extra: ""
-    chunksize: 100000
+
+    # Settings for parallelization
     threads: 8
     compress-threads: 2
+    chunksize: 100000
 
   # ----------------------------------------------------------------------
   #     gatk
@@ -282,14 +316,20 @@ params:
 
   gatk:
     # Used only if settings:recalibrate-base-qualities == true
+    # Extra parameters for BaseRecalibrator,
+    # see https://gatk.broadinstitute.org/hc/en-us/articles/360036803991-HaplotypeCaller
     BaseRecalibrator: ""
 
     # Used only if settings:calling-tool == haplotypecaller
+    # Extra parameters for HaplotypeCaller and surrounding steps,
+    # see https://gatk.broadinstitute.org/hc/en-us/articles/360036898312-BaseRecalibrator
     HaplotypeCaller: ""
     HaplotypeCaller-threads: 2
     GenotypeGVCFs: ""
 
     # Used only if settings:vqsr == true
+    # Extra parameters for the VariantRecalibrator,
+    # see https://gatk.broadinstitute.org/hc/en-us/articles/360050815872-VariantRecalibrator
     VariantRecalibrator: ""
 
   # ----------------------------------------------------------------------
@@ -298,8 +338,9 @@ params:
 
   # Used only if settings:vqsr == false
   variantfiltration-hard:
-    # Hard filtering as outlined in GATK docs
-    # (https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set)
+    # Extra parameters for the hard filtering as outlined in GATK docs
+    # https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
+    # The filtering is separated for SNPs/SNVs and indels.
     snvs:
       "QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0"
     indels:
@@ -315,6 +356,7 @@ params:
     input: "samples"
 
     # Additional parameters for fastqc
+    # See https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
     extra: ""
 
   # ----------------------------------------------------------------------
@@ -322,7 +364,7 @@ params:
   # ----------------------------------------------------------------------
 
   qualimap:
-    # Additional parameters for qualimap
+    # Additional parameters for qualimap, see http://qualimap.conesalab.org/
     extra: ""
     threads: 2
 
@@ -358,5 +400,7 @@ params:
   # ----------------------------------------------------------------------
 
   multiqc:
-    # Additional parameter for multiqc
+    # Additional parameter for multiqc, see https://multiqc.info/
+    # You can for example specify an additional MultiQC config file here, by using
+    # `--config /path/to/multiqc-config.yaml`.
     extra: ""

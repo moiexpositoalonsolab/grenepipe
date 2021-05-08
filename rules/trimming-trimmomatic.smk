@@ -10,7 +10,8 @@ rule trim_reads_se:
         # trimlog="trimmed/{sample}-{unit}-se.trimlog.log"
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
-        **config["params"]["trimmomatic"]["se"]
+        extra = config["params"]["trimmomatic"]["se"]["extra"],
+        trimmer = config["params"]["trimmomatic"]["se"]["trimmer"]
     threads:
         config["params"]["trimmomatic"]["threads"]
     log:
@@ -18,7 +19,7 @@ rule trim_reads_se:
     benchmark:
         "benchmarks/trimmomatic/{sample}-{unit}.bench.log"
     wrapper:
-        "0.51.3/bio/trimmomatic/se"
+        "0.74.0/bio/trimmomatic/se"
 
 rule trim_reads_pe:
     input:
@@ -31,7 +32,8 @@ rule trim_reads_pe:
         # trimlog="trimmed/{sample}-{unit}-pe.trimlog.log"
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
-        **config["params"]["trimmomatic"]["pe"]
+        extra = config["params"]["trimmomatic"]["se"]["extra"],
+        trimmer = config["params"]["trimmomatic"]["pe"]["trimmer"]
     threads:
         config["params"]["trimmomatic"]["threads"]
     log:
@@ -39,7 +41,7 @@ rule trim_reads_pe:
     benchmark:
         "benchmarks/trimmomatic/{sample}-{unit}.bench.log"
     wrapper:
-        "0.51.3/bio/trimmomatic/pe"
+        "0.74.0/bio/trimmomatic/pe"
 
 # =================================================================================================
 #     Trimming Results

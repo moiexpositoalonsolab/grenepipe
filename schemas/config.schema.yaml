@@ -95,10 +95,19 @@ properties:
           threads:
             type: integer
           se:
-            type: string
+            type: object
           pe:
             type: object
       fastp:
+        type: object
+        properties:
+          threads:
+            type: integer
+          se:
+            type: string
+          pe:
+            type: string
+      skewer:
         type: object
         properties:
           threads:
@@ -116,25 +125,22 @@ properties:
             type: object
           pe:
             type: object
-      skewer:
+      bowtie2:
         type: object
         properties:
           threads:
             type: integer
-          se:
-            type: string
-          pe:
+          extra:
             type: string
       bwamem:
         type: object
         properties:
           threads:
             type: integer
-      bowtie2:
-        type: object
-        properties:
-          threads:
-            type: integer
+          extra:
+            type: string
+          extra-sort:
+            type: string
       samtools:
         type: object
         properties:
