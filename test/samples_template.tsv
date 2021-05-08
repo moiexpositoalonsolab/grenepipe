@@ -1,0 +1,5 @@
+sample	unit	platform	fq1	fq2
+S1_U1	1	-	#BASEPATH#/example/samples/S1_U1_R1.fastq.gz	#BASEPATH#/example/samples/S1_U1_R2.fastq.gz
+S2_U1	1	-	#BASEPATH#/example/samples/S2_U1_R1.fastq.gz	#BASEPATH#/example/samples/S2_U1_R2.fastq.gz
+S2_U2	2	-	#BASEPATH#/example/samples/S2_U2_R1.fastq.gz	#BASEPATH#/example/samples/S2_U2_R2.fastq.gz
+S3_U1	1	-	#BASEPATH#/example/samples/S3_U1_R1.fastq.gz	
