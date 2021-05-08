@@ -52,22 +52,25 @@ rule hard_filter_calls:
         "0.27.1/bio/gatk/variantfiltration"
 
 # Machine learning based recalibration of quality scores instead of hard filtering.
-# To use this, set the settings:vqsr switch to true in the config.yaml
-rule recalibrate_calls:
-    input:
-        vcf="filtered/all.select-{vartype}.vcf.gz"
-    output:
-        vcf=temp("filtered/all.{vartype}.recalibrated.vcf.gz")
-    params:
-        extra=config["params"]["gatk"]["VariantRecalibrator"]
-    log:
-        "logs/gatk/variantrecalibrator/{vartype}.log"
-    benchmark:
-        "benchmarks/gatk/variantrecalibrator/{vartype}.bench.log"
-    group:
-        "filtering"
-    wrapper:
-        "0.27.1/bio/gatk/variantrecalibrator"
+# To use this, there was a config settings:vqsr switch, but re removed this now,
+# as this method is not supported at the moment. We keep the code here for reference,
+# but it never worked properly. If it becomes necessary in the future to use this method,
+# we probably need to re-implement this rule completely.
+# rule recalibrate_calls:
+#     input:
+#         vcf="filtered/all.select-{vartype}.vcf.gz"
+#     output:
+#         vcf=temp("filtered/all.{vartype}.recalibrated.vcf.gz")
+#     params:
+#         extra=config["params"]["gatk"]["VariantRecalibrator"]
+#     log:
+#         "logs/gatk/variantrecalibrator/{vartype}.log"
+#     benchmark:
+#         "benchmarks/gatk/variantrecalibrator/{vartype}.bench.log"
+#     group:
+#         "filtering"
+#     wrapper:
+#         "0.27.1/bio/gatk/variantrecalibrator"
 
 # =================================================================================================
 #     Merge Filtered Variants
@@ -77,7 +80,9 @@ rule merge_calls:
     input:
         vcf=expand("filtered/all.{vartype}.{filtertype}.vcf.gz",
                    vartype=["snvs", "indels"],
-                   filtertype="recalibrated" if config["settings"]["vqsr"] else "hardfiltered")
+                   filtertype="recalibrated" if False else "hardfiltered")
+                   # Keeping vqsr here for reference. Not used at the moment.
+                   # filtertype="recalibrated" if config["settings"]["vqsr"] else "hardfiltered")
     output:
         vcf=protected("filtered/all.vcf.gz")
     log:

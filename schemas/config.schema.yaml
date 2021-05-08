@@ -52,8 +52,6 @@ properties:
         type: string
       region-padding:
         type: integer
-      vqsr:
-        type: boolean
       snpeff:
         type: boolean
       mapdamage:
@@ -71,7 +69,6 @@ properties:
       - duplicates-tool
       - recalibrate-base-qualities
       - calling-tool
-      - vqsr
       - snpeff
       - mapdamage
       - damageprofiler
