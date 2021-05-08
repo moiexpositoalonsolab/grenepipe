@@ -23,7 +23,7 @@ shell.executable("bash")
 
 log = snakemake.log_fmt_shell(stdout=False, stderr=True)
 
-params = snakemake.params.get("extra", "")
+extra_params = snakemake.params.get("extra", "")
 norm = snakemake.params.get("normalize", False)
 assert norm in [True, False]
 
@@ -128,6 +128,6 @@ else:
     pipe = "| vcfstreamsort -w {chunksize} | vcfuniq ".format(chunksize=chunksize) + pipe
 
 shell(
-    "({freebayes} {params} -f {snakemake.input.ref}"
+    "({freebayes} {extra_params} -f {snakemake.input.ref}"
     " {snakemake.input.samples} {pipe} > {snakemake.output[0]}) {log}"
 )
