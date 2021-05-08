@@ -58,6 +58,10 @@ rule map_reads:
         "benchmarks/bowtie2/{sample}-{unit}.bench.log"
     group:
         "mapping"
+    conda:
+        # We need our own conda environment here, as the wrapper environment is not specifying
+        # the exact version of libtbb, which in its latest version does not work with bowtiw2.
+        "../envs/bowtie2.yaml"
     wrapper:
         "0.74.0/bio/bowtie2/align"
 
