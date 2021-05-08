@@ -46,6 +46,17 @@ def get_mapped_reads(wildcards):
 # Switch to the chosen duplicate marker tool
 if config["settings"]["duplicates-tool"] == "picard":
 
+    # Bioinformatics tools are messed up...
+    if config["settings"]["mapping-tool"] == "bowtie2":
+        raise Exception(
+            "Cannot combine mapping-tool bowtie2 with duplicates-tool picard, "
+            "because those two have not yet learned to work with each others file formats. "
+            "In particular, bowtie2 produces a @PG header line in its output bam file "
+            "that picard cannot parse. Unclear who is to blame. "
+            "If you really need this combination, please submit an issue to "
+            "https://github.com/moiexpositoalonsolab/grenepipe/issues and we will see what we can do."
+        )
+
     # Use `picard`
     include: "duplicates-picard.smk"
 
