@@ -47,10 +47,6 @@ rule trim_reads_pe:
 #     Trimming Results
 # =================================================================================================
 
-def is_single_end(sample, unit):
-    """Return True if sample-unit is single end."""
-    return pd.isnull(samples.loc[(sample, unit), "fq2"])
-
 def get_trimmed_reads(wildcards):
     """Get trimmed reads of given sample-unit."""
     if is_single_end(**wildcards):
