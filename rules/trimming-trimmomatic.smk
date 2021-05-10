@@ -58,10 +58,12 @@ def get_trimmed_reads(wildcards):
         return [ "trimmed/{sample}-{unit}.fastq.gz".format(**wildcards) ]
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
-        raise Exception("Trimming tool 'trimmomatic' cannot be used with the option 'merge-paired-end-reads'")
+        raise Exception(
+            "Trimming tool 'trimmomatic' cannot be used with the option 'merge-paired-end-reads'"
+        )
     else:
         # paired-end sample
-        return expand("trimmed/{sample}-{unit}.{group}.fastq.gz", group=[1, 2], **wildcards)
+        return expand("trimmed/{sample}-{unit}.{pair}.fastq.gz", pair=[1, 2], **wildcards)
 
 # MultiQC expects the normal stdout log files from trimmomatic, but as we use a wrapper for the latter,
 # we cannot also declare the log files as output files, because snakemake...
@@ -82,7 +84,9 @@ def get_trimming_report(sample, unit):
         return "trimmed/" + sample + "-" + unit + ".trimlog.log"
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
-        raise Exception("Trimming tool 'trimmomatic' cannot be used with the option 'merge-paired-end-reads'")
+        raise Exception(
+            "Trimming tool 'trimmomatic' cannot be used with the option 'merge-paired-end-reads'"
+        )
     else:
         # paired-end sample
         return "trimmed/" + sample + "-" + unit + ".trimlog.log"

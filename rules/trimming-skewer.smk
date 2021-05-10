@@ -66,10 +66,14 @@ def get_trimmed_reads(wildcards):
         return [ "trimmed/{sample}-{unit}-se-trimmed.fastq.gz".format(**wildcards) ]
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
-        raise Exception("Trimming tool 'skewer' cannot be used with the option 'merge-paired-end-reads'")
+        raise Exception(
+            "Trimming tool 'skewer' cannot be used with the option 'merge-paired-end-reads'"
+        )
     else:
         # paired-end sample
-        return expand("trimmed/{sample}-{unit}-pe-trimmed-pair{group}.fastq.gz", group=[1, 2], **wildcards)
+        return expand(
+            "trimmed/{sample}-{unit}-pe-trimmed-pair{pair}.fastq.gz", pair=[1, 2], **wildcards
+        )
 
 def get_trimming_report(sample, unit):
     """Get the report needed for MultiQC."""
@@ -78,7 +82,9 @@ def get_trimming_report(sample, unit):
         return "trimmed/" + sample + "-" + unit + "-se-trimmed.log"
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
-        raise Exception("Trimming tool 'skewer' cannot be used with the option 'merge-paired-end-reads'")
+        raise Exception(
+            "Trimming tool 'skewer' cannot be used with the option 'merge-paired-end-reads'"
+        )
     else:
         # paired-end sample
         return "trimmed/" + sample + "-" + unit + "-pe-trimmed.log"

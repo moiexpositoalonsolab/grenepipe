@@ -96,7 +96,7 @@ def get_trimmed_reads(wildcards):
         return [ "trimmed/{sample}-{unit}.collapsed.gz".format(**wildcards) ]
     else:
         # paired-end sample
-        return expand("trimmed/{sample}-{unit}.pair{group}.fastq.gz", group=[1, 2], **wildcards)
+        return expand("trimmed/{sample}-{unit}.pair{pair}.fastq.gz", pair=[1, 2], **wildcards)
 
 def get_trimming_report(sample, unit):
     """Get the report needed for MultiQC."""
