@@ -53,9 +53,12 @@ if config["settings"]["duplicates-tool"] == "picard":
             "because those two have not yet learned to work with each others file formats. "
             "In particular, bowtie2 produces a @PG header line in its output bam file "
             "that picard cannot parse. Unclear who is to blame. "
-            "If you really need this combination, please submit an issue to "
-            "https://github.com/moiexpositoalonsolab/grenepipe/issues and we will see what we can do."
+            "If you need this combination of tools, please submit an issue to "
+            "https://github.com/lczech/grenepipe/issues and we will see what we can do."
         )
+        # See also https://github.com/broadinstitute/picard/issues/1139
+        # and https://github.com/samtools/htsjdk/issues/677
+        # for previous encounters of this issue. Seems not solved yet, so we disallow this for now.
 
     # Use `picard`
     include: "duplicates-picard.smk"
