@@ -41,6 +41,10 @@ make_config() {
     sed -i "s?/path/to/data/samples.tsv?${BASEPATH}/test/samples.tsv?g" ${TARGET}
     sed -i "s?/path/to/data/genome.fa?${BASEPATH}/test/reference/TAIR10_chr_all.fa?g" ${TARGET}
     # cat ./test/config_template.yaml | sed "s?#BASEPATH#?${BASEPATH}?g" > ./test/config.yaml
+
+    # Need an extra replacement step for threads. Might change in the future - this is a bit
+    # volatile. But works for now.
+    sed -i "s/threads: 12/threads: 6/g" ${TARGET}
 }
 
 # Make a config that we just use for the prep step. Makes it simpler than re-using one
