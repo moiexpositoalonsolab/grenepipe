@@ -42,7 +42,7 @@ settings:
   merge-paired-end-reads: false
 
   # Select the tool used for read mapping.
-  # Valid values: "bwamem", "bowtie2"
+  # Valid values: "bwamem", "bwaaln", "bowtie2"
   mapping-tool: "bwamem"
 
   # After mapping, and before any subsequent steps (deduplication, variant calling etc),
@@ -212,6 +212,27 @@ params:
     extra: ""
 
   # ----------------------------------------------------------------------
+  #     bwa aln
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:mapping-tool == bwaaln
+  # See bwa manual: http://bio-bwa.sourceforge.net/
+  bwaaln:
+    threads: 4
+
+    # Extra parameters for bwa aln.
+    extra: ""
+
+    # Extra parameters for bwa sam(se/pe), which turns the bwa aln (*.sai) files into bam files.
+    # We internally already set `-r` to use read group ("@RG") tags "ID" and "SM".
+    # Note that we use samse or sampe depending on which type each sample is (single-end or
+    # paired-end).
+    extra-sam: ""
+
+    # Extra parameters for samtools, which we use after bwa aln for sorting its output.
+    extra-sort: ""
+
+  # ----------------------------------------------------------------------
   #     bwa mem
   # ----------------------------------------------------------------------
 
@@ -221,10 +242,10 @@ params:
     threads: 12
 
     # Extra parameters for bwa mem.
-    # We internally already set `-R` to use read group tags "ID" and "SM".
+    # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM".
     extra: ""
 
-    # Extra parameters for samtools/picard, which we use after bwa mem for sorting its output.
+    # Extra parameters for samtools, which we use after bwa mem for sorting its output.
     extra-sort: ""
 
   # ----------------------------------------------------------------------

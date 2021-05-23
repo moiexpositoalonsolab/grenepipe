@@ -20,8 +20,9 @@ Pipeline Overview
     - [skewer](https://github.com/relipmoc/skewer)
     - [trimmomatic](http://www.usadellab.org/cms/index.php?page=trimmomatic)
   - Read mapping, optionally with duplication removal and quality score recalibration
-    - [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
     - [bwa mem](http://bio-bwa.sourceforge.net/bwa.shtml)
+    - [bwa aln](http://bio-bwa.sourceforge.net/bwa.shtml)
+    - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
     - [Picard MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates)
     - [DeDup](https://github.com/apeltzer/dedup)
     - [GATK BaseRecalibrator](https://gatk.broadinstitute.org/hc/en-us/articles/360036898312-BaseRecalibrator)

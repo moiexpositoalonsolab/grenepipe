@@ -5,7 +5,7 @@
 # ==================================================================================================
 
 # Global settings
-CORES=8
+CORES=10
 
 # Color the spectrum!
 COLOR_RED="\033[31m"
@@ -65,7 +65,7 @@ run_snakemake() {
     local EXTRA=$3
 
     # User output
-    echo "[============" `date "+%F %T"` "============]"
+    echo "[========" `date "+%F %T"` "========]"
     printf "${COLOR_GREEN}Running ${CASE}${COLOR_END}\n"
 
     # Run snakemake in the background.
@@ -192,6 +192,6 @@ for DICT in ${DICTS} ; do
 done
 
 # Final user output
-echo "[============" `date "+%F %T"` "============]"
+echo "[========" `date "+%F %T"` "========]"
 printf "${COLOR_GREEN}PASS ${PASSCOUNT}${COLOR_END}\n"
 printf "${COLOR_GREEN}FAIL ${FAILCOUNT}${COLOR_END}\n"

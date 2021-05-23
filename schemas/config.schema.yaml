@@ -35,7 +35,7 @@ properties:
         type: boolean
       mapping-tool:
         type: string
-        enum: ["bwamem", "bowtie2"]
+        enum: ["bowtie2", "bwaaln", "bwamem"]
       filter-mapped-reads:
         type: boolean
       remove-duplicates:
@@ -128,6 +128,15 @@ properties:
           threads:
             type: integer
           extra:
+            type: string
+      bwaaln:
+        type: object
+        properties:
+          threads:
+            type: integer
+          extra:
+            type: string
+          extra-sort:
             type: string
       bwamem:
         type: object
@@ -273,8 +282,9 @@ properties:
       - fastp
       - trimmomatic
       - skewer
-      - bwamem
       - bowtie2
+      - bwaaln
+      - bwamem
       - samtools
       - picard
       - dedup

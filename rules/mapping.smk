@@ -5,7 +5,12 @@ from itertools import chain
 # =================================================================================================
 
 # Switch to the chosen mapper
-if config["settings"]["mapping-tool"] == "bwamem":
+if config["settings"]["mapping-tool"] == "bwaaln":
+
+    # Use `bwa aln`
+    include: "mapping-bwa-aln.smk"
+
+elif config["settings"]["mapping-tool"] == "bwamem":
 
     # Use `bwa mem`
     include: "mapping-bwa-mem.smk"

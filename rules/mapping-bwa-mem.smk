@@ -7,25 +7,24 @@ rule map_reads:
         reads=get_trimmed_reads
     output:
         "mapped/{sample}-{unit}.sorted.bam"
-    log:
-        "logs/bwa-mem/{sample}-{unit}.log"
-    benchmark:
-        "benchmarks/bwa-mem/{sample}-{unit}.bench.log"
     params:
         index=config["data"]["reference"]["genome"],
 
         # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
         extra=r"-R '@RG\tID:{sample}\tSM:{sample}' " + config["params"]["bwamem"]["extra"],
-        # TODO add LD field as well for the unit?! http://www.htslib.org/workflow/
+        # TODO Add LD field as well for the unit?! http://www.htslib.org/workflow/
+        # If so, same for bwa aln rule as well?
 
-        # Can be 'none', 'samtools' or 'picard'.
+        # Sort as we need it.
         sort="samtools",
-
-        # Can be 'queryname' or 'coordinate'.
         sort_order="coordinate",
-
-        # Extra args for samtools/picard.
         sort_extra=config["params"]["bwamem"]["extra-sort"]
+    group:
+        "mapping"
+    log:
+        "logs/bwa-mem/{sample}-{unit}.log"
+    benchmark:
+        "benchmarks/bwa-mem/{sample}-{unit}.bench.log"
     threads:
         config["params"]["bwamem"]["threads"]
     resources:
@@ -39,6 +38,7 @@ rule map_reads:
     # but that fails due to issues with snakemake handling directories instead of files...
     # The snakemake shadow rule here seems to do the job. At least, if we understood their mediocre
     # documentation correctly...
-    shadow: "full"
+    shadow:
+        "full"
     wrapper:
         "0.51.3/bio/bwa/mem"
