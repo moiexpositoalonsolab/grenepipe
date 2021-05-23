@@ -225,8 +225,12 @@ rule multiqc:
         config["params"]["multiqc"]["extra"],
     log:
         "logs/multiqc.log"
+    conda:
+        # We use a conda environment on top of the wrapper, as the wrapper always causes
+        # issues with missing python modules and mismatching program versions and stuff...
+        "../envs/multiqc.yaml"
     wrapper:
-        "0.64.0/bio/multiqc"
+        "0.74.0/bio/multiqc"
     # conda:
     #     "../envs/multiqc.yaml"
     # script:
