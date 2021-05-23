@@ -134,7 +134,7 @@ rule picard_collectmultiplemetrics:
     params:
         config["params"]["picard"]["CollectMultipleMetrics"]["extra"]
     conda:
-        "../envs/picard-collectmultiplemetrics.yaml"
+        "../envs/picard.yaml"
     script:
         # We use our own version of the wrapper here, which fixes issues with missing files in cases
         # where Picard does not have enough data for a specific metric to run.
