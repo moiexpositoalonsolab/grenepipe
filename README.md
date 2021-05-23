@@ -47,7 +47,7 @@ Pipeline Overview
 
 **Output:**
 
-  - Variant calls `vcf`
+  - Variant calls `vcf`, and table of allele frequencies (optional, e.g., for pool sequencing data)
   - MultiQC report (includes summaries of most other tools)
   - Snakemake report (optional)
 
