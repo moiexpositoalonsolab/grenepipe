@@ -1,3 +1,9 @@
+# =================================================================================================
+#     Common
+# =================================================================================================
+
+# We first need to load the common functionality, which gives us access to the config file,
+# and prepares some other things for us that are needed below.
 include: "rules/common.smk"
 
 # =================================================================================================
@@ -17,11 +23,11 @@ rule all:
         # Quality control
         "qc/multiqc.html",
 
-        # Stats. Some deactivated for now, as they run out of memory for our dataset
+        # Stats. Some deactivated for now.
+        "tables/frequencies.tsv" if config["settings"]["frequency-table"] else []
         # "plots/depths.svg",
         # "plots/allele-freqs.svg",
         # "tables/sample-sizes.tsv"
-        "tables/frequencies.tsv" if config["settings"]["frequency-table"] else []
 
 # The main `all` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.
@@ -47,10 +53,7 @@ localrules: all_qc
 #     Rule Modules
 # =================================================================================================
 
-# The preparation rule is special (for now), and needs to be run beforehand.
-# See the file itself for instructions on how to run it.
-# include: "rules/prep.smk"
-
+include: "rules/prep.smk"
 include: "rules/trimming.smk"
 include: "rules/mapping.smk"
 include: "rules/calling.smk"

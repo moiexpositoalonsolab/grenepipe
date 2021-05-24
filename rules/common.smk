@@ -31,15 +31,16 @@ if "restrict-regions" not in config["settings"] or not config["settings"]["restr
     config["settings"]["restrict-regions"]=[]
 
 # We need to clean up the file name for the reference genome.
+# The prep rule decompress_genome provides the unzipped genome as needed.
 if config["data"]["reference"]["genome"].endswith(".gz"):
     config["data"]["reference"]["genome"] = os.path.splitext(config["data"]["reference"]["genome"])[0]
 
 # GATK only accepts reference genomes if their file ending is `fa` or `fasta`, at least in the
 # version that we are using. This has been updated later to also include `fas`, see here:
 # https://github.com/samtools/htsjdk/commit/657b0a6076d84582a19b741fc28cd3c9a12384bf#diff-77d63fdf4a920459b3a44ead94ad979b93115eba0749baa10a694d061b9d6c1f
-# It would of course be better to check the file contents instead of the extenion, but okay...
+# It would of course be better to check the file contents instead of the extension, but okay...
 # So here, we check this, in order to provide some better error messages for users,
-# instead of having them run into cyrptic log messages "File is not a supported reference file type".
+# instead of having them run into cryptic log messages "File is not a supported reference file type".
 # Add `".fas", ".fas.gz"` later if we upgrade GATK.
 fastaexts = ( ".fasta", ".fasta.gz", ".fa", ".fa.gz", ".fna" )
 if not config["data"]["reference"]["genome"].endswith( fastaexts ):
@@ -52,19 +53,37 @@ if not config["data"]["reference"]["genome"].endswith( fastaexts ):
 #     Read Samples File
 # =================================================================================================
 
-# Read samples and units table
-samples = pd.read_csv(config["data"]["samples"], sep='\t', dtype=str).set_index(["sample", "unit"], drop=False)
-samples.index = samples.index.set_levels([i.astype(str) for i in samples.index.levels])  # enforce str in index
-snakemake.utils.validate(samples, schema="../schemas/samples.schema.yaml")
+# We add the samples information to the config, in order to not spam our global scope
+# (unfortunately, while python is super good with namespaces, it is super bad with scopes,
+# and in particular in snakemake, every file is included so that all variables defined in a file
+# are global and accessible in all subsequent files as well...).
+# We use a new top level key that is not used in the config file for this. Assert this.
+if "global" in config:
+    raise Exception("Config key 'global' already defined. Someone messed with our setup.")
+else:
+    config["global"] = {}
+
+# Read samples and units table, and enforce to use strings in the index
+config["global"]["samples"] = pd.read_csv(
+    config["data"]["samples"], sep='\t', dtype=str).set_index(["sample", "unit"], drop=False
+)
+config["global"]["samples"].index = config["global"]["samples"].index.set_levels(
+    [i.astype(str) for i in config["global"]["samples"].index.levels]
+)
+snakemake.utils.validate( config["global"]["samples"], schema="../schemas/samples.schema.yaml" )
 
 # Transform for ease of use
-sample_names=list(set(samples.index.get_level_values("sample")))
-unit_names=list(set(samples.index.get_level_values("unit")))
+config["global"]["sample-names"] = list(set(
+    config["global"]["samples"].index.get_level_values("sample")
+))
+config["global"]["unit-names"] = list(set(
+    config["global"]["samples"].index.get_level_values("unit")
+))
 
 # Wildcard constraints: only allow sample names from the spreadsheet to be used
 wildcard_constraints:
-    sample="|".join(sample_names),
-    unit="|".join(unit_names)
+    sample="|".join(config["global"]["sample-names"]),
+    unit="|".join(config["global"]["unit-names"])
     # vartype="snvs|indels" TODO?!
 
 # =================================================================================================
@@ -84,13 +103,16 @@ logger.info("    Snakefile:          " + (workflow.snakefile))
 logger.info("    Base directory:     " + (workflow.basedir))
 logger.info("    Working directory:  " + os.getcwd())
 logger.info("    Config files:       " + (", ".join(workflow.configfiles)))
-unitcnt=len(samples.index.get_level_values("unit"))
-if unitcnt == len(sample_names):
-    logger.info("    Samples:            " + str(len(sample_names)))
+unitcnt=len(config["global"]["samples"].index.get_level_values("unit"))
+if unitcnt == len(config["global"]["sample-names"]):
+    logger.info("    Samples:            " + str(len(config["global"]["sample-names"])))
 else:
-    logger.info("    Samples:            " + str(len(sample_names)) + ", with " + str(unitcnt) + " total units")
+    logger.info("    Samples:            " + str(len(config["global"]["sample-names"])) + ", with " + str(unitcnt) + " total units")
 logger.info("===========================================================================")
 logger.info("")
+
+del unitcnt
+del hostname
 
 # =================================================================================================
 #     Common File Access Functions
@@ -99,7 +121,7 @@ logger.info("")
 # Get the fastq files for a sample, either single or paired end, as a dictionary.
 def get_fastq(wildcards):
     """Get fastq files of given sample-unit."""
-    fastqs = samples.loc[(wildcards.sample, wildcards.unit), ["fq1", "fq2"]].dropna()
+    fastqs = config["global"]["samples"].loc[(wildcards.sample, wildcards.unit), ["fq1", "fq2"]].dropna()
     if len(fastqs) == 2:
         return {"r1": fastqs.fq1, "r2": fastqs.fq2}
     else:
@@ -110,4 +132,4 @@ def get_fastq(wildcards):
 # than just sample and unit, such as the bwa aln rules.
 def is_single_end( sample, unit, **kargs ):
     """Return True if sample-unit is single end."""
-    return pd.isnull(samples.loc[(sample, unit), "fq2"])
+    return pd.isnull(config["global"]["samples"].loc[(sample, unit), "fq2"])

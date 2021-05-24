@@ -51,7 +51,9 @@ def get_trimmed_reads(wildcards):
     """Get trimmed reads of given sample-unit."""
     if is_single_end(**wildcards):
         # single end sample
-        return [ "trimmed/{sample}-{unit}.fastq.gz".format(**wildcards) ]
+        return [ "trimmed/{sample}-{unit}.fastq.gz".format(
+            sample=wildcards.sample, unit=wildcards.unit
+        )]
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
         raise Exception(
@@ -59,7 +61,9 @@ def get_trimmed_reads(wildcards):
         )
     else:
         # paired-end sample
-        return expand("trimmed/{sample}-{unit}.{pair}.fastq.gz", pair=[1, 2], **wildcards)
+        return expand("trimmed/{sample}-{unit}.{pair}.fastq.gz",
+            pair=[1, 2], sample=wildcards.sample, unit=wildcards.unit
+        )
 
 # MultiQC expects the normal stdout log files from trimmomatic, but as we use a wrapper for the latter,
 # we cannot also declare the log files as output files, because snakemake...

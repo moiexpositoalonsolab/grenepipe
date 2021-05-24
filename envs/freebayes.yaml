@@ -10,5 +10,7 @@ dependencies:
   - parallel =20190522
   - bedtools >=2.29
   - sed =4.7
+  - numpy
+  - pandas
   # - bamtools =2.5.1
   # - bedops =2.4.39-0

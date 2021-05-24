@@ -5,7 +5,6 @@
 if config["data"]["reference"].get("known-variants"):
     raise Exception("Calling tool 'bcftools' cannot be used with the option 'known-variants'")
 
-
 def get_mpileup_params(wildcards, input):
     # Start with the user-specified params from the config file
     params = config["params"]["bcftools"]["mpileup"]
@@ -26,7 +25,12 @@ def get_mpileup_params(wildcards, input):
 
 rule call_variants:
     input:
+        # Need the ref genome, as well as its indices.
         ref=config["data"]["reference"]["genome"],
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        ),
 
         # Get the bam and bai files for all files. If this is too slow, we need to split,
         # similar to what our GATK HaplotypeCaller rule does.
@@ -83,12 +87,22 @@ rule call_variants:
 #     wrapper:
 #         "0.55.1/bio/bcftools/concat"
 
+# Need an input function to work with the fai checkpoint
+def merge_variants_vcfs_input(wildcards):
+    fai = checkpoints.samtools_faidx.get().output[0]
+    return expand("called/{contig}.vcf.gz", contig=get_contigs( fai ))
+
 rule merge_variants:
     input:
-        ref=get_fai(), # fai is needed to calculate aggregation over contigs below
+        # fai is needed to calculate aggregation over contigs below.
+        # This is the step where the genome is split into its contigs for parallel execution.
+        # The get_fai() function uses a snakemake checkpoint to make sure that the fai is
+        # produced before we use it here to get its content.
+        ref=get_fai,
 
         # The wrapper expects input to be called `vcfs`, but we can use `vcf.gz` as well.
-        vcfs=lambda w: expand("called/{contig}.vcf.gz", contig=get_contigs())
+        # vcfs=lambda w: expand("called/{contig}.vcf.gz", contig=get_contigs())
+        vcfs=merge_variants_vcfs_input
     output:
         vcf="genotyped/all.vcf.gz"
     log:

@@ -24,12 +24,14 @@ localrules: compose_regions
 #     Common Helper Functions
 # =================================================================================================
 
-def get_fai():
-    return config["data"]["reference"]["genome"] + ".fai"
+def get_fai(wildcards):
+    # Stop at the snakemake checkpoint first to ensure that the fai file is available.
+    return checkpoints.samtools_faidx.get().output[0]
+    # return config["data"]["reference"]["genome"] + ".fai"
 
 # contigs in reference genome
-def get_contigs():
-    return pd.read_csv(get_fai(), sep='\t', header=None, usecols=[0], squeeze=True, dtype=str)
+def get_contigs( fai ):
+    return pd.read_csv( fai, sep='\t', header=None, usecols=[0], squeeze=True, dtype=str )
 
 # =================================================================================================
 #     Variant Calling

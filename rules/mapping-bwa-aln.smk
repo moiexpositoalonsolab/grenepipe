@@ -26,7 +26,12 @@ def get_single_trimmed_read(wildcards):
 
 rule map_reads:
     input:
-        reads=get_single_trimmed_read
+        reads=get_single_trimmed_read,
+        ref=config["data"]["reference"]["genome"],
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        )
     output:
         "sai/{sample}-{unit}-{pair}.sai"
         # Absolutely no idea why the following does not work. Snakemake complains that the pipe
@@ -85,7 +90,12 @@ def get_sai(wildcards):
 rule bwa_sai_to_bam:
     input:
         fastq=get_trimmed_reads,
-        sai=get_sai
+        sai=get_sai,
+        ref=config["data"]["reference"]["genome"],
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        )
     output:
         pipe( "mapped/{sample}-{unit}.sorted-unclean.bam" )
     params:
@@ -106,6 +116,9 @@ rule bwa_sai_to_bam:
         "logs/bwa-sam/{sample}-{unit}.log"
     benchmark:
         "benchmarks/bwa-sam/{sample}-{unit}.bench.log"
+    conda:
+        # The wrapper does not include numpy and pandas as dependencies, but somehow needs them...
+        "../envs/bwa-samxe.yaml"
     wrapper:
         "0.74.0/bio/bwa/samxe"
 

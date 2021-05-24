@@ -21,6 +21,7 @@ properties:
             type: string
         required:
           - genome
+          - known-variants
     required:
       - samples
       - reference

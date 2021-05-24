@@ -4,7 +4,12 @@
 
 rule map_reads:
     input:
-        reads=get_trimmed_reads
+        reads=get_trimmed_reads,
+        ref=config["data"]["reference"]["genome"],
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        )
     output:
         "mapped/{sample}-{unit}.sorted.bam"
     params:

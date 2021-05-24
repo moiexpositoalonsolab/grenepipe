@@ -11,11 +11,19 @@ def get_sample_bams_wildcard(wildcards):
     duplicates, and whether to recalibrate the base qualities), by using the get_mapping_result
     function, that gives the respective files depending on the config.
     """
-    return expand(get_mapping_result(), sample=wildcards.sample, unit=samples.loc[wildcards.sample].unit)
+    return expand(
+        get_mapping_result(),
+        sample=wildcards.sample,
+        unit=config["global"]["samples"].loc[wildcards.sample].unit
+    )
 
 # Return the bai file(s) for a given sample
 def get_sample_bais_wildcard(wildcards):
-    return expand(get_mapping_result(True), sample=wildcards.sample, unit=samples.loc[wildcards.sample].unit)
+    return expand(
+        get_mapping_result(True),
+        sample=wildcards.sample,
+        unit=config["global"]["samples"].loc[wildcards.sample].unit
+    )
 
 # Combine all params to call gatk. We may want to set regions, we set that bit of multithreading
 # that gatk is capable of (not much, but the best we can do without spark...), and we add
@@ -29,10 +37,23 @@ def get_gatk_call_variants_params(wildcards, input):
 
 rule call_variants:
     input:
+        # Get the sample data.
         bam=get_sample_bams_wildcard,
         bai=get_sample_bais_wildcard,
+
+        # Get the reference genome, as well as its indices.
         ref=config["data"]["reference"]["genome"],
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        ),
+        refdict=genome_dict(),
+
+        # If known variants are set in the config, use then, and require the index file as well.
         known=config["data"]["reference"].get("known-variants"), # empty if key not present
+        knownidx=config["data"]["reference"]["known-variants"] + ".tbi" if config["data"]["reference"]["known-variants"] else [],
+
+        # Further settings for region constraint filter.
         regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
     output:
         gvcf=protected("called/{sample}.{contig}.g.vcf.gz")
@@ -81,9 +102,23 @@ rule vcf_index_gatk:
 
 rule combine_calls:
     input:
+        # Get the reference genome and its indices. Not sure if the indices are needed
+        # for this particular rule, but doesn't hurt to include them as an input anyway.
         ref=config["data"]["reference"]["genome"],
-        gvcfs=expand("called/{sample}.{{contig}}.g.vcf.gz", sample=sample_names),
-        indices=expand("called/{sample}.{{contig}}.g.vcf.gz.tbi", sample=sample_names)
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        ),
+
+        # Get the sample data, including indices.
+        gvcfs=expand(
+            "called/{sample}.{{contig}}.g.vcf.gz",
+            sample=config["global"]["sample-names"]
+        ),
+        indices=expand(
+            "called/{sample}.{{contig}}.g.vcf.gz.tbi",
+            sample=config["global"]["sample-names"]
+        )
     output:
         gvcf=temp("called/all.{contig}.g.vcf.gz")
     log:
@@ -97,7 +132,14 @@ rule combine_calls:
 
 rule genotype_variants:
     input:
+        # Get the reference genome and its indices. Not sure if the indices are needed
+        # for this particular rule, but doesn't hurt to include them as an input anyway.
         ref=config["data"]["reference"]["genome"],
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        ),
+
         gvcf="called/all.{contig}.g.vcf.gz"
     output:
         vcf=temp("genotyped/all.{contig}.vcf.gz")
@@ -116,10 +158,21 @@ rule genotype_variants:
 #     Merging Variants
 # =================================================================================================
 
+# Need an input function to work with the fai checkpoint
+def merge_variants_vcfs_input(wildcards):
+    fai = checkpoints.samtools_faidx.get().output[0]
+    return expand("genotyped/all.{contig}.vcf.gz", contig=get_contigs( fai ))
+
 rule merge_variants:
     input:
-        ref=get_fai(), # fai is needed to calculate aggregation over contigs below
-        vcfs=lambda w: expand("genotyped/all.{contig}.vcf.gz", contig=get_contigs())
+        # fai is needed to calculate aggregation over contigs below.
+        # This is the step where the genome is split into its contigs for parallel execution.
+        # The get_fai() function uses a snakemake checkpoint to make sure that the fai is
+        # produced before we use it here to get its content.
+        ref=get_fai,
+
+        # vcfs=lambda w: expand("genotyped/all.{contig}.vcf.gz", contig=get_contigs())
+        vcfs=merge_variants_vcfs_input
     output:
         vcf="genotyped/all.vcf.gz"
     log:

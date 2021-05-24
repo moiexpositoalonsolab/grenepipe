@@ -117,7 +117,11 @@ rule recalibrate_base_qualities:
         bam=get_recal_input(),
         bai=get_recal_input(bai=True),
         ref=config["data"]["reference"]["genome"],
-        known=config["data"]["reference"].get("known-variants") # empty if key not present
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        ),
+        known=config["data"]["reference"]["known-variants"]
     output:
         bam=protected("recal/{sample}-{unit}.bam")
     params:
@@ -171,7 +175,7 @@ def get_mapping_result(bai=False):
         if not config["data"]["reference"].get("known-variants"):
             raise Exception(
                 "Setting recalibrate-base-qualities can only be activated if a known-variants "
-                "file is also provided."
+                "file is also provided. As far as we are aware, GATK BaseRecalibrator needs this."
             )
         f = "recal/{sample}-{unit}.bam"
 
@@ -183,16 +187,28 @@ def get_mapping_result(bai=False):
 
 # Return the bam file(s) for a given sample
 def get_sample_bams(sample):
-    return expand(get_mapping_result(), sample=sample, unit=samples.loc[sample].unit)
+    return expand(
+        get_mapping_result(),
+        sample=sample,
+        unit=config["global"]["samples"].loc[sample].unit
+    )
 
 # Return the bai file(s) for a given sample
 def get_sample_bais(sample):
-    return expand(get_mapping_result(True), sample=sample, unit=samples.loc[sample].unit)
+    return expand(
+        get_mapping_result(True),
+        sample=sample,
+        unit=config["global"]["samples"].loc[sample].unit
+    )
 
 # Return the bam file(s) for all samples
 def get_all_bams():
-    return list(chain.from_iterable( [ get_sample_bams(sample) for sample in sample_names ] ))
+    return list(chain.from_iterable( [
+        get_sample_bams(sample) for sample in config["global"]["sample-names"]
+    ] ))
 
 # Return the bai file(s) for all samples
 def get_all_bais():
-    return list(chain.from_iterable( [ get_sample_bais(sample) for sample in sample_names ] ))
+    return list(chain.from_iterable( [
+        get_sample_bais(sample) for sample in config["global"]["sample-names"]
+    ] ))

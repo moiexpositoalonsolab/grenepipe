@@ -7,6 +7,4 @@ cd `dirname ${0}`/..
 # Clean all files produced by the run script.
 rm -rf ./test/out-*
 rm -rf ./test/reference
-rm -f  ./test/config.yaml
-rm -f  ./test/prep.log
 rm -f  ./test/samples.tsv

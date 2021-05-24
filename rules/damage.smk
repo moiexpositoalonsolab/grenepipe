@@ -6,8 +6,16 @@ rule mapdamage:
     input:
         # Get either the normal mapping output, or, if additional filtering via `samtools view`
         # is set in the config settings: filter-mapped-reads, use the filtered output instead.
-        get_mapped_reads
+        get_mapped_reads,
         # "mapped/{sample}-{unit}.sorted.bam"
+
+        # Get the reference genome and its indices. Not sure if the indices are needed
+        # for this particular rule, but doesn't hurt to include them as an input anyway.
+        ref=config["data"]["reference"]["genome"],
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        ),
     output:
         "mapdamage/{sample}-{unit}/Runtime_log.txt"
     params:
@@ -19,7 +27,7 @@ rule mapdamage:
     conda:
         "../envs/mapdamage.yaml"
     shell:
-        "mapDamage -i {input} -r {params.index} -d {params.outdir} {params.extra} > {log} 2>&1"
+        "mapDamage -i {input[0]} -r {params.index} -d {params.outdir} {params.extra} > {log} 2>&1"
 
 # =================================================================================================
 #     DamageProfiler
@@ -29,8 +37,16 @@ rule damageprofiler:
     input:
         # Get either the normal mapping output, or, if additional filtering via `samtools view`
         # is set in the config settings: filter-mapped-reads, use the filtered output instead.
-        get_mapped_reads
+        get_mapped_reads,
         # "mapped/{sample}-{unit}.sorted.bam"
+
+        # Get the reference genome and its indices. Not sure if the indices are needed
+        # for this particular rule, but doesn't hurt to include them as an input anyway.
+        ref=config["data"]["reference"]["genome"],
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        ),
     output:
         "damageprofiler/{sample}-{unit}/DamageProfiler.log"
     params:
@@ -42,5 +58,5 @@ rule damageprofiler:
     conda:
         "../envs/damageprofiler.yaml"
     shell:
-        "damageprofiler -i {input} -r {params.index} -o {params.outdir} {params.extra} > {log} 2>&1"
+        "damageprofiler -i {input[0]} -r {params.index} -o {params.outdir} {params.extra} > {log} 2>&1"
         # "java -jar DamageProfiler-0.5.0.jar "

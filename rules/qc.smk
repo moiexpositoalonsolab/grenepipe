@@ -151,7 +151,7 @@ rule picard_collectmultiplemetrics:
 # which cannot easily be done with the simple snakemake expand function.
 def get_trimming_reports():
     result=[]
-    for smp in samples.itertuples():
+    for smp in config["global"]["samples"].itertuples():
         # The get_trimming_report() function is part of each trimming tool rule file.
         # We here hence call the respective correct function for each tool.
         result.append( get_trimming_report( smp.sample, smp.unit ))
@@ -191,25 +191,50 @@ rule multiqc:
         get_trimming_reports(),
 
         # Dedup
-        expand(get_dedup_report(), u=samples.itertuples()),
+        expand(
+            get_dedup_report(), u=config["global"]["samples"].itertuples()
+        ),
 
         # QC tools
-        expand("qc/fastqc/{u.sample}-{u.unit}_fastqc.zip", u=samples.itertuples()),
-        expand("qc/samtools-stats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
-        expand("qc/samtools-flagstats/{u.sample}-{u.unit}.txt", u=samples.itertuples()),
+        expand(
+            "qc/fastqc/{u.sample}-{u.unit}_fastqc.zip", u=config["global"]["samples"].itertuples()
+        ),
+        expand(
+            "qc/samtools-stats/{u.sample}-{u.unit}.txt", u=config["global"]["samples"].itertuples()
+        ),
+        expand(
+            "qc/samtools-flagstats/{u.sample}-{u.unit}.txt", u=config["global"]["samples"].itertuples()
+        ),
 
         # Qualimap
-        expand("qc/qualimap/{u.sample}-{u.unit}", u=samples.itertuples()),
-        # expand("qc/qualimap/{u.sample}-{u.unit}/genome_results.txt", u=samples.itertuples()),
-        # expand("qc/qualimap/{u.sample}-{u.unit}/qualimapReport.html", u=samples.itertuples()),
-        # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/coverage_histogram.txt", u=samples.itertuples()),
-        # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/genome_fraction_coverage.txt", u=samples.itertuples()),
-        # expand("qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt", u=samples.itertuples()),
+        expand(
+            "qc/qualimap/{u.sample}-{u.unit}", u=config["global"]["samples"].itertuples()
+        ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/genome_results.txt",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/qualimapReport.html",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/coverage_histogram.txt",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/genome_fraction_coverage.txt",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
 
         # Picard CollectMultipleMetrics
         expand(
             "qc/picard/{u.sample}-{u.unit}{ext}",
-            u=samples.itertuples(),
+            u=config["global"]["samples"].itertuples(),
             ext=picard_collectmultiplemetrics_exts()
         ),
 
@@ -217,8 +242,14 @@ rule multiqc:
         "snpeff/all.csv" if config["settings"]["snpeff"] else [],
 
         # Damage
-        expand("mapdamage/{u.sample}-{u.unit}/Runtime_log.txt", u=samples.itertuples())  if config["settings"]["mapdamage"] else [],
-        expand("damageprofiler/{u.sample}-{u.unit}/DamageProfiler.log", u=samples.itertuples())  if config["settings"]["damageprofiler"] else []
+        expand(
+            "mapdamage/{u.sample}-{u.unit}/Runtime_log.txt",
+            u=config["global"]["samples"].itertuples()
+        ) if config["settings"]["mapdamage"] else [],
+        expand(
+            "damageprofiler/{u.sample}-{u.unit}/DamageProfiler.log",
+            u=config["global"]["samples"].itertuples()
+        ) if config["settings"]["damageprofiler"] else []
     output:
         report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
     params:
@@ -231,8 +262,6 @@ rule multiqc:
         "../envs/multiqc.yaml"
     wrapper:
         "0.74.0/bio/multiqc"
-    # conda:
-    #     "../envs/multiqc.yaml"
     # script:
     #     # We use our own version of the wrapper here, to troubleshoot dependecy issues...
     #     "../scripts/multiqc.py"

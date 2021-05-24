@@ -1,84 +1,46 @@
-import os
-
-# Contains steps that are not part of the original Snakemake demo pipeline, but we incldue them here
-# for full comfort. For the original steps, see
-# https://github.com/snakemake-workflows/dna-seq-gatk-variant-calling/blob/master/.github/workflows/main.yml
-
-# Unfortunately, at the moment, this Snakefile is not part of the main pipeline,
-# as the DAG of the main pipeline depends on the output of this script.
-# This could be solved with snakemake checkpoints, but for now, it is easier to run it separately:
-# From the main directory: `snakemake --snakefile rules/prep.smk`
-
 # =================================================================================================
-#     Setup
+#     Reference Genome
 # =================================================================================================
 
-# We need to load the config file
-include: "common.smk"
+# Helper function to get the name of the genome dictorary file as expected by GATK
+def genome_dict():
+    return os.path.splitext(config["data"]["reference"]["genome"])[0] + ".dict"
+
+# We define some local variables for simplicity, and delete them later
+# in order to not spam the global scope by accident.
 
 # Get file names from config file. The reference genome file has already been stripped of the
 # `.gz` extension if present in common.
 genome=config["data"]["reference"]["genome"]
-if not config["data"]["reference"]["known-variants"]:
-    variants=""
-    variants_index=""
-else:
-    variants=config["data"]["reference"]["known-variants"]
-    if os.path.splitext(variants)[1] == ".vcf":
-        variants += ".gz"
-    elif not variants.endswith(".vcf.gz"):
-        raise Exception("Invalid known variants file type: " + variants )
-    variants_index = variants + ".tbi"
 
 # We need to remove absolute paths here, otherwise the log files will contain broken paths.
 genomedir  = os.path.dirname(config["data"]["reference"]["genome"]) + "/"
 genomename = os.path.basename(config["data"]["reference"]["genome"])
 
-# The snake strikes again. For the "all" preparation rule below, we need `variants` to be either
-# an actual file path, or an empty list, as Snakemake does not recognize empty strings properly...
-# However, for the rules that work on the variants, we cannot use a list, so we need to provide
-# (empty) strings in these cases. So ugly.
-variantsdir  = os.path.dirname(variants) + "/"
-variantsname = os.path.basename(variants)
-if variants:
-    variants_target=variants
-    variants_index_target=variants_index
-else:
-    variants_target=[]
-    variants_index_target=[]
-
-# =================================================================================================
-#     Main Rule
-# =================================================================================================
-
-rule preparation:
-    input:
-        amb=genome + ".amb",
-        ann=genome + ".ann",
-        bwt=genome + ".bwt",
-        pac=genome + ".pac",
-        sa=genome + ".sa",
-        fai=genome + ".fai",
-        dict=os.path.splitext(genome)[0] + ".dict",
-        vcf=variants_target,
-        vcfi=variants_index_target
-    group:
-        "prep"
-
-# All of the prep ruls are local. No need to submit 1min jobs to the cluster.
-localrules: preparation, decompress_genome, bwa_index, samtools_faidx, sequence_dictionary, vcf_compress, vcf_index
-
-# =================================================================================================
-#     Prepare Genome
-# =================================================================================================
-
-# In all rules below, we use hard coded file names (no wildcards), as stupid snakemake cannot
-# handle absolute file paths properly and gives us no reasonable way to use lambdas in the `log`
-# part of the rule, which hence would lead to log file paths containing the absolute file path
+# In all rules below, we use hard coded file names (no wildcards), as snakemake cannot handle
+# absolute file paths properly and gives us no reasonable way to use lambdas in the `log` part
+# of the rule, which hence would lead to log file paths containing the absolute file path
 # of our input genome. We do not want that - and as this whole prep script here only serves
 # one purpose (prepare one genome for a given config file), we just hard code for simplicity.
 
-# We provide our test data in gz-compressed form, in order to keep data in the git repo low.
+# Write fai indices for the fasta reference genome file.
+# This is a checkpoint, as downstream rules that parallelize over chromosomes/contigs of the
+# reference genome will need to read this file in order to get the list of contigs.
+# See get_fai() in calling.smk for the usage of this checkpoint.
+checkpoint samtools_faidx:
+    input:
+        genome
+    output:
+        genome + ".fai"
+    log:
+        genomedir + "logs/" + genomename + ".samtools_faidx.log"
+    params:
+        "" # optional params string
+    wrapper:
+        "0.51.3/bio/samtools/faidx"
+
+# Uncompress the reference genome if it is gz, without deleting the original.
+# Also, we provide our test data in gz-compressed form, in order to keep data in the git repo low.
 # Hence, we have to decompress first.
 rule decompress_genome:
     input:
@@ -87,10 +49,11 @@ rule decompress_genome:
         genome
     log:
         genomedir + "logs/" + genomename + ".decompress.log"
-    group:
-        "prep"
     shell:
-        "gunzip {input}"
+        "gunzip --keep {input}"
+
+localrules:
+    decompress_genome
 
 # Write indices for a given fasta reference genome file
 rule bwa_index:
@@ -104,28 +67,11 @@ rule bwa_index:
         genome + ".sa"
     log:
         genomedir + "logs/" + genomename + ".bwa_index.log"
-    group:
-        "prep"
     params:
         prefix=genome,
         algorithm="bwtsw"
     wrapper:
         "0.51.3/bio/bwa/index"
-
-# Write more indices for the fasta reference genome file
-rule samtools_faidx:
-    input:
-        genome
-    output:
-        genome + ".fai"
-    log:
-        genomedir + "logs/" + genomename + ".samtools_faidx.log"
-    group:
-        "prep"
-    params:
-        "" # optional params string
-    wrapper:
-        "0.51.3/bio/samtools/faidx"
 
 # Write a dictionary file for the genome.
 # The input file extension is replaced by `dict`, instead of adding to it, so we have to trick
@@ -134,40 +80,83 @@ rule sequence_dictionary:
     input:
         genome
     output:
-        os.path.splitext(genome)[0] + ".dict"
+        genome_dict()
     # params:
     #     base= lambda wc: os.path.splitext(genome)[0],
     log:
         genomedir + "logs/" + genomename + ".sequence_dictionary.log"
-    group:
-        "prep"
     conda:
         "../envs/prep.yaml"
     shell:
         "gatk CreateSequenceDictionary -R {input} -O {output} > {log} 2>&1"
 
-# Compress a vcf file using gzip
-rule vcf_compress:
+# Clean up the variables that we used above
+del genome
+del genomedir
+del genomename
+
+# =================================================================================================
+#     Known Variants
+# =================================================================================================
+
+# We need the variants entry in the config to be either an empty list or a file path, which we
+# already ensure in common.smk. This is becausae snakemake does not accept empty strings as input
+# files - it has to either a file path or an empty list. So here we need to do a bit of trickery
+# to allow for the case that no known variants file is given in the config:
+# We define a local variable that is always a string. If it is empty, that does not seem to matter
+# here, because those rules will never be invoked in that case, and so, snakemake does not seem to
+# fail then. Still, we make it even more fail safe by setting it to a dummy string then that
+# will just lead to rules that are never executed (in the case of no known variants file).
+variants=config["data"]["reference"]["known-variants"]
+if isinstance(variants, list) or not variants:
+    if len(variants) > 0:
+        raise Exception("Known variants has to be either a file path or an empty list." )
+    variants="dummyfile"
+else:
+    # Somehow, some tool (was it GATK?) requires known variants to be in vcf.gz format,
+    # so let's ensure this, and overwrite the config. We then also set our local variants to
+    # the file _without_ the gz extension, so that we can set up the rules below correctly to
+    # compress the file and build an index for it.
+    if os.path.splitext(variants)[1] == ".vcf":
+        # Set the config, so that the rules that actually use this file request the correct one.
+        config["data"]["reference"]["known-variants"] += ".gz"
+    elif variants.endswith(".vcf.gz"):
+        # Set the local one to without the extension, to keep our rules below simple.
+        variants = os.path.splitext(variants)[0]
+    else:
+        raise Exception(
+            "Invalid known variants file type: '" + variants +
+            "'. Needs to be either .vcf or .vcf.gz for some of the tools to work."
+        )
+
+# Compress the known variants vcf file using gzip, as this seems needed for GATK.
+rule variants_vcf_compress:
     input:
         variants
     output:
         variants + ".gz"
-    log:
-        genomedir + "logs/" + variantsname + ".vcf_compress.log"
     group:
-        "prep"
+        "known_variants"
+    log:
+        os.path.dirname(variants) + "/logs/" + os.path.basename(variants) + ".vcf_compress.log"
     wrapper:
         "0.27.1/bio/vcf/compress"
 
-rule vcf_index:
+# Write an index file for the known variants file.
+rule variants_vcf_index:
     input:
-        variants
+        variants + ".gz"
     output:
-        variants + ".tbi"
+        variants + ".gz.tbi"
     params:
         # pass arguments to tabix (e.g. index a vcf)
         "-p vcf"
+    group:
+        "known_variants"
     log:
-        genomedir + "logs/" + variantsname + ".vcf_index.log"
+        os.path.dirname(variants) + "/logs/" + os.path.basename(variants) + ".vcf_index.log"
     wrapper:
         "0.55.1/bio/tabix"
+
+# Clean up.
+del variants

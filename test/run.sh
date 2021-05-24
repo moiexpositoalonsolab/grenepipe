@@ -17,14 +17,15 @@ COLOR_END="\033[0m"
 cd `dirname ${0}`/..
 BASEPATH=`pwd -P`
 
-# Remove old output
+# Remove old output. Nope. We want to be able to continue failed tests while debugging!
 # ./test/clean.sh
 
-# Copy the reference genome from the exampl dir to here, so that we can run the prepare step
-# without cluttering the example directory.
+# Copy the reference genome and known variants from the example dir to here,
+# so that we can run here without cluttering the example directory.
 if [[ ! -d ./test/reference ]]; then
     mkdir -p ./test/reference/
     cp ./example/TAIR10_chr_all.fa.gz ./test/reference/TAIR10_chr_all.fa.gz
+    cp ./example/known-variants.vcf.gz ./test/reference/known-variants.vcf.gz
 fi
 
 # Copy the samples table, so that we can change the paths without changing the original,
@@ -46,10 +47,6 @@ make_config() {
     # volatile. But works for now.
     sed -i "s/threads: 12/threads: 6/g" ${TARGET}
 }
-
-# Make a config that we just use for the prep step. Makes it simpler than re-using one
-# of the actual snakemake run config files that we produce later on.
-make_config ./test/config.yaml
 
 # ==================================================================================================
 #      Run and Monitor Snakemake
@@ -76,7 +73,7 @@ run_snakemake() {
         --cores ${CORES} \
         --directory ${DIRECTORY} \
         ${EXTRA} \
-        >> ${DIRECTORY}/${CASE}.log 2>&1 &
+        >> ${DIRECTORY}/test-run.log 2>&1 &
     PROC_ID=$!
 
     # Use the process ID to keep looping here while it is running,
@@ -86,7 +83,7 @@ run_snakemake() {
     PROGRESS=""
     while kill -0 "$PROC_ID" >/dev/null 2>&1; do
         sleep 1
-        CURRENT=`egrep "[0-9]* of [0-9]* steps \([0-9.]*%\) done" ${DIRECTORY}/${CASE}.log | tail -n 1`
+        CURRENT=`egrep "[0-9]* of [0-9]* steps \([0-9.]*%\) done" ${DIRECTORY}/test-run.log | tail -n 1`
         if [[ "$CURRENT" != "$PROGRESS" ]]; then
             echo "    ${CURRENT}"
             PROGRESS=${CURRENT}
@@ -94,8 +91,8 @@ run_snakemake() {
     done
 
     # Final user output for the test case
-    SUCCESS=`grep "[0-9]* of [0-9]* steps ([0-9.]*%) done" ${DIRECTORY}/${CASE}.log | grep "100%"`
-    NOTHING=`grep "Nothing to be done." ${DIRECTORY}/${CASE}.log`
+    SUCCESS=`grep "[0-9]* of [0-9]* steps ([0-9.]*%) done" ${DIRECTORY}/test-run.log | grep "100%"`
+    NOTHING=`grep "Nothing to be done." ${DIRECTORY}/test-run.log`
     if [[ ! -z "$NOTHING" ]] ; then
         PASSCOUNT=$((PASSCOUNT+1))
         printf "${COLOR_GREEN}    Nothing to be done${COLOR_END}\n"
@@ -108,26 +105,6 @@ run_snakemake() {
         return 1
     fi
 }
-
-# ==================================================================================================
-#      Prep Step
-# ==================================================================================================
-
-# Run the prepare step
-run_snakemake "prep" "./test/" "--snakefile ./rules/prep.smk"
-RESULT=$?
-if [[ ${RESULT} != 0 ]]; then
-    exit 1
-fi
-
-# Manual call of the prep step. Replaced by the above wrapper call.
-# snakemake \
-#     --use-conda \
-#     --conda-prefix ${BASEPATH}/test/conda-envs \
-#     --cores ${CORES} \
-#     --directory ./test/ \
-#     --snakefile ./rules/prep.smk \
-#     &> ./test/prep.log
 
 # ==================================================================================================
 #      Test Cases
@@ -156,12 +133,15 @@ for DICT in ${DICTS} ; do
 
     # Allow to re-run the test without doing everything again
     # (in particular, snakemake steps that already succceeded).
+    # That is, do not create the directory and the config file again if those already exist.
     if [[ ! -d ./test/out-${TARGET} ]]; then
 
-        # Do the replacement
+        # Make a copy of the config file with base paths correctly set up.
         mkdir ./test/out-${TARGET}
         make_config ./test/out-${TARGET}/config.yaml
         # cat ./test/config_template.yaml | sed "s?#BASEPATH#?${BASEPATH}?g" > ./test/out-${TARGET}/config.yaml
+
+        # Do the replacement of all entries in config that are to be changed in the test case.
         while IFS="" read -r entry || [ -n "$p" ]
         do
             FROM=`echo "${entry}" | cut -f 1`
@@ -175,8 +155,12 @@ for DICT in ${DICTS} ; do
                 exit 1
             fi
 
-            sed -i "s/${FROM}/${TO}/g" ./test/out-${TARGET}/config.yaml
+            sed -i "s?${FROM}?${TO}?g" ./test/out-${TARGET}/config.yaml
         done < ${DICT}
+
+        # The known variants entry in the test cases uses a placeholder for the directory,
+        # which we need to replace by the correct path here.
+        sed -i "s?#BASEPATH#?${BASEPATH}?g" ./test/out-${TARGET}/config.yaml
     fi
 
     # Now run snakemake on the new config file.
@@ -193,5 +177,9 @@ done
 
 # Final user output
 echo "[========" `date "+%F %T"` "========]"
-printf "${COLOR_GREEN}PASS ${PASSCOUNT}${COLOR_END}\n"
-printf "${COLOR_GREEN}FAIL ${FAILCOUNT}${COLOR_END}\n"
+if [[ ${PASSCOUNT} -gt 0 ]]; then
+    printf "${COLOR_GREEN}PASS ${PASSCOUNT}${COLOR_END}\n"
+fi
+if [[ ${FAILCOUNT} -gt 0 ]]; then
+    printf "${COLOR_RED}PASS ${FAILCOUNT}${COLOR_END}\n"
+fi

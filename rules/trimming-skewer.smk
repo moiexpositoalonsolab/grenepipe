@@ -59,7 +59,9 @@ def get_trimmed_reads(wildcards):
     """Get trimmed reads of given sample-unit."""
     if is_single_end(**wildcards):
         # single end sample
-        return [ "trimmed/{sample}-{unit}-se-trimmed.fastq.gz".format(**wildcards) ]
+        return [ "trimmed/{sample}-{unit}-se-trimmed.fastq.gz".format(
+            sample=wildcards.sample, unit=wildcards.unit
+        )]
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
         raise Exception(
@@ -68,7 +70,8 @@ def get_trimmed_reads(wildcards):
     else:
         # paired-end sample
         return expand(
-            "trimmed/{sample}-{unit}-pe-trimmed-pair{pair}.fastq.gz", pair=[1, 2], **wildcards
+            "trimmed/{sample}-{unit}-pe-trimmed-pair{pair}.fastq.gz",
+            pair=[1, 2], sample=wildcards.sample, unit=wildcards.unit
         )
 
 def get_trimming_report(sample, unit):

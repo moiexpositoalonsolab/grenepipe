@@ -10,9 +10,15 @@ def know_variants_extra():
 
 rule call_variants:
     input:
-        # Our custom script needs the genome and its fai file.
+        # Our custom script needs the genome, with index files, and its fai file.
+        # The fai is integrated per checkpoint, which for this step here is not needed,
+        # but is needed for the parallelization over configs, see the rule merge_variants.
         ref=config["data"]["reference"]["genome"],
-        fai=get_fai(),
+        refidcs=expand(
+            config["data"]["reference"]["genome"] + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        ),
+        fai=get_fai,
 
         # Get the bam and bai files for all files. If this is too slow, we need to split,
         # similar to what our GATK HaplotypeCaller rule does.
@@ -21,8 +27,10 @@ rule call_variants:
         indices=get_all_bais(),
 
         # If known variants are set, use this as input to ensure the file exists.
-        # We use the file via the know_variants_extra() function call below.
-        known=config["data"]["reference"].get("known-variants"), # empty if key not present
+        # We use the file via the know_variants_extra() function call below,
+        # but request it here as well to ensure that it and its index are present.
+        known=config["data"]["reference"].get("known-variants"),
+        knownidx=config["data"]["reference"]["known-variants"] + ".tbi" if config["data"]["reference"]["known-variants"] else [],
 
         # If we restict the calling to some regions, use this file here.
         regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
@@ -79,12 +87,22 @@ rule compress_vcf:
 #     Combining Calls
 # =================================================================================================
 
+# Need an input function to work with the fai checkpoint
+def merge_variants_vcfs_input(wildcards):
+    fai = checkpoints.samtools_faidx.get().output[0]
+    return expand("called/{contig}.vcf.gz", contig=get_contigs( fai ))
+
 rule merge_variants:
     input:
-        ref=get_fai(), # fai is needed to calculate aggregation over contigs below
+        # fai is needed to calculate aggregation over contigs below.
+        # This is the step where the genome is split into its contigs for parallel execution.
+        # The get_fai() function uses a snakemake checkpoint to make sure that the fai is
+        # produced before we use it here to get its content.
+        ref=get_fai,
 
         # The wrapper expects input to be called `vcfs`, but we can use `vcf.gz` as well.
-        vcfs=lambda w: expand("called/{contig}.vcf.gz", contig=get_contigs())
+        # vcfs=lambda w: expand("called/{contig}.vcf.gz", contig=get_contigs())
+        vcfs=merge_variants_vcfs_input
     output:
         vcf="genotyped/all.vcf.gz"
     log:
