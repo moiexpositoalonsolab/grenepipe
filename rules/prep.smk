@@ -14,7 +14,6 @@ def genome_dict():
 genome=config["data"]["reference"]["genome"]
 
 # We need to remove absolute paths here, otherwise the log files will contain broken paths.
-genomedir  = os.path.dirname(config["data"]["reference"]["genome"]) + "/"
 genomename = os.path.basename(config["data"]["reference"]["genome"])
 
 # In all rules below, we use hard coded file names (no wildcards), as snakemake cannot handle
@@ -33,7 +32,7 @@ checkpoint samtools_faidx:
     output:
         genome + ".fai"
     log:
-        genomedir + "logs/" + genomename + ".samtools_faidx.log"
+        "logs/" + genomename + ".samtools_faidx.log"
     params:
         "" # optional params string
     wrapper:
@@ -48,7 +47,7 @@ rule decompress_genome:
     output:
         genome
     log:
-        genomedir + "logs/" + genomename + ".decompress.log"
+        "logs/" + genomename + ".decompress.log"
     shell:
         "gunzip --keep {input}"
 
@@ -66,7 +65,7 @@ rule bwa_index:
         genome + ".pac",
         genome + ".sa"
     log:
-        genomedir + "logs/" + genomename + ".bwa_index.log"
+        "logs/" + genomename + ".bwa_index.log"
     params:
         prefix=genome,
         algorithm="bwtsw"
@@ -84,7 +83,7 @@ rule sequence_dictionary:
     # params:
     #     base= lambda wc: os.path.splitext(genome)[0],
     log:
-        genomedir + "logs/" + genomename + ".sequence_dictionary.log"
+        "logs/" + genomename + ".sequence_dictionary.log"
     conda:
         "../envs/prep.yaml"
     shell:
@@ -92,7 +91,6 @@ rule sequence_dictionary:
 
 # Clean up the variables that we used above
 del genome
-del genomedir
 del genomename
 
 # =================================================================================================
