@@ -12,10 +12,6 @@ data:
 
   reference:
 
-    # Name of the reference genome. Only used if settings:snpeff is set to `true`.
-    # This has to be a valid snpeff database genome name.
-    name: "Arabidopsis_thaliana"
-
     # Path to the reference genome in fasta format.
     # Path needs to be absolute! No relative path (e.g., `../ref`)!
     genome: "/path/to/data/genome.fa"
@@ -74,9 +70,10 @@ settings:
   # in order to include flanking areas.
   # region-padding: 100
 
-  # Set to true in order to run snpeff annotations, which always requires the full SNP calling
-  # pipleline to run. Set to false instead if this is not required/desired, for example when
-  # using the workflow to only obtain quality control statistics.
+  # Set to true in order to annotate the variant calls with SnpEff.
+  # If used, make sure to set the correct database entry for SnpEff below in the params.
+  # Set to false when using the workflow to only obtain quality control statistics,
+  # as otherwise the whole pipeline will be run regardless.
   snpeff: true
 
   # Set to true in order to run mapDamage.
@@ -268,6 +265,7 @@ params:
 
   # Used only if settings:duplicates-tool == picard
   picard:
+
     # Extra parameters for MarkDuplicates.
     # See https://gatk.broadinstitute.org/hc/en-us/articles/360057439771-MarkDuplicates-Picard
     MarkDuplicates: "REMOVE_DUPLICATES=true"
@@ -319,6 +317,7 @@ params:
   # Used only if settings:calling-tool == freebayes
   # See https://github.com/freebayes/freebayes
   freebayes:
+
     # Extra parameters for freebayes.
     extra: ""
 
@@ -332,6 +331,7 @@ params:
   # ----------------------------------------------------------------------
 
   gatk:
+
     # Used only if settings:recalibrate-base-qualities == true
     # Extra parameters for BaseRecalibrator,
     # see https://gatk.broadinstitute.org/hc/en-us/articles/360036803991-HaplotypeCaller
@@ -349,6 +349,7 @@ params:
   # ----------------------------------------------------------------------
 
   variantfiltration-hard:
+
     # Extra parameters for the hard filtering as outlined in GATK docs
     # https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
     # The filtering is separated for SNPs/SNVs and indels.
@@ -362,6 +363,7 @@ params:
   # ----------------------------------------------------------------------
 
   fastqc:
+
     # Select input files for fastqc: either "samples" for the raw sequence input files,
     # or "trimmed" for the fastq files resulting from the trimming step.
     input: "samples"
@@ -375,6 +377,7 @@ params:
   # ----------------------------------------------------------------------
 
   qualimap:
+
     # Additional parameters for qualimap, see http://qualimap.conesalab.org/
     extra: ""
     threads: 2
@@ -383,27 +386,41 @@ params:
   #     snpeff
   # ----------------------------------------------------------------------
 
+  # Used only if settings:snpeff == true
   snpeff:
+
+    # Name of the reference genome. Only used if settings:snpeff is set to `true`.
+    # This has to be a valid SnpEff database genome name.
+    name: "Arabidopsis_thaliana"
+
+    # Set the directory to download the SnpEff database to.
+    # In many cases, this helps to avoid re-downloaded the database for every run of grenepipe.
+    # Hence we recommend to use absolute paths!
+    # If left blank, we use the same directory where the reference genome is located.
+    download-dir: ""
+
     # Additional parameters for snpeff, see https://pcingola.github.io/SnpEff/se_commandline/
-    # Used only if settings:snpeff == true
     extra: "-Xmx4g"
 
   # ----------------------------------------------------------------------
   #     mapdamage
   # ----------------------------------------------------------------------
 
+  # Used only if settings:mapdamage == true
   mapdamage:
+
     # Additional parameters for mapdamage, see http://ginolhac.github.io/mapDamage/
-    # Used only if settings:mapdamage == true
     extra: ""
 
   # ----------------------------------------------------------------------
   #     damageprofiler
   # ----------------------------------------------------------------------
 
+  # Used only if settings:damageprofiler == true
   damageprofiler:
-    # Additional parameters for damageprofiler, see https://damageprofiler.readthedocs.io/en/latest/contents/generalUsage.html
-    # Used only if settings:damageprofiler == true
+
+    # Additional parameters for damageprofiler,
+    # see https://damageprofiler.readthedocs.io/en/latest/contents/generalUsage.html
     extra: ""
 
   # ----------------------------------------------------------------------
@@ -411,6 +428,7 @@ params:
   # ----------------------------------------------------------------------
 
   multiqc:
+
     # Additional parameter for multiqc, see https://multiqc.info/
     # You can for example specify an additional MultiQC config file here, by using
     # `--config /path/to/multiqc-config.yaml`.

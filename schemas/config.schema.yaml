@@ -13,8 +13,6 @@ properties:
       reference:
         type: object
         properties:
-          name:
-            type: string
           genome:
             type: string
           known-variants:
@@ -260,6 +258,10 @@ properties:
       snpeff:
         type: object
         properties:
+          name:
+            type: string
+          download-dir:
+            type: string
           extra:
             type: string
       mapdamage:

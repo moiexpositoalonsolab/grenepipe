@@ -2,12 +2,18 @@
 #     SnpEff Setup
 # =================================================================================================
 
-# We store the snpeff database in the directory where the reference genome is.
-# This way, we do not have to download it again and again for different runs.
+# Get the path where we store the database, so that we do not have to download it all the time.
+# If not provided by the user, we use the directory where the reference genome is.
 def get_snpeff_db_path():
-    return os.path.join(os.path.dirname( config["data"]["reference"]["genome"] ), "snpeff-db" ) + "/"
+    if config["params"]["snpeff"]["download-dir"]:
+        return os.path.dirname( config["params"]["snpeff"]["download-dir"] ) + "/"
+    else:
+        return os.path.join(
+            os.path.dirname( config["data"]["reference"]["genome"] ), "snpeff-db"
+        ) + "/"
 
-# We separate download from usage, so that we can better see progress and errors.
+# We separate download from usage, so that we can better see progress and errors,
+# and to avoid unneccessary re-downloads.
 rule snpeff_db:
     output:
         # wildcard {reference} may be anything listed in the first column of `snpeff databases`
@@ -19,7 +25,7 @@ rule snpeff_db:
     params:
         reference="{reference}"
     wrapper:
-        "0.55.1/bio/snpeff/download"
+        "0.74.0/bio/snpeff/download"
 
 # Rule is not submitted as a job to the cluster.
 localrules: snpeff_db
@@ -34,7 +40,7 @@ rule snpeff:
         calls="filtered/all.vcf.gz",
 
         # path to reference db downloaded with the snpeff download wrapper above
-        db=get_snpeff_db_path() + config["data"]["reference"]["name"]
+        db=get_snpeff_db_path() + config["params"]["snpeff"]["name"]
     output:
         # annotated calls (vcf, bcf, or vcf.gz)
         calls=report("annotated/all.vcf.gz", caption="../reports/vcf.rst", category="Calls"),
@@ -53,7 +59,4 @@ rule snpeff:
         # For finding the chromosome names used by snpeff, add `-v` here
         extra=config["params"]["snpeff"]["extra"]
     wrapper:
-        "0.55.1/bio/snpeff/annotate"
-
-# Rule is not submitted as a job to the cluster.
-localrules: snpeff
+        "0.74.0/bio/snpeff/annotate"
