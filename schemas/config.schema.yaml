@@ -53,6 +53,8 @@ properties:
         type: integer
       snpeff:
         type: boolean
+      vep:
+        type: boolean
       mapdamage:
         type: boolean
       damageprofiler:
@@ -69,6 +71,7 @@ properties:
       - recalibrate-base-qualities
       - calling-tool
       - snpeff
+      - vep
       - mapdamage
       - damageprofiler
       - frequency-table
@@ -264,6 +267,13 @@ properties:
             type: string
           extra:
             type: string
+      snpeff:
+        type: object
+        properties:
+          species:
+            type: string
+          extra:
+            type: string
       mapdamage:
         type: object
         properties:
@@ -298,6 +308,7 @@ properties:
       - fastqc
       - qualimap
       - snpeff
+      - vep
       - mapdamage
       - damageprofiler
       - multiqc

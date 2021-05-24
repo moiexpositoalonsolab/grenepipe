@@ -4,7 +4,7 @@
 
 rule vcf_to_tsv:
     input:
-        "annotated/all.vcf.gz"
+        "annotated/snpeff.vcf.gz"
     output:
         report("tables/calls.tsv.gz", caption="../reports/calls.rst", category="Calls")
     log:

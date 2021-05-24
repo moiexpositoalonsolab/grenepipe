@@ -43,6 +43,7 @@ Pipeline Overview
     - [QualiMap](http://qualimap.conesalab.org/)
     - [Picard CollectMultipleMetrics](https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard-)
     - [snpEff](https://pcingola.github.io/SnpEff/)
+    - [VEP](https://uswest.ensembl.org/info/docs/tools/vep/index.html) (Ensembl Variant Effect Predictor)
     - [MultiQC](https://multiqc.info/)
 
 **Output:**

@@ -76,6 +76,13 @@ settings:
   # as otherwise the whole pipeline will be run regardless.
   snpeff: true
 
+  # Set to true in order to annotate the variant calls with VEP.
+  # If used, make sure to set the correct species entry for VEP below in the params,
+  # and all other desired settings and plugins for VEP.
+  # Set to false when using the workflow to only obtain quality control statistics,
+  # as otherwise the whole pipeline will be run regardless.
+  vep: true
+
   # Set to true in order to run mapDamage.
   mapdamage: false
 
@@ -401,6 +408,58 @@ params:
 
     # Additional parameters for snpeff, see https://pcingola.github.io/SnpEff/se_commandline/
     extra: "-Xmx4g"
+
+  # ----------------------------------------------------------------------
+  #     VEP
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:vep == true
+  vep:
+
+    # The VEP documentation is not really helpful when trying to find the cache sources
+    # for anything other than the Homo sapiens data. The list of Ensembl genomes can be found
+    # here: https://uswest.ensembl.org/info/docs/tools/vep/script/vep_cache.html,
+    # but it can be a bit tricky to find the exact names and the FTP download URL that need to be
+    # used here (see params below for details).
+    # Note that there seem to be two version numbers that are for different parts of their
+    # ecosystem, e.g., Ensembl release 104 / Ensembl Genomes 51, which is confusing.
+
+    # Ensembl species name
+    species: "arabidopsis_thaliana"
+
+    # Genome build
+    build: "TAIR10"
+
+    # Ensembl release version.
+    # Used for the species cache version and for the plugins download.
+    release: 104
+
+    # For non-metazoans, we need different download URLs for obtaining the Ensembl data,
+    # but it does not seem to be documented well where to find those URLs.
+    # Try http://uswest.ensembl.org/info/docs/tools/vep/script/vep_download.html#installer,
+    # and http://uswest.ensembl.org/info/docs/tools/vep/script/vep_cache.html#cache
+    # which list FTP directories for the Ensembl Genomes.
+    # Alternatively, try to find your desired species here: http://ftp.ebi.ac.uk/ensemblgenomes/pub/
+    # Then, use the FTP url here (instead of tht http URL) so that we can find and download the
+    # above species data.
+    # If left empty, we use the default URL as used by the VEP install script.
+    cache-url: "ftp://ftp.ebi.ac.uk/ensemblgenomes/pub/plants/current/variation/vep"
+
+    # Add any plugin from https://www.ensembl.org/info/docs/tools/vep/script/vep_plugins.html
+    # Plugin arguments can be passed as well, e.g. "LoFtool,path/to/custom/scores.txt",
+    # or via an entry "MyPlugin,1,FOO", see the documentation linked above.
+    plugins:
+      - LoFtool
+
+    # Set the directories to download the VEP species/cache/database and plugins to.
+    # In many cases, this helps to avoid re-downloaded the data for every run of grenepipe.
+    # Hence we recommend to use absolute paths!
+    # If left blank, we use the same directory where the reference genome is located.
+    cache-dir: ""
+    plugins-dir: ""
+
+    # Extra command line arguments (e.g. --sift, see docs) for the VEP annotation.
+    extra: ""
 
   # ----------------------------------------------------------------------
   #     mapdamage

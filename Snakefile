@@ -18,7 +18,8 @@ rule all:
         # Basic steps
         "genotyped/all.vcf.gz",
         "filtered/all.vcf.gz",
-        "annotated/all.vcf.gz" if config["settings"]["snpeff"] else [],
+        "annotated/snpeff.vcf.gz" if config["settings"]["snpeff"] else [],
+        "annotated/vep.vcf.gz" if config["settings"]["vep"] else [],
 
         # Quality control
         "qc/multiqc.html",

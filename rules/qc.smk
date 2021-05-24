@@ -239,7 +239,8 @@ rule multiqc:
         ),
 
         # Annotation
-        "snpeff/all.csv" if config["settings"]["snpeff"] else [],
+        "annotated/snpeff.csv" if config["settings"]["snpeff"] else [],
+        "annotated/vep_summary.html" if config["settings"]["vep"] else [],
 
         # Damage
         expand(
