@@ -17,6 +17,9 @@ rule trim_reads_se:
         "logs/cutadapt/{sample}-{unit}.log"
     benchmark:
         "benchmarks/cutadapt/{sample}-{unit}.bench.log"
+    conda:
+        # yet another missing dependency in the original wrapper...
+        "../envs/cutadapt.yaml"
     wrapper:
         "0.74.0/bio/cutadapt/se"
 
@@ -36,6 +39,9 @@ rule trim_reads_pe:
         "logs/cutadapt/{sample}-{unit}.log"
     benchmark:
         "benchmarks/cutadapt/{sample}-{unit}.bench.log"
+    conda:
+        # yet another missing dependency in the original wrapper...
+        "../envs/cutadapt.yaml"
     wrapper:
         "0.74.0/bio/cutadapt/pe"
 
