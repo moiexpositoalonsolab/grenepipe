@@ -7,3 +7,5 @@ dependencies:
   - bowtie2 ==2.4.1
   - samtools ==1.10
   - tbb ==2020.2
+  - numpy
+  - pandas
