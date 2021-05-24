@@ -56,6 +56,8 @@ rule map_reads:
     shadow:
         # See the bwa mem rule for the rationale to use a full shadow directory here.
         "full"
+    conda:
+        "../envs/bwa.yaml"
     wrapper:
         "0.74.0/bio/bwa/aln"
 

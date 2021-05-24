@@ -5,5 +5,8 @@ channels:
   - defaults
 dependencies:
   - bwa ==0.7.17
-  - samtools ==1.9
+  - samtools ==1.12
   - picard ==2.20.1
+  - python
+  - numpy
+  - pandas
