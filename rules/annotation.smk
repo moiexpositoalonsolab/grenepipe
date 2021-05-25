@@ -81,10 +81,6 @@ def get_vep_cache_dir():
         result = os.path.join(
             os.path.dirname( config["data"]["reference"]["genome"] ), "vep-cache"
         )
-    # VEP is super stupid and cannot create directories.
-    # So let's do the job here.
-    # if not os.path.exists(result):
-    #     os.makedirs(result)
     return result
 
 # Same for plugins dir.
@@ -95,8 +91,6 @@ def get_vep_plugins_dir():
         result = os.path.join(
             os.path.dirname( config["data"]["reference"]["genome"] ), "vep-plugins"
         )
-    # if not os.path.exists(result):
-    #     os.makedirs(result)
     return result
 
 rule vep_cache:
@@ -116,6 +110,8 @@ rule vep_cache:
         # issues with missing python modules and mismatching program versions and stuff...
         # Here, numpy is missing.
         # Well no, we don't even use the wrapper any more, but our own improved version...
+        # See https://github.com/snakemake/snakemake-wrappers/issues/365
+        # and https://github.com/snakemake/snakemake-wrappers/issues/366
         "../envs/vep.yaml"
     script:
         "../scripts/vep-cache.py"
@@ -155,8 +151,11 @@ rule vep:
             category="Calls",
         ),
         stats=report(
-            # The html file sas to have a specific file name, so that MultiQC can find it,
+            # The html file has to have a specific file name, so that MultiQC can find it,
             # see https://multiqc.info/docs/#vep
+            # At the moment, this is however not yet working, because VEP was only added to
+            # MultiQC recently, see https://github.com/ewels/MultiQC/issues/1438
+            # Will need to update to MultiQC v1.11 at some point.
             "annotated/vep_summary.html",
             caption="../report/stats.rst",
             category="Calls",
@@ -177,7 +176,8 @@ rule vep:
     # script:
     #     "../scripts/vep.py"
     # The original snakemake wrapper fails for the Arabidopsis thaliana genome because of an
-    # unnecessary/wrong error check. It just wants there to be one file in the database,
-    # when VEP apparently also can produce multiple files/directories in the cache.
+    # unnecessary/wrong error check, see https://github.com/snakemake/snakemake-wrappers/issues/365
+    # It wants there to be one file in the database, when the vep cache wrapper also can produce
+    # multiple files/directories in the cache du to also downloading the fasta reference files.
     wrapper:
         "0.74.0/bio/vep/annotate"

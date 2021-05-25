@@ -2,7 +2,7 @@
 #     Restrict Regions
 # =================================================================================================
 
-# Interset the restict regions file with a given contig (chromosome), so that we can sue the
+# Interset the restict regions file with a given contig (chromosome), so that we can use the
 # resulting bed file for parallelization over contigs.
 if "restrict-regions" in config["settings"]:
     rule compose_regions:
