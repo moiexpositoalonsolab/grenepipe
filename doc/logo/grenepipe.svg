@@ -13,7 +13,7 @@
    viewBox="0 0 250.2216 188.05009"
    version="1.1"
    id="svg8"
-   inkscape:version="1.0.1 (0767f8302a, 2020-10-17)"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="grenepipe.svg"
    inkscape:export-filename="/home/lucas/Dropbox/GitHub/grenepipe/doc/logo/grenepipe.png"
    inkscape:export-xdpi="50.755016"
@@ -255,7 +255,7 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.72831998"
-     inkscape:cx="502.44954"
+     inkscape:cx="237.45612"
      inkscape:cy="447.44645"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -306,8 +306,7 @@
    style="font-size:133.33333501px"
    id="flowSpan926">r</flowSpan>ene</flowPara><flowPara
          id="flowPara1047"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;fill:#009610;fill-opacity:1;stroke:#00820e;stroke-width:23.30078697;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /></flowRoot>
-    <g
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;fill:#009610;fill-opacity:1;stroke:#00820e;stroke-width:23.30078697;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /></flowRoot>    <g
        id="g876"
        transform="translate(60.986143,-68.744822)">
       <rect
@@ -418,13 +417,12 @@
    style="font-size:133.33333501px"
    id="flowSpan914">r</flowSpan>ene</flowPara><flowPara
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;fill:#00d818;fill-opacity:1"
-         id="flowPara981" /></flowRoot>
-    <flowRoot
-       transform="matrix(0.26458333,0,0,0.26458333,15.722179,215.43166)"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#00820e;stroke-width:22.6772;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="flowPara981" /></flowRoot>    <flowRoot
+       transform="matrix(0.26458333,0,0,0.26458333,15.722179,254.06085)"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#00820e;stroke-width:22.67720032;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="flowRoot1029"
        xml:space="preserve"><flowRegion
-         style="line-height:1;stroke:#00820e;stroke-width:22.6772;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="line-height:1;stroke:#00820e;stroke-width:22.67720032;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="flowRegion1023"><rect
            style="line-height:1;stroke:#00820e;stroke-width:22.67716599;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            y="-685.32343"
@@ -432,17 +430,16 @@
            height="480.39215"
            width="1331.3726"
            id="rect1021" /></flowRegion><flowPara
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;stroke:#00820e;stroke-width:22.6772;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;stroke:#00820e;stroke-width:22.67720032;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="flowPara1025" /><flowPara
          id="flowPara1027"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;stroke:#00820e;stroke-width:22.6772;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">pipe</flowPara></flowRoot>
-    <flowRoot
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;stroke:#00820e;stroke-width:22.67720032;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">pipe</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot1039"
-       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#00aa13;fill-opacity:1;stroke:none;stroke-width:18.5197;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       transform="matrix(0.26458333,0,0,0.26458333,15.722179,215.43166)"><flowRegion
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#00aa13;fill-opacity:1;stroke:none;stroke-width:18.5196991;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       transform="matrix(0.26458333,0,0,0.26458333,15.722179,254.06085)"><flowRegion
          id="flowRegion1033"
-         style="line-height:1;fill:#00aa13;fill-opacity:1;stroke:none;stroke-width:18.5197;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"><rect
+         style="line-height:1;fill:#00aa13;fill-opacity:1;stroke:none;stroke-width:18.5196991;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"><rect
            id="rect1031"
            width="1331.3726"
            height="480.39215"
@@ -450,8 +447,7 @@
            y="-685.32343"
            style="line-height:1;fill:#00aa13;fill-opacity:1;stroke:none;stroke-width:18.51968575;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /></flowRegion><flowPara
          id="flowPara1035"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;fill:#00aa13;fill-opacity:1;stroke:none;stroke-width:18.5197;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /><flowPara
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;fill:#00aa13;fill-opacity:1;stroke:none;stroke-width:18.5197;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="flowPara1037">pipe</flowPara></flowRoot>
-  </g>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;fill:#00aa13;fill-opacity:1;stroke:none;stroke-width:18.5196991;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:192px;line-height:1;font-family:'Super Mario 256';-inkscape-font-specification:'Super Mario 256, ';text-align:end;text-anchor:end;fill:#00aa13;fill-opacity:1;stroke:none;stroke-width:18.5196991;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="flowPara1037">pipe</flowPara></flowRoot>  </g>
 </svg>
