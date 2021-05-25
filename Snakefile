@@ -35,6 +35,20 @@ rule all:
 localrules: all
 
 # =================================================================================================
+#     Rule Modules
+# =================================================================================================
+
+include: "rules/prep.smk"
+include: "rules/trimming.smk"
+include: "rules/mapping.smk"
+include: "rules/calling.smk"
+include: "rules/filtering.smk"
+include: "rules/annotation.smk"
+include: "rules/qc.smk"
+include: "rules/stats.smk"
+include: "rules/damage.smk"
+
+# =================================================================================================
 #     All QC, but not SNP calling
 # =================================================================================================
 
@@ -51,15 +65,17 @@ rule all_qc:
 localrules: all_qc
 
 # =================================================================================================
-#     Rule Modules
+#     All bams, but not SNP calling
 # =================================================================================================
 
-include: "rules/prep.smk"
-include: "rules/trimming.smk"
-include: "rules/mapping.smk"
-include: "rules/calling.smk"
-include: "rules/filtering.smk"
-include: "rules/annotation.smk"
-include: "rules/qc.smk"
-include: "rules/stats.smk"
-include: "rules/damage.smk"
+# This alternative target rule executes all steps up to th mapping, and yields the final bam
+# files that would otherwise be used for variant calling in the downstream process.
+# That is, depending on the config, these are the sorted, filtered, remove duplicates, or
+# recalibrated base qualities bam files.
+rule all_bams:
+    input:
+        get_all_bams()
+
+# The `all_bams` rule is local. It does not do anything anyway,
+# except requesting the other rules to run.
+localrules: all_bams
