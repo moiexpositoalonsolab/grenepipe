@@ -10,11 +10,11 @@ rule samtools_merge_all:
     input:
         get_all_bams()
     output:
-        # Snakemake hangs when using a pipe here, see https://github.com/samtools/samtools/issues/1437
-        # pipe("mpileup/all.merged.bam")
-        "mpileup/all.merged.bam"
+        pipe("mpileup/all.merged.bam")
     params:
-        config["params"]["samtools"]["merge"]
+        # Need to set the file overwrite flag for pipes to work here,
+        # see https://github.com/samtools/samtools/issues/1437
+        config["params"]["samtools"]["merge"] + " -f"
     threads:
         # Samtools takes additional threads through its option -@
         # This value - 1 will be sent to -@
@@ -26,11 +26,10 @@ rule samtools_merge_units:
     input:
         get_sample_bams_wildcards
     output:
-        # Same as above, cannot use pipe here :-(
-        # pipe("mpileup/{sample}.merged.bam")
-        "mpileup/{sample}.merged.bam"
+        pipe("mpileup/{sample}.merged.bam")
     params:
-        config["params"]["samtools"]["merge"]
+        # Need file overwrite flag, see above.
+        config["params"]["samtools"]["merge"] + " -f"
     threads:
         # Samtools takes additional threads through its option -@
         # This value - 1 will be sent to -@
