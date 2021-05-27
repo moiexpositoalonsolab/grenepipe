@@ -163,8 +163,15 @@ for DICT in ${DICTS} ; do
         sed -i "s?#BASEPATH#?${BASEPATH}?g" ./test/out-${TARGET}/config.yaml
     fi
 
+    # For the pileup test cases, we do not want to run the whole pipeline,
+    # so let's use the extra param to just run the necessary parts.
+    EXTRA=""
+    if [[ ${TARGET} == pileup* ]] || [[ ${TARGET} == mpileup* ]] ; then
+        EXTRA="all_pileups"
+    fi
+
     # Now run snakemake on the new config file.
-    run_snakemake "${TARGET}" "./test/out-${TARGET}"
+    run_snakemake "${TARGET}" "./test/out-${TARGET}" "${EXTRA}"
 
     # Manual call of the test case. Replaced by the above wrapper call.
     # snakemake \

@@ -26,6 +26,7 @@ Pipeline Overview
     - [Picard MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates)
     - [DeDup](https://github.com/apeltzer/dedup)
     - [GATK BaseRecalibrator](https://gatk.broadinstitute.org/hc/en-us/articles/360036898312-BaseRecalibrator)
+    - [samtools mpileup](http://www.htslib.org/doc/samtools-mpileup.html) (optional)
   - Damage profiling (optional; e.g., for ancient DNA)
     - [mapDamage](https://github.com/ginolhac/mapDamage)
     - [DamageProfiler](https://github.com/Integrative-Transcriptomics/DamageProfiler)
@@ -52,7 +53,9 @@ Pipeline Overview
   - MultiQC report (includes summaries of most other tools)
   - Snakemake report (optional)
 
-Additionally, there are some tools used for gluing between the steps.
+Intermediate output files such as `bam` files are also kept,
+and `mpileup` files can optionally be created if needed.
+In addition to the above tools, there are some tools used as glue between the steps.
 If you are interested in the details, have a look at the snakemake [rules](https://github.com/lczech/grenepipe/tree/master/rules) for each step.
 
 Getting Started

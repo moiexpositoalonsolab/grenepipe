@@ -59,6 +59,10 @@ properties:
         type: boolean
       damageprofiler:
         type: boolean
+      pileup:
+        type: string
+      pileup-merge:
+        type: string
       frequency-table:
         type: boolean
     required:
@@ -74,6 +78,8 @@ properties:
       - vep
       - mapdamage
       - damageprofiler
+      - pileup
+      - pileup-merge
       - frequency-table
 
   params:
