@@ -9,11 +9,11 @@ __default__:
   ntasks: 1
 
 trim_reads_se:
-  mem: 1G
+  mem: 5G
   cpus-per-task: 4
 
 trim_reads_pe:
-  mem: 1G
+  mem: 5G
   cpus-per-task: 4
 
 map_reads:

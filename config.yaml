@@ -74,14 +74,14 @@ settings:
   # If used, make sure to set the correct database entry for SnpEff below in the params.
   # Set to false when using the workflow to only obtain quality control statistics,
   # as otherwise the whole pipeline will be run regardless.
-  snpeff: true
+  snpeff: false
 
   # Set to true in order to annotate the variant calls with VEP.
   # If used, make sure to set the correct species entry for VEP below in the params,
   # and all other desired settings and plugins for VEP.
   # Set to false when using the workflow to only obtain quality control statistics,
   # as otherwise the whole pipeline will be run regardless.
-  vep: true
+  vep: false
 
   # Set to true in order to run mapDamage.
   mapdamage: false
