@@ -109,5 +109,7 @@ rule merge_variants:
         "logs/picard/merge-genotyped.log"
     benchmark:
         "benchmarks/picard/merge-genotyped.bench.log"
+    conda:
+        "../envs/picard.yaml"
     wrapper:
         "0.51.3/bio/picard/mergevcfs"

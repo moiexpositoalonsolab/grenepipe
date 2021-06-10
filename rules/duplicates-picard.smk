@@ -21,5 +21,7 @@ rule mark_duplicates:
         config["params"]["picard"]["MarkDuplicates"]
     group:
         "mapping_extra"
+    conda:
+        "../envs/picard.yaml"
     wrapper:
         "0.51.3/bio/picard/markduplicates"

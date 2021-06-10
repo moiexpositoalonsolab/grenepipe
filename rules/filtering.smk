@@ -91,5 +91,7 @@ rule merge_calls:
         "benchmarks/picard/merge-filtered.bench.log"
     group:
         "filtering"
+    conda:
+        "../envs/picard.yaml"
     wrapper:
         "0.27.1/bio/picard/mergevcfs"
