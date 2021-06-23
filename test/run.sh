@@ -188,5 +188,5 @@ if [[ ${PASSCOUNT} -gt 0 ]]; then
     printf "${COLOR_GREEN}PASS ${PASSCOUNT}${COLOR_END}\n"
 fi
 if [[ ${FAILCOUNT} -gt 0 ]]; then
-    printf "${COLOR_RED}PASS ${FAILCOUNT}${COLOR_END}\n"
+    printf "${COLOR_RED}FAIL ${FAILCOUNT}${COLOR_END}\n"
 fi
