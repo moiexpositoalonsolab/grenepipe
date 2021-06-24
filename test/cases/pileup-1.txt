@@ -11,5 +11,4 @@ vep: false	vep: true
 mapdamage: false	mapdamage: false
 damageprofiler: false	damageprofiler: false
 frequency-table: false	frequency-table: false
-pileup: "none"	pileup: "all"
-pileup-merge: "none"	pileup-merge: "all"
+pileups: \[\]	pileups:\n    - "samples-individual-units"\n    - "samples-merged-units"\n    - "all-individual-units"\n    - "all-merged-units"\n    - "all-merged-samples"

@@ -148,6 +148,10 @@ for DICT in ${DICTS} ; do
             TO=`echo "${entry}" | cut -f 2`
             # echo "from -${FROM}- to -${TO}-"
 
+            # Need to re-echo the TO variable to resolve escape sequences.
+            # Cannot do that before, as that would confuse the `cut`.
+            TO=`echo -e "${TO}"`
+
             # Test that the FROM part exists, to make sure that we are doing the right thing
             # if we replace config lines later on.
             if ! grep -q "${FROM}" ./test/out-${TARGET}/config.yaml; then
@@ -155,7 +159,10 @@ for DICT in ${DICTS} ; do
                 exit 1
             fi
 
-            sed -i "s?${FROM}?${TO}?g" ./test/out-${TARGET}/config.yaml
+            # Replace the content in the config file. We use perl to be able to process
+            # multi-line replacements as in the pileup case.
+            # sed -i "s?${FROM}?${TO}?g" ./test/out-${TARGET}/config.yaml
+            perl -pi -e "s?${FROM}?${TO}?g" ./test/out-${TARGET}/config.yaml
         done < ${DICT}
 
         # The known variants entry in the test cases uses a placeholder for the directory,

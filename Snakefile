@@ -25,11 +25,17 @@ rule all:
         "qc/multiqc.html",
 
         # Pileup
-        "mpileup/all.mpileup.gz" if config["settings"]["pileup"] == "all" else [],
         expand(
-            "mpileup/{sample}.mpileup.gz" if config["settings"]["pileup"] == "samples" else [],
+            "mpileup/{sample}-individual-units.mpileup.gz",
             sample=config["global"]["sample-names"]
-        ),
+        ) if "samples-individual-units" in config["settings"]["pileups"] else [],
+        expand(
+            "mpileup/{sample}-merged-units.mpileup.gz",
+            sample=config["global"]["sample-names"]
+        ) if "samples-merged-units" in config["settings"]["pileups"] else [],
+        "mpileup/all-individual-units.mpileup.gz" if "all-individual-units" in config["settings"]["pileups"] else [],
+        "mpileup/all-merged-units.mpileup.gz" if "all-merged-units" in config["settings"]["pileups"] else [],
+        "mpileup/all-merged-samples.mpileup.gz" if "all-merged-samples" in config["settings"]["pileups"] else [],
 
         # Stats. Some deactivated for now.
         "tables/frequencies.tsv" if config["settings"]["frequency-table"] else []
@@ -96,12 +102,17 @@ localrules: all_bams
 # This is the same as the above all_bams rule, but additionally also requests the pileups.
 rule all_pileups:
     input:
-        get_all_bams(),
-        "mpileup/all.mpileup.gz" if config["settings"]["pileup"] == "all" else [],
         expand(
-            "mpileup/{sample}.mpileup.gz" if config["settings"]["pileup"] == "samples" else [],
+            "mpileup/{sample}-individual-units.mpileup.gz",
             sample=config["global"]["sample-names"]
-        )
+        ) if "samples-individual-units" in config["settings"]["pileups"] else [],
+        expand(
+            "mpileup/{sample}-merged-units.mpileup.gz",
+            sample=config["global"]["sample-names"]
+        ) if "samples-merged-units" in config["settings"]["pileups"] else [],
+        "mpileup/all-individual-units.mpileup.gz" if "all-individual-units" in config["settings"]["pileups"] else [],
+        "mpileup/all-merged-units.mpileup.gz" if "all-merged-units" in config["settings"]["pileups"] else [],
+        "mpileup/all-merged-samples.mpileup.gz" if "all-merged-samples" in config["settings"]["pileups"] else [],
 
 # The `all_pileups` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.

@@ -92,24 +92,28 @@ settings:
   # Optionally, we can create (m)pileup files based on the mapping result.
   # The bam files that these pileups are based on are the ones that are also used for the variant
   # calling, and hence depend on the above choices. So, they will either just use the basic mapped
-  # mappes, the samtools filtered bams (e.g., for ancient DNA) if `filter-mapped-reads` is set,
+  # reads, the samtools filtered bams (e.g., for ancient DNA) if `filter-mapped-reads` is set,
   # the duplicate-marked bams if `remove-duplicates` is set, or the base quality recalibrated bams
   # if `recalibrate-base-qualities` is set, in that order of processing.
-  # When deciding to create bams, we can further chose to merge certain bams beforehand.
-  # Either no merging (each sample and each unit individually), merge units of the same sample,
-  # or (when making one pileup for all) merge all samples and units into one big pile.
-  # See also params:
-
-  # Select whether to make pileup files, and whether to make an individual pileup for each sample
-  # (with all its units), or one pileup for all samples.
-  # Valid Values: "none", "samples", "all"
-  pileup: "none"
-
-  # Select whether to merge certain input files for making the pileup. Either we do not merge anyting
-  # (each sample and unit becomes its own part in the pileup), merge units of the same sample,
-  # or (only for the pilup:"all" mode) merge all samples and units.
-  # Valid values: "none", "units", "all"
-  pileup-merge: "none"
+  #
+  # When deciding to create pileups, we can further choose to merge certain bams beforehand.
+  # Either all individally with no merging (each sample and each unit individually), merge units of
+  # the same sample, or (when making one pileup for all) merge all samples and units into one big pile.
+  #
+  # By default, we do not make any pileup files (the empty list `[]`). To produce pileup files,
+  # remove the empty list, and uncomment the types of pileups that you need, as listed (with
+  # explanations) below.
+  pileups: []
+    # Make one pileup file per sample, with each unit of the sample as an individual column.
+    # - "samples-individual-units"
+    # Make one pileup file per sample, with all units of the sample merged into one pile.
+    # - "samples-merged-units"
+    # Make a pileup file containing all samples with all units as individual columns.
+    # - "all-individual-units"
+    # Make a pileup file containing columns for each sample, with units per sample merged.
+    # - "all-merged-units"
+    # Make a pileup file with one column only, by merging all samples with all units into one pile.
+    # - "all-merged-samples"
 
   # Set to true to compute a table of allele frequencies from the filtered vcf,
   # using the `AD` (allelic depth) field of the vcf for each sample to compute the total count
