@@ -292,11 +292,11 @@ params:
     # for our subsequent steps.
     view: "-q 1"
 
-    # Used only if settings:pileup is not "none".
+    # Used only if settings:pileups is not empty, that is, if pileup files are generated.
     # Extra parameters for the samtools/mpileup step.
     pileup: "-d 10000"
 
-    # Used only if settings:pileup-merge is not "none".
+    # Used only if settings:pileups is used to produced pileup files where units or samples are merged.
     # Extra parameters for the samtools/merge step prior to the samtools/mpileup step.
     merge: ""
     merge-threads: 4

@@ -12,7 +12,8 @@ rule samtools_merge_units:
     output:
         temp("mpileup/{sample}.merged.bam")
     params:
-        # Need file overwrite flag, see above.
+        # Need to set the file overwrite flag for pipes to work here,
+        # see https://github.com/samtools/samtools/issues/1437
         config["params"]["samtools"]["merge"] + " -f"
     threads:
         # Samtools takes additional threads through its option -@
@@ -29,8 +30,7 @@ rule samtools_merge_all:
     output:
         pipe("mpileup/all.merged.bam")
     params:
-        # Need to set the file overwrite flag for pipes to work here,
-        # see https://github.com/samtools/samtools/issues/1437
+        # Need file overwrite flag, see above.
         config["params"]["samtools"]["merge"] + " -f"
     threads:
         # Samtools takes additional threads through its option -@
