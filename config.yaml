@@ -350,7 +350,7 @@ params:
     mpileup: "--max-depth 10000"
 
     # Extra parameters for the bcftools call step.
-    call: ""
+    call: "--multiallelic-caller"
 
   # ----------------------------------------------------------------------
   #     freebayes
