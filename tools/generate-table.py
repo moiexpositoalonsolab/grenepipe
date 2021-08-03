@@ -33,7 +33,7 @@ def get_fastq_files(indir):
     for dirpath, subdirs, filenames in os.walk(indir):
         # print(filenames)
         for f in filenames:
-            path = os.path.realpath(os.path.join(dirpath, f))
+            path = os.path.abspath(os.path.join(dirpath, f))
             if path.endswith( tuple( extensions )):
                 seqfiles.append(path)
     seqfiles.sort()
