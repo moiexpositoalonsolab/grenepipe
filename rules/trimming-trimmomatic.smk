@@ -18,6 +18,9 @@ rule trim_reads_se:
         "logs/trimmomatic/{sample}-{unit}.log"
     benchmark:
         "benchmarks/trimmomatic/{sample}-{unit}.bench.log"
+    conda:
+        # yet another missing dependency in the original wrapper...
+        "../envs/trimmomatic.yaml"
     wrapper:
         "0.74.0/bio/trimmomatic/se"
 
@@ -40,6 +43,9 @@ rule trim_reads_pe:
         "logs/trimmomatic/{sample}-{unit}.log"
     benchmark:
         "benchmarks/trimmomatic/{sample}-{unit}.bench.log"
+    conda:
+        # yet another missing dependency in the original wrapper...
+        "../envs/trimmomatic.yaml"
     wrapper:
         "0.74.0/bio/trimmomatic/pe"
 
