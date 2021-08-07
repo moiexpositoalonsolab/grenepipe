@@ -2,6 +2,13 @@
 
 Snakemake pipeline for variant calling from raw sample sequences, with lots of bells and whistles.
 
+**Advantages**:
+
+  - One command to run the whole pipeline!
+  - Simple configuration via a single file
+  - Automatically downloads dependencies
+  - Resumes from failing jobs
+
 Pipeline Overview
 -------------------
 
@@ -66,7 +73,7 @@ See [**the Wiki pages**](https://github.com/lczech/grenepipe/wiki) for setup and
 For **bug reports and feature requests**, please
 [open an issue on our GitHub page](https://github.com/lczech/grenepipe/issues).
 
-Reference
+Citation
 -------------------
 
 When using grenepipe, please cite:
