@@ -49,7 +49,9 @@ rule decompress_genome:
     log:
         "logs/" + genomename + ".decompress.log"
     shell:
-        "gunzip --keep {input}"
+        "zcat {input} > {output}"
+        # Cannot use gunzip here, as CentOS does not support the --keep option...
+        # "gunzip --keep {input}"
 
 localrules:
     decompress_genome
