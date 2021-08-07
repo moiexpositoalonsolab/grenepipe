@@ -4,5 +4,6 @@ channels:
   - defaults
 dependencies:
   - cutadapt ==2.10
-  - numpy
-  - pandas
+  - python ==3.7.10
+  - numpy ==1.21.0
+  - pandas ==1.3.1
