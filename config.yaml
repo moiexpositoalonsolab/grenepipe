@@ -310,6 +310,11 @@ params:
 
     # Extra parameters for MarkDuplicates.
     # See https://gatk.broadinstitute.org/hc/en-us/articles/360057439771-MarkDuplicates-Picard
+    #
+    # On some Mac OS X versions (we experienced it with 10.16 so far), there seems to be an issue
+    # between Java and some system libraries, leading the JRE to exit with fatal error SIGSEGV
+    # caused by libgkl_compression. If you experience this, try to use the following:
+    # MarkDuplicates: "-REMOVE_DUPLICATES true -USE_JDK_DEFLATER true -USE_JDK_INFLATER true"
     MarkDuplicates: "REMOVE_DUPLICATES=true"
 
     # Run several Picard QC tools, as needed, using Picard CollectMultipleMetrics.
