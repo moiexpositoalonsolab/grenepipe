@@ -24,6 +24,11 @@ rule snpeff_db:
         "snpeff"
     params:
         reference="{reference}"
+    conda:
+        # As always, the wrapper does not specify that python, pandas, and numpy are needed,
+        # and if those are misspecified on the cluster (as in our case), it just fails...
+        # So let's provide a working combination of versions of these tools.
+        "../envs/snpeff.yaml"
     wrapper:
         "0.74.0/bio/snpeff/download"
 
@@ -65,6 +70,8 @@ rule snpeff:
         # optional parameters (e.g., max memory 4g)
         # For finding the chromosome names used by snpeff, add `-v` here
         extra=config["params"]["snpeff"]["extra"]
+    conda:
+        "../envs/snpeff.yaml"
     wrapper:
         "0.74.0/bio/snpeff/annotate"
 
