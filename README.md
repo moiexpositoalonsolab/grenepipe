@@ -6,8 +6,8 @@ Snakemake pipeline for variant calling from raw sample sequences, with lots of b
 
   - One command to run the whole pipeline!
   - Simple configuration via a single file
-  - Automatically downloads dependencies
-  - Resumes from failing jobs
+  - Automatic download of tool dependencies
+  - Resuming from failing jobs
 
 Pipeline Overview
 -------------------
