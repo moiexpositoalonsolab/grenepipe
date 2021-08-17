@@ -23,6 +23,8 @@ rule select_calls:
         "benchmarks/gatk/selectvariants/{vartype}.bench.log"
     group:
         "filtering"
+    conda:
+        "../envs/gatk.yaml"
     wrapper:
         "0.27.1/bio/gatk/selectvariants"
 
@@ -48,6 +50,8 @@ rule hard_filter_calls:
         "benchmarks/gatk/variantfiltration/{vartype}.bench.log"
     group:
         "filtering"
+    conda:
+        "../envs/gatk.yaml"
     wrapper:
         "0.27.1/bio/gatk/variantfiltration"
 
