@@ -5,6 +5,7 @@
 import pandas as pd
 import os
 import socket, platform
+from datetime import datetime
 
 # Ensure min Snakemake version
 snakemake.utils.min_version("5.7")
@@ -108,6 +109,7 @@ if unitcnt == len(config["global"]["sample-names"]):
     logger.info("    Samples:            " + str(len(config["global"]["sample-names"])))
 else:
     logger.info("    Samples:            " + str(len(config["global"]["sample-names"])) + ", with " + str(unitcnt) + " total units")
+logger.info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 logger.info("===========================================================================")
 logger.info("")
 
