@@ -76,7 +76,7 @@ rule call_variants:
         "call_variants"
     conda:
         # Need to specify, yet again...
-        "../envs/haplotypecaller.yaml"
+        "../envs/gatk.yaml"
     shadow: "full"
     wrapper:
         "0.51.3/bio/gatk/haplotypecaller"
@@ -130,6 +130,8 @@ rule combine_calls:
         "benchmarks/gatk/combine-gvcfs/{contig}.bench.log"
     group:
         "gatk_calls_combine"
+    conda:
+        "../envs/gatk.yaml"
     wrapper:
         "0.51.3/bio/gatk/combinegvcfs"
 
@@ -154,6 +156,8 @@ rule genotype_variants:
         "benchmarks/gatk/genotype-gvcfs/{contig}.bench.log"
     group:
         "gatk_calls_combine"
+    conda:
+        "../envs/gatk.yaml"
     wrapper:
         "0.51.3/bio/gatk/genotypegvcfs"
 
