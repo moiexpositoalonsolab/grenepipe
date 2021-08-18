@@ -28,6 +28,10 @@ data:
 
 settings:
 
+  # ----------------------------------------------------------------------
+  #     Basic Steps
+  # ----------------------------------------------------------------------
+
   # Select the tool used for read trimming.
   # Valid values: "adapterremoval", "cutadapt", "fastp", "skewer", "trimmomatic"
   trimming-tool: "trimmomatic"
@@ -69,6 +73,10 @@ settings:
   # If regions are restricted, uncomment this to enlarge them by the given value
   # in order to include flanking areas.
   # region-padding: 100
+
+  # ----------------------------------------------------------------------
+  #     Optional Steps
+  # ----------------------------------------------------------------------
 
   # Set to true in order to annotate the variant calls with SnpEff.
   # If used, make sure to set the correct database entry for SnpEff below in the params.
@@ -523,7 +531,7 @@ params:
     extra: ""
 
   # ----------------------------------------------------------------------
-  #     multiqc
+  #     MultiQC
   # ----------------------------------------------------------------------
 
   multiqc:
