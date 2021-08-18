@@ -108,6 +108,14 @@ for i in range( 1, len(sys.argv)):
 cfgfiles = []
 for cfg in workflow.configfiles:
     cfgfiles.append( os.path.abspath(cfg) )
+cfgfiles = ", ".join(cfgfiles)
+
+# Get a nice output of the number of samples and units
+unitcnt=len(config["global"]["samples"].index.get_level_values("unit"))
+if unitcnt == len(config["global"]["sample-names"]):
+    smpcnt = str(len(config["global"]["sample-names"]))
+else:
+    smpcnt = str(len(config["global"]["sample-names"])) + ", with " + str(unitcnt) + " total units"
 
 # Some helpful messages
 logger.info("===========================================================================")
@@ -118,21 +126,19 @@ logger.info("    Host:               " + hostname)
 logger.info("    Working Directory:  " + os.getcwd())
 logger.info("    Command:            " + cmdline)
 logger.info("")
-logger.info("    Base directory:     " + (workflow.basedir))
-logger.info("    Snakefile:          " + (workflow.snakefile))
-logger.info("    Config file(s):     " + (", ".join(cfgfiles)))
-unitcnt=len(config["global"]["samples"].index.get_level_values("unit"))
-if unitcnt == len(config["global"]["sample-names"]):
-    logger.info("    Samples:            " + str(len(config["global"]["sample-names"])))
-else:
-    logger.info("    Samples:            " + str(len(config["global"]["sample-names"])) + ", with " + str(unitcnt) + " total units")
+logger.info("    Base directory:     " + workflow.basedir)
+logger.info("    Snakefile:          " + workflow.snakefile)
+logger.info("    Config file(s):     " + cfgfiles)
+logger.info("    Samples:            " + smpcnt)
 logger.info("===========================================================================")
 logger.info("")
 
-del unitcnt
+# No need to have these output vars available in the rest of the snakefiles
 del hostname
 del cmdline
 del cfgfiles
+del unitcnt
+del smpcnt
 
 # =================================================================================================
 #     Common File Access Functions
