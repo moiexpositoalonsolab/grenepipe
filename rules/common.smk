@@ -3,7 +3,7 @@
 # =================================================================================================
 
 import pandas as pd
-import os
+import os, sys
 import socket, platform
 from datetime import datetime
 
@@ -95,26 +95,44 @@ wildcard_constraints:
 hostname = socket.gethostname()
 hostname = hostname + ("; " + platform.node() if platform.node() != socket.gethostname() else "")
 
+# Get nicely wrapped command line
+cmdline = sys.argv[0]
+for i in range( 1, len(sys.argv)):
+    logger.info("x" + sys.argv[i] + "x")
+    if sys.argv[i].startswith("--"):
+        cmdline += "\n                        " + sys.argv[i]
+    else:
+        cmdline += " " + sys.argv[i]
+
+# Get abs paths of all config files
+cfgfiles = []
+for cfg in workflow.configfiles:
+    cfgfiles.append( os.path.abspath(cfg) )
+
 # Some helpful messages
 logger.info("===========================================================================")
 logger.info("    GRENEPIPE")
 logger.info("")
+logger.info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 logger.info("    Host:               " + hostname)
-logger.info("    Snakefile:          " + (workflow.snakefile))
+logger.info("    Working Directory:  " + os.getcwd())
+logger.info("    Command:            " + cmdline)
+logger.info("")
 logger.info("    Base directory:     " + (workflow.basedir))
-logger.info("    Working directory:  " + os.getcwd())
-logger.info("    Config files:       " + (", ".join(workflow.configfiles)))
+logger.info("    Snakefile:          " + (workflow.snakefile))
+logger.info("    Config file(s):     " + (", ".join(cfgfiles)))
 unitcnt=len(config["global"]["samples"].index.get_level_values("unit"))
 if unitcnt == len(config["global"]["sample-names"]):
     logger.info("    Samples:            " + str(len(config["global"]["sample-names"])))
 else:
     logger.info("    Samples:            " + str(len(config["global"]["sample-names"])) + ", with " + str(unitcnt) + " total units")
-logger.info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 logger.info("===========================================================================")
 logger.info("")
 
 del unitcnt
 del hostname
+del cmdline
+del cfgfiles
 
 # =================================================================================================
 #     Common File Access Functions
