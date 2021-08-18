@@ -57,6 +57,7 @@ assert snakemake.input.ref + ".fai" == fai
 # =================================================================================================
 
 # Prepare the output and compression.
+# We need to pipe through bcftools in each case, in order to ensure the correct output format.
 pipe = ""
 if snakemake.output[0].endswith(".bcf"):
     if norm:
@@ -64,7 +65,15 @@ if snakemake.output[0].endswith(".bcf"):
     else:
         pipe = "| bcftools view -Ob -"
 elif norm:
-    pipe = "| bcftools norm -"
+    if snakemake.output[0].endswith(".gz"):
+        pipe = "| bcftools norm -Oz -"
+    else:
+        pipe = "| bcftools norm -Ov -"
+else:
+    if snakemake.output[0].endswith(".gz"):
+        pipe = "| bcftools view -Oz -"
+    else:
+        pipe = "| bcftools view -Ov -"
 
 # Get the full chromosome as a region in a bed compatible format for the given contig.
 regions = ""
@@ -125,7 +134,11 @@ else:
     # If this still does not work at some point (because the freebayes calles are still too mixed),
     # we could try to increase the size to chunksize*threads (I think that is the maximum that
     # can happen in terms of unorder), or simply replace the following by a call to `| bcftools sort - `
-    pipe = "| vcfstreamsort -w {chunksize} | vcfuniq ".format(chunksize=chunksize) + pipe
+    # pipe = "| vcfstreamsort -w {chunksize} | vcfuniq ".format(chunksize=chunksize) + pipe
+
+    # Yep, the above case happened - we got an output with our data that was not fully sorted.
+    # So, let's use a non-window based sorting instead, and hope that this works.
+    pipe = "| bcftools sort -Ou - " + pipe
 
 shell(
     "({freebayes} {extra_params} -f {snakemake.input.ref}"
