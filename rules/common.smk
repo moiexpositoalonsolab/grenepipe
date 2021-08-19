@@ -98,7 +98,6 @@ hostname = hostname + ("; " + platform.node() if platform.node() != socket.getho
 # Get nicely wrapped command line
 cmdline = sys.argv[0]
 for i in range( 1, len(sys.argv)):
-    logger.info("x" + sys.argv[i] + "x")
     if sys.argv[i].startswith("--"):
         cmdline += "\n                        " + sys.argv[i]
     else:
