@@ -57,8 +57,14 @@ rule call_variants:
     threads:
         config["params"]["bcftools"]["threads"]
     shell:
-        "(bcftools mpileup {params.mpileup} --fasta-ref {input.ref} --output-type u {input.samples} | "
-        "bcftools call --threads {threads} {params.call} --output-type z -o {output[0]} -v -) 2> {log}"
+        # We run an additional norm step after the calling, in order to clear any calls that
+        # contain ambiguity chars. As always, no idea how they end up in the vcf in the first place.
+        # See https://github.com/samtools/bcftools/issues/473 for details.
+        "("
+        "bcftools mpileup {params.mpileup} --fasta-ref {input.ref} --output-type u {input.samples} | "
+        "bcftools call --threads {threads} {params.call} --variants-only --output-type u - | "
+        "bcftools norm --check-ref ws --fasta-ref {input.ref} --output-type z --output {output[0]} - "
+        ") 2> {log}"
 
     # Cannot use the wrapper, as we need `bcftools mpileup` instead of `samtools mpileup` (as used
     # by the wrapper), in order to have the `--annotate` option, which we need so that our
