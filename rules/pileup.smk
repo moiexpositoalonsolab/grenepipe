@@ -42,6 +42,34 @@ rule samtools_merge_all:
         "0.74.0/bio/samtools/merge"
 
 # =================================================================================================
+#     Sample Names
+# =================================================================================================
+
+# The pileup format does not contain sample names. So instead, we produce list files for
+# the mpileup files that contain multiple columns of data, where the list file contains
+# the sample names, one per line. This can then for example also be used as input for the
+# `--sample-name-list` input option in grenedalf!
+
+# Attention: This order needs to be the same as what the below pilup rules use,
+# otherwise we miss the point of writing these lists!
+
+rule mpileup_all_individual_units_names:
+    output:
+        "mpileup/all-individual-units.names.txt"
+    run:
+        with open(output[0], "w") as out:
+            for su in config["global"]["sample-units"]:
+                out.write(su[0] + "-" + su[1] + "\n")
+
+rule mpileup_all_merged_units_names:
+    output:
+        "mpileup/all-merged-units.names.txt"
+    run:
+        with open(output[0], "w") as out:
+            for sample in config["global"]["sample-names"]:
+                out.write(sample + "\n")
+
+# =================================================================================================
 #     Pileup
 # =================================================================================================
 
@@ -80,7 +108,8 @@ rule mpileup_samples_merged_units:
 rule mpileup_all_individual_units:
     input:
         bam=get_all_bams(),
-        reference_genome=config["data"]["reference"]["genome"]
+        reference_genome=config["data"]["reference"]["genome"],
+        list="mpileup/all-individual-units.names.txt"
     output:
         "mpileup/all-individual-units.mpileup.gz"
     params:
@@ -96,7 +125,8 @@ rule mpileup_all_merged_units:
             "mpileup/{sample}.merged.bam",
             sample=config["global"]["sample-names"]
         ),
-        reference_genome=config["data"]["reference"]["genome"]
+        reference_genome=config["data"]["reference"]["genome"],
+        list="mpileup/all-merged-units.names.txt"
     output:
         "mpileup/all-merged-units.mpileup.gz"
     params:

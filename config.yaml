@@ -107,6 +107,8 @@ settings:
   # When deciding to create pileups, we can further choose to merge certain bams beforehand.
   # Either all individally with no merging (each sample and each unit individually), merge units of
   # the same sample, or (when making one pileup for all) merge all samples and units into one big pile.
+  # Note that these combined mpileup files will have the same order of pileup columns as
+  # the input data:sample table specified above.
   #
   # By default, we do not make any pileup files (the empty list `[]`). To produce pileup files,
   # remove the empty list, and uncomment the types of pileups that you need, as listed (with
@@ -117,8 +119,13 @@ settings:
     # Make one pileup file per sample, with all units of the sample merged into one pile.
     # - "samples-merged-units"
     # Make a pileup file containing all samples with all units as individual columns.
+    # This also creates a file `all-individual-units.names.txt`, which lists the order of the
+    # pileup columns in the file, which is the same order as the data:samples input table.
     # - "all-individual-units"
     # Make a pileup file containing columns for each sample, with units per sample merged.
+    # This also creates a file `all-merged-units.names.txt`, which lists the order of the
+    # pileup columns in the file, which is the same order as the data:samples input table,
+    # but using the first position of each sample (for samples that have multiple units).
     # - "all-merged-units"
     # Make a pileup file with one column only, by merging all samples with all units into one pile.
     # - "all-merged-samples"

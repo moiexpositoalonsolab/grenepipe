@@ -73,13 +73,36 @@ config["global"]["samples"].index = config["global"]["samples"].index.set_levels
 )
 snakemake.utils.validate( config["global"]["samples"], schema="../schemas/samples.schema.yaml" )
 
-# Transform for ease of use
-config["global"]["sample-names"] = list(set(
-    config["global"]["samples"].index.get_level_values("sample")
-))
+# Get a list of all samples names, in the same order as the input sample table.
+# Samples with multiple units appear only once, at the first position in the table.
+# We cannot use a simple approach here, as this messes up the sample
+# order, which we do not want... (good that we noticed that bug though!)
+# So instead, we iterate, and add sample names incrementally.
+config["global"]["sample-names"] = list()
+for index, row in config["global"]["samples"].iterrows():
+    s = row["sample"]
+    if s not in config["global"]["sample-names"]:
+        config["global"]["sample-names"].append(s)
+
+# Unordered list of all unit names that appear in all the samples.
 config["global"]["unit-names"] = list(set(
     config["global"]["samples"].index.get_level_values("unit")
 ))
+
+# List that contains tuples for all samples with their units.
+# In other words, a list of tuples of the sample and unit column of the sample table,
+# in the same order.
+config["global"]["sample-units"] = list()
+for index, row in config["global"]["samples"].iterrows():
+    config["global"]["sample-units"].append(( row["sample"], row["unit"] ))
+
+# Helper function to get a list of all units of a given sample name.
+def get_sample_units( sample ):
+    res = list()
+    for unit in config["global"]["samples"].loc[sample].unit:
+        if unit not in res:
+            res.append(unit)
+    return res
 
 # Wildcard constraints: only allow sample names from the spreadsheet to be used
 wildcard_constraints:

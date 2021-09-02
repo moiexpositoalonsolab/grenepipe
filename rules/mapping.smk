@@ -190,7 +190,8 @@ def get_sample_bams(sample):
     return expand(
         get_mapping_result(),
         sample=sample,
-        unit=config["global"]["samples"].loc[sample].unit
+        unit=get_sample_units(sample)
+        # unit=config["global"]["samples"].loc[sample].unit
     )
 
 # Return the bai file(s) for a given sample
@@ -198,17 +199,30 @@ def get_sample_bais(sample):
     return expand(
         get_mapping_result(True),
         sample=sample,
-        unit=config["global"]["samples"].loc[sample].unit
+        unit=get_sample_units(sample)
+        # unit=config["global"]["samples"].loc[sample].unit
     )
 
 # Return the bam file(s) for all samples
 def get_all_bams():
-    return list(chain.from_iterable( [
-        get_sample_bams(sample) for sample in config["global"]["sample-names"]
-    ] ))
+    # Make a list of all bams in the order as the samples list.
+    res = list()
+    for su in config["global"]["sample-units"]:
+        res.append( get_mapping_result().format( sample=su[0], unit=su[1] ))
+    return res
+
+    # The below approach gives the bams in sample-first order, which we do not want.
+    # return list(chain.from_iterable( [
+    #     get_sample_bams(sample) for sample in config["global"]["sample-names"]
+    # ] ))
 
 # Return the bai file(s) for all samples
 def get_all_bais():
-    return list(chain.from_iterable( [
-        get_sample_bais(sample) for sample in config["global"]["sample-names"]
-    ] ))
+    res = list()
+    for su in config["global"]["sample-units"]:
+        res.append( get_mapping_result(True).format( sample=su[0], unit=su[1] ))
+    return res
+
+    # return list(chain.from_iterable( [
+    #     get_sample_bais(sample) for sample in config["global"]["sample-names"]
+    # ] ))
