@@ -18,7 +18,7 @@ rule map_reads:
         # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
         extra=r"-R '@RG\tID:{sample}\tSM:{sample}' " + config["params"]["bwamem"]["extra"],
         # TODO Add LD field as well for the unit?! http://www.htslib.org/workflow/
-        # If so, same for bwa aln rule as well?
+        # If so, same for bwa aln and bwa mem2 rules as well?
 
         # Sort as we need it.
         sort="samtools",

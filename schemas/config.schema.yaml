@@ -34,7 +34,7 @@ properties:
         type: boolean
       mapping-tool:
         type: string
-        enum: ["bowtie2", "bwaaln", "bwamem"]
+        enum: ["bowtie2", "bwaaln", "bwamem", "bwamem2"]
       filter-mapped-reads:
         type: boolean
       remove-duplicates:
@@ -145,6 +145,15 @@ properties:
           extra-sort:
             type: string
       bwamem:
+        type: object
+        properties:
+          threads:
+            type: integer
+          extra:
+            type: string
+          extra-sort:
+            type: string
+      bwamem2:
         type: object
         properties:
           threads:
@@ -302,6 +311,7 @@ properties:
       - bowtie2
       - bwaaln
       - bwamem
+      - bwamem2
       - samtools
       - picard
       - dedup

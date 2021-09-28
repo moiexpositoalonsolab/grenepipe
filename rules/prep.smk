@@ -14,7 +14,8 @@ def genome_dict():
 genome=config["data"]["reference"]["genome"]
 
 # We need to remove absolute paths here, otherwise the log files will contain broken paths.
-genomename = os.path.basename(config["data"]["reference"]["genome"])
+genomename = os.path.basename( config["data"]["reference"]["genome"] )
+genomedir  = os.path.dirname(  config["data"]["reference"]["genome"] )
 
 # In all rules below, we use hard coded file names (no wildcards), as snakemake cannot handle
 # absolute file paths properly and gives us no reasonable way to use lambdas in the `log` part
@@ -56,7 +57,7 @@ rule decompress_genome:
 localrules:
     decompress_genome
 
-# Write indices for a given fasta reference genome file
+# Write indices for a given fasta reference genome file.
 rule bwa_index:
     input:
         genome
@@ -73,6 +74,45 @@ rule bwa_index:
         algorithm="bwtsw"
     wrapper:
         "0.51.3/bio/bwa/index"
+
+# By default, we use the above bwa index mapping, but here we also have a rule for bwa mem2 indexing,
+# as this needs some special indices. However, it unfortunately does not produce all indices
+# of the original bwa index (because... bioinformatics...), so we have to work around this,
+# without creating naming conflicts. Hence, when using bwa mem2, we create its extra indices
+# in a temp dir, and then only move the ones that are not also produced by bwa index... so hacky.
+if config["settings"]["mapping-tool"] == "bwamem2":
+
+    # We do not use the wrapper here, as it would otherwise overwrite the indices created by
+    # bwa index above... and working around that while using the wrapper is super hacky,
+    # so instead we copy over the wrapper code and adapt it to our needs. The most important
+    # adaptation is to sym-link to the ref genome in the temp dir, so that the extra indices
+    # are created there... wow, hacky hacky.
+    rule bwa_mem2_index:
+        input:
+            genome
+        output:
+            genome + ".0123",
+            genome + ".bwt.2bit.64"
+
+            # Files that are also created by bwa mem2 index: amb, ann, pac.
+            # We checked with our test data, and they are identical to the ones produced by
+            # bwa index above, so we can just delete them.
+        params:
+            tempdir  = genomedir + "/bwa-mem2-index-temp/",
+            basename = genomedir + "/bwa-mem2-index-temp/" + genomename
+        log:
+            "logs/" + genomename + ".bwa-mem2_index.log"
+        conda:
+            "../envs/bwa-mem2.yaml"
+        shell:
+            # Somehow, we need all variables in params here,
+            # as otherwise the commands below fail for some weird reason...
+            "mkdir -p {params.tempdir} ; "
+            "ln -sf {input} {params.basename} ; "
+            "bwa-mem2 index {params.basename} > {log} 2>&1 ; "
+            "mv {params.basename}.0123        {output[0]} ; "
+            "mv {params.basename}.bwt.2bit.64 {output[1]} ; "
+            "rm -r {params.tempdir}"
 
 # Write a dictionary file for the genome.
 # The input file extension is replaced by `dict`, instead of adding to it, so we have to trick
@@ -94,6 +134,7 @@ rule sequence_dictionary:
 # Clean up the variables that we used above
 del genome
 del genomename
+del genomedir
 
 # =================================================================================================
 #     Known Variants

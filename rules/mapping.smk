@@ -15,6 +15,11 @@ elif config["settings"]["mapping-tool"] == "bwamem":
     # Use `bwa mem`
     include: "mapping-bwa-mem.smk"
 
+elif config["settings"]["mapping-tool"] == "bwamem2":
+
+    # Use `bwa mem2`
+    include: "mapping-bwa-mem2.smk"
+
 elif config["settings"]["mapping-tool"] == "bowtie2":
 
     # Use `bowtie2`
