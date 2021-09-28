@@ -40,16 +40,27 @@ def get_fastq_files(indir):
     return seqfiles
 
 def match_pe_files(s1, s2):
-    # Find the single position at which the two strings differ,
+    # Split into dir and file name. If the dirs already differ, we are done.
+    # We are doing this check so that we can rely on having the same dir below.
+    # We also add the trailing slash to the dir, so that we have the full path length correctly.
+    s1s = os.path.split(s1)
+    s2s = os.path.split(s2)
+    if s1s[0] != s2s[0] or len(s1s[1]) != len(s2s[1]):
+        return -1;
+    dirn = str(s1s[0])
+    if not dirn.endswith('/'):
+        dirn += '/'
+
+    # Find the single position at which the two file basenames differ,
     # or -1 if they differ in more than one position
     # (or are the same string, but that should not happen in our case).
     pos = -1
-    for i, (c1, c2) in enumerate(zip(s1, s2)):
+    for i, (c1, c2) in enumerate(zip(s1s[1], s2s[1])):
         if c1 != c2:
             if pos != -1:
                 return -1
             else:
-                pos = i
+                pos = len(dirn) + i
 
     # In case that they do _not_ differ in exactly one position, we are done.
     if pos == -1:
@@ -64,16 +75,11 @@ def match_pe_files(s1, s2):
     else:
         return -1
 
-def get_sample_name(tup):
-    # Expects one element of the get_mates function output list,
-    # and cleans up the beginning and end of the file names to get a clean sample name.
-    return re.split( '/', tup[0][:tup[2]] )[-1].strip( '-_R' )
-
 def get_mates(seqfiles):
     # Walk through that list and find pairs of reads by checking for single character differences,
     # where one of the file names is `R1`, and the other is `R2`.
     # print(seqfiles)
-    result = []
+    mates = []
     while len(seqfiles):
         seq1 = seqfiles.pop(0)
         # print(seq)
@@ -83,20 +89,70 @@ def get_mates(seqfiles):
             match_pos = match_pe_files(seq1, seq2)
             if match_pos > -1:
                 # print(seq1, seqfiles[j])
-                # Print the matches, with the difference in red, so that the user
-                # can check that the pairing is correct.
-                print()
-                print("Match:")
-                print(seq1[0:match_pos] + colored(seq1[match_pos], "red") + seq1[match_pos+1:])
-                print(seq2[0:match_pos] + colored(seq2[match_pos], "red") + seq2[match_pos+1:])
-                print("--> " + get_sample_name(( seq1, seq2, match_pos )))
-                result.append(( seq1, seq2, match_pos ))
+                mates.append(( seq1, seq2, match_pos ))
                 seqfiles.pop(j)
                 found_mate = True
                 break
         if not found_mate:
-            print("Did not find mate for " + seq1)
-    return result
+            mates.append(( seq1, "", -1 ))
+    return mates
+
+def get_sample_name(tup):
+    # Expects one element of the get_mates function output list,
+    # and cleans up the beginning and end of the file names to get a clean sample name.
+    if tup[2] >=0:
+        return re.split( '/', tup[0][:tup[2]] )[-1].strip( '-_R' )
+    else:
+        # Remove directory, and try to find the extension to remove
+        # (which should always succeed, as we only picked those files in the first place).
+        n = re.split( '/', tup[0] )[-1]
+        for s in extensions:
+            if n.endswith(s):
+                return n[:-len(s)]
+        return n
+
+def write_table(mates, outfile):
+    # If the same sample name occurs, make this different units (1..n) of that sample name.
+    samplenames = {}
+    mate_cnt = 0
+    with open( outfile, 'w' ) as out:
+        out.write("sample\tunit\tplatform\tfq1\tfq2\n")
+        for tup in mates:
+
+            # Get the name and unit for the sample.
+            # If samples with the same name appear, we give them increasing unit numbers.
+            name = get_sample_name( tup )
+            if name not in samplenames.keys():
+                samplenames[name] = 1
+            else:
+                samplenames[name] += 1
+            unit = samplenames[name]
+
+            # If this is a mate pair, print its two files. If it is single, print the file.
+            if tup[2] >= 0:
+                # Print the matches, with the difference in red, so that the user
+                # can check that the pairing is correct.
+                match_pos = tup[2]
+                print()
+                print(colored("Match (paired end):", "green"))
+                print(tup[0][0:match_pos] + colored(tup[0][match_pos], "red") + tup[0][match_pos+1:])
+                print(tup[1][0:match_pos] + colored(tup[1][match_pos], "red") + tup[1][match_pos+1:])
+            else:
+                print()
+                print(colored("No match (single end):", "yellow"))
+                print(tup[0])
+            print(colored("Name: " + name + ", unit: " + str(unit), "blue"))
+
+            # Now print the result table.
+            out.write(name + "\t" + str(unit) + "\t-\t" + tup[0] + "\t" + tup[1] + "\n")
+            if tup[2] >= 0:
+                mate_cnt += 1
+
+    # Summary for the user
+    print()
+    print("Summary:")
+    print(colored("Found " + str(mate_cnt) + " mates.", "green"))
+    print(colored("Found " + str(len(mates) - mate_cnt) + " singles.", "yellow"))
 
 def yes_or_no(question):
     while True:
@@ -124,24 +180,12 @@ if __name__ == "__main__":
         if not yes_or_no("Output file `" + outfile + "` exists. Do you want to overwrite?"):
             sys.exit()
 
-    print("We will now process the directoy and look for paired end mates.")
+    print("We will now process the directory and look for paired end mates.")
     print("Please use the provided output to check that the mates are correctly assigned to each other,")
     print("and that the extracted sample names make sense!")
-    print("(If not, this code here has to be adapted accordingly.)")
+    print("(If not, this script here has to be adapted accordingly.)")
 
-    # Get the read mate pairs...
+    # Get the read mate pairs and write them to a table.
     seqfiles = get_fastq_files( indir )
     mates = get_mates( seqfiles )
-
-    # ... and write them to a table.
-    # Potential future expansion: If the same sample name occurs, make this different units
-    # (1..n) of that sample name, instead of complaining here with the error message.
-    samplenames = []
-    with open( outfile, 'w' ) as out:
-        out.write("sample\tunit\tplatform\tfq1\tfq2\n")
-        for tup in mates:
-            name = get_sample_name( tup )
-            if name in samplenames:
-                print(colored( "Sample name " + name + " occurs multiple times!", "red" ))
-            samplenames.append(name)
-            out.write(name + "\t1\t-\t" + tup[0] + "\t" + tup[1] + "\n")
+    write_table( mates, outfile )
