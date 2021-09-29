@@ -29,6 +29,7 @@ Pipeline Overview
   - Read mapping, optionally with duplication removal and quality score recalibration
     - [bwa mem](http://bio-bwa.sourceforge.net/bwa.shtml)
     - [bwa aln](http://bio-bwa.sourceforge.net/bwa.shtml)
+    - [bwa mem2](https://github.com/bwa-mem2/bwa-mem2)
     - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
     - [Picard MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates)
     - [DeDup](https://github.com/apeltzer/dedup)
