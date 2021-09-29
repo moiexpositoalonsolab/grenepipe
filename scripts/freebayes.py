@@ -86,17 +86,31 @@ with open(fai) as faif:
             regions = "<(echo \"" + chrom_name + ":0-" + str(chrom_length) + "\")"
 
 # If we are here, we must have found the contig in the fai file,
-# otherwise that name would not have appeared in the "{contig}" wildcard of our snakemake rule.
-assert regions != ""
+# otherwise that name would not have appeared in the "{contig}" wildcard of our snakemake rule -
+# that is, unless we use small contig "fake" regions. We cannot directly test the latter here,
+# as the "regions" input is also used by restrict-regions, but we can at least check that it's set.
+assert regions != "" or snakemake.input.get("regions", "")
 
 # Now intersect with the regions file (if provided). This is the bug fix compared to the original.
+# We also take care of the case that the above fai did not yield a fitting region, which happens
+# if we use small contigs.
 if snakemake.input.get("regions", ""):
-    regions = (
-        "<(bedtools intersect -a "
-        r"<(sed 's/:\([0-9]*\)-\([0-9]*\)$/\t\1\t\2/' "
-        "{regions}) -b {snakemake.input.regions} | "
-        r"sed 's/\t\([0-9]*\)\t\([0-9]*\)$/:\1-\2/')"
-    ).format(regions=regions, snakemake=snakemake)
+    if regions:
+        # If we already have a region from the fai above, combine it with the regions
+        # provided by the rule script.
+        regions = (
+            "<(bedtools intersect -a "
+            r"<(sed 's/:\([0-9]*\)-\([0-9]*\)$/\t\1\t\2/' "
+            "{regions}) -b {snakemake.input.regions} | "
+            r"sed 's/\t\([0-9]*\)\t\([0-9]*\)$/:\1-\2/')"
+        ).format(regions=regions, snakemake=snakemake)
+    else:
+        # If there are no regions yet, we have the case that a small contig group was provided.
+        # In this case, we just parse that file and turn its bed format into the freebayes
+        # regions format.
+        regions = (
+            "<(cat {snakemake.input.regions} | sed 's/\\t/:/' | sed 's/\\t/-/')"
+        ).format(snakemake=snakemake)
 
 if snakemake.threads == 1:
     freebayes = "freebayes --region <("+ regions + ")"

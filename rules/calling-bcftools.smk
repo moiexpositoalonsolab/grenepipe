@@ -9,7 +9,7 @@ def get_mpileup_params(wildcards, input):
     # Start with the user-specified params from the config file
     params = config["params"]["bcftools"]["mpileup"]
 
-    # input.regions is either the restrict-regions file, or empty.
+    # input.regions is either the restrict-regions or small contigs bed file, or empty.
     # If given, we need to set a param of mpileup to use the file.
     # If not given, we set a param that uses the contig string instead.
     if input.regions:
@@ -38,8 +38,15 @@ rule call_variants:
         indices=get_all_bais(),
 
         # If we use restricted regions, set them here. If not, empty, which will propagate to the
-        # get_mpileup_params function as well
-        regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        # get_mpileup_params function as well. Same for small contig groups.
+        # regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        regions="called/{contig}.regions.bed" if (
+            config["settings"].get("restrict-regions")
+        ) else (
+            "contig-groups/{contig}.bed" if (
+                config["settings"].get("small-contigs-threshold")
+            ) else []
+        )
     output:
         vcf=protected("called/{contig}.vcf.gz")
     params:
@@ -160,7 +167,12 @@ rule merge_variants:
         vcfs=merge_variants_vcfs_input,
         tbis=merge_variants_tbis_input
     output:
-        vcf="genotyped/all.vcf.gz"
+        # With small contigs, we also need sorting, see below.
+        # Unfortunately, we cannot pipe here, as Picard fails with that, so temp file it is...
+        # If we do not use small contigs, we directly output the final file.
+        vcf = temp("genotyped/merged-all.vcf.gz") if (
+            config["settings"].get("small-contigs-threshold")
+        ) else "genotyped/all.vcf.gz"
     log:
         "logs/vcflib/merge-genotyped.log"
     benchmark:
@@ -169,3 +181,27 @@ rule merge_variants:
         "../envs/vcflib.yaml"
     shell:
         "vcfcat {input.vcfs} | bgzip --stdout > {output.vcf} && tabix -p vcf {output.vcf}"
+
+# Also, when using small contigs, we further need to sort the output, as
+# this won't be done for us. Let's only do this extra work though if needed.
+if config["settings"].get("small-contigs-threshold"):
+
+    rule sort_variants:
+        input:
+            vcf = "genotyped/merged-all.vcf.gz",
+            refdict=genome_dict()
+        output:
+            vcf = "genotyped/all.vcf.gz"
+        log:
+            "logs/vcflib/sort-genotyped.log"
+        benchmark:
+            "benchmarks/picard/sort-genotyped.bench.log"
+        conda:
+            "../envs/picard.yaml"
+        shell:
+            # Weird new picard syntax...
+            "picard SortVcf "
+            "INPUT={input.vcf} "
+            "OUTPUT={output.vcf} "
+            "SEQUENCE_DICTIONARY={input.refdict} "
+            "> {log} 2>&1"

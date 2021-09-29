@@ -33,7 +33,14 @@ rule call_variants:
         knownidx=config["data"]["reference"]["known-variants"] + ".tbi" if config["data"]["reference"]["known-variants"] else [],
 
         # If we restict the calling to some regions, use this file here.
-        regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        # regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        regions="called/{contig}.regions.bed" if (
+            config["settings"].get("restrict-regions")
+        ) else (
+            "contig-groups/{contig}.bed" if (
+                config["settings"].get("small-contigs-threshold")
+            ) else []
+        )
     output:
         pipe("called/{contig}.vcf")
     log:

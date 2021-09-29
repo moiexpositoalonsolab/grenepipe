@@ -132,13 +132,15 @@ if config["settings"].get("small-contigs-threshold", 0) > 0:
             "https://github.com/lczech/grenepipe/issues and we will see what we can do."
         )
 
-    if config["settings"]["calling-tool"] != "haplotypecaller":
-        raise Exception(
-            "Can only use setting small-contigs-threshold with calling-tool haplotypecaller "
-            "at the moment, as we have not implemented this for other calling tools yet. "
-            "If you need this combination of settings, please submit an issue to "
-            "https://github.com/lczech/grenepipe/issues and we will see what we can do."
-        )
+    # We now extended the rules for bcftools and freebayes to also work with small contig groups.
+    # The following check is no longer needed - just kept here for reference.
+    # if config["settings"]["calling-tool"] != "haplotypecaller":
+    #     raise Exception(
+    #         "Can only use setting small-contigs-threshold with calling-tool haplotypecaller "
+    #         "at the moment, as we have not implemented this for other calling tools yet. "
+    #         "If you need this combination of settings, please submit an issue to "
+    #         "https://github.com/lczech/grenepipe/issues and we will see what we can do."
+    #     )
 
 # =================================================================================================
 #     Get Contigs
