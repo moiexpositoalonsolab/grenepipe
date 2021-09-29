@@ -83,7 +83,7 @@ settings:
   # as a separate contig), but merely combines them for the computation.
   # If set to a value greater than 0, all contigs/scaffolds smaller than this size are combined
   # into n bins, so that the sum of lengths of contigs in each bin is smaller than that size,
-  # while optimizing for a minimum number of bins (bin packing problem).
+  # while optimizing for a minimum number n of bins (bin packing problem).
   small-contigs-threshold: 0
 
   # ----------------------------------------------------------------------

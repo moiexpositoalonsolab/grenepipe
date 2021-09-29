@@ -1,7 +1,7 @@
 import json
 
 # =================================================================================================
-#     Common Helper Functions
+#     Get Fai
 # =================================================================================================
 
 def get_fai(wildcards):
@@ -9,99 +9,144 @@ def get_fai(wildcards):
     return checkpoints.samtools_faidx.get().output[0]
     # return config["data"]["reference"]["genome"] + ".fai"
 
+# =================================================================================================
+#     Grouping of Small Contigs
+# =================================================================================================
+
+if config["settings"].get("small-contigs-threshold", 0) > 0:
+
+    def solve_bin_packing( values, max_bin_size ):
+        # Sort by longest (of the small) contig first.
+        # This helps to get closer to an optimal solution.
+        values.sort(key = lambda x: x[1], reverse=True)
+
+        # Fill the bins as needed, using first-fit on the sorted list, and keeping track of
+        # how much we already put in each of them. We can have at most as many bins as contigs.
+        bins = []
+        sums = [0] * len(values)
+        for cont in values:
+            # Find the first bin where the contig fits in.
+            j = 0
+            while( j < len(bins) ):
+                if( sums[j] + cont[1] <= max_bin_size ):
+                    bins[j].append( cont )
+                    sums[j] += cont[1]
+                    break
+                j += 1
+
+            # If no bin could fit the contig, make a new bin.
+            if j == len(bins):
+                bins.append([])
+                bins[j].append( cont )
+                sums[j] += cont[1]
+
+        # Log output
+        # print("Contig group bin assignments for small contigs:")
+        # for i in range(len(bins)):
+        #     print(str(i) + ": [" + str(sums[i]) + "] " + str(bins[i]))
+
+        # Return the bins with all contigs and their sizes
+        return bins
+
+    checkpoint contig_groups:
+        input:
+            fai = get_fai
+        output:
+            "contig-groups/contigs.json"
+        log:
+            "logs/contig-groups/contigs.log"
+        params:
+            small_contig_thresh = config["settings"].get("small-contigs-threshold", 0)
+        run:
+            # We store our resulting list of contigs containing all (large and small) contigs,
+            # in tuples with their sizes. The contigs is a dict from group name to a list
+            # (over contings in the group) of tuples.
+            contigs = {}
+            small_contigs = []
+
+            # Read fai to get all contigs and their sizes.
+            # Put the large ones into the result immediately, and collect the small ones in a list
+            # of pairs, with name and size of each contig, so that we can run the bin packing.
+            with open(input.fai, "r") as f:
+                for line in f:
+                    contig, length_str = line.split("\t")[:2]
+                    contig = contig.strip()
+                    length = int(length_str.strip())
+
+                    if length >= params.small_contig_thresh:
+                        # Large ones are immediately added to the result.
+                        groupname = "contig-group-" + str(len(contigs))
+                        contigs[groupname] = [( contig, length )]
+                    else:
+                        small_contigs.append(( contig, length ))
+
+            # Solve the bin packing for the small contigs, to get a close to optimal solution
+            # for putting them in groups.
+            small_contig_bins = solve_bin_packing( small_contigs, params.small_contig_thresh )
+
+            # Now turn the small contig bins into groups for the result of this function.
+            for bin in small_contig_bins:
+                groupname = "contig-group-" + str(len(contigs))
+                contigs[groupname] = bin
+
+            # We need to store the result in a file, so that the rule that creates the per-contig
+            # files can access it.
+            json.dump( contigs, open( output[0], 'w' ))
+
+    # Rule is not submitted as a job to the cluster.
+    localrules: contig_groups
+
+    # Make the contig-group list files that contain the names of the contigs/scaffolds
+    # that have been bin-packed above.
+    rule contigs_group_list:
+        input:
+            contigs="contig-groups/contigs.json"
+        output:
+            "contig-groups/{contig}.bed"
+        log:
+            "logs/contig-groups/{contig}.log"
+        run:
+            # Get the contigs file that we created above.
+            contigs = json.load( open( input.contigs ))
+
+            # Same for the group name itself: This rule is only executed
+            # for group names that we actually have made.
+            if wildcards.contig not in contigs:
+                raise Exception( "Internal error: contig " + wildcards.contig + " not found." )
+
+            # Write the output list file, using the contig names and lengths from the group.
+            # In bed files, the first three columns are the chrom name, start (incluse, zero-based),
+            # and end (exclusive). Hence, we can simply use 0 and length as start and end here.
+            with open(output[0], "w") as f:
+                f.writelines( f"{c[0]}\t0\t{c[1]}\n" for c in contigs[wildcards.contig] )
+
+    # Rule is not submitted as a job to the cluster.
+    localrules: contigs_group_list
+
+    # Conflicts of interest:
+    if config["settings"].get("restrict-regions"):
+        raise Exception(
+            "Cannot combine settings small-contigs-threshold > 0 with restrict-regions "
+            "at the moment, as we have not implemented this yet. "
+            "If you need this combination of settings, please submit an issue to "
+            "https://github.com/lczech/grenepipe/issues and we will see what we can do."
+        )
+
+    if config["settings"]["calling-tool"] != "haplotypecaller":
+        raise Exception(
+            "Can only use setting small-contigs-threshold with calling-tool haplotypecaller "
+            "at the moment, as we have not implemented this for other calling tools yet. "
+            "If you need this combination of settings, please submit an issue to "
+            "https://github.com/lczech/grenepipe/issues and we will see what we can do."
+        )
+
+# =================================================================================================
+#     Get Contigs
+# =================================================================================================
+
 # Check that the config does not yet have contigs when this file is first included.
 if "contigs" in config["global"]:
     raise Exception("Config key 'global:contigs' already defined. Someone messed with our setup.")
-
-def solve_contig_bin_packing( small_contigs, small_contig_thresh ):
-    # Sort by longest (of the small) contig first.
-    # This helps to get closer to an optimal solution.
-    small_contigs.sort(key = lambda x: x[1], reverse=True)
-
-    # Fill the bins as needed, using first-fit on the sorted list, and keeping track of
-    # how much we already put in each of them. We can have at most as many bins as contigs.
-    bins = []
-    sums = [0] * len(small_contigs)
-    for cont in small_contigs:
-        # Find the first bin where the contig fits in.
-        j = 0
-        while( j < len(bins) ):
-            if( sums[j] + cont[1] <= small_contig_thresh ):
-                bins[j].append( cont )
-                sums[j] += cont[1]
-                break
-            j += 1
-
-        # If no bin could fit the contig, make a new bin.
-        if j == len(bins):
-            bins.append([])
-            bins[j].append( cont )
-            sums[j] += cont[1]
-
-    # Debug print
-    # for i in range(len(bins)):
-        # logger.info(str(i) + ": [" + str(sums[i]) + "] " + str(bins[i]))
-
-    # Return the bins with all contigs and their sizes
-    return bins
-
-def make_small_contig_groups( fai ):
-    global config
-    small_contig_thresh = config["settings"].get("small-contigs-threshold", 0)
-    assert small_contig_thresh > 0
-
-    # We store our resulting list of contig names, as well as a list of bins,
-    # containing all (large and small) contigs, in tuples with their sizes.
-    # The contig-bins is a dict from group name to a list (over contings in the group) of tuples.
-    assert "contigs" not in config["global"]
-    config["global"]["contigs"] = []
-    config["global"]["contig-bins"] = {}
-    contig_cnt = 0
-    small_contigs = []
-
-    # Read fai to get all contigs and their sizes.
-    # Put the large ones into the result immediately, and collect the small ones in a list
-    # of pairs, with name and size of each contig, so that we can run the bin packing.
-    with open(fai, "r") as f:
-        for line in f:
-            contig, length_str = line.split("\t")[:2]
-            contig = contig.strip()
-            length = int(length_str.strip())
-
-            if length >= small_contig_thresh:
-                # Large ones are immediately added to the result.
-                groupname = "contig-group-" + str(contig_cnt)
-                config["global"]["contigs"].append(groupname)
-                config["global"]["contig-bins"][groupname] = [( contig, length )]
-                contig_cnt += 1
-            else:
-                small_contigs.append(( contig, length ))
-
-    # Solve the bin packing for the small contigs, to get a close to optimal solution
-    # for putting them in groups.
-    bins = solve_contig_bin_packing( small_contigs, small_contig_thresh )
-
-    # Now turn the small contig bins into groups for the result of this function.
-    for bin in bins:
-        groupname = "contig-group-" + str(contig_cnt)
-        config["global"]["contigs"].append(groupname)
-        config["global"]["contig-bins"][groupname] = bin
-        contig_cnt += 1
-
-    # Debug
-    # logger.info(str(config["global"]["contig-bins"]))
-
-    # We need to store the result in a file, so that the rule that creates the per-contig files
-    # can access it. This is super hacky, as we are currently not in a rule here, so technically,
-    # we should not rely on file paths etc here... But it seems that snakemake sets the working
-    # directory globally, so that our file access here puts the data in the right place.
-    # Alternative solutions might be a persistent dict, but that requires additionaly python
-    # modules to be imported, or to call this function again from a rule, but that would
-    # require to solve the bin packing twice. The algorithm is deterministic, so that should not
-    # change the result, but still it seems not like a good solution either, so let's roll with
-    # this one here and hope that the working directory is always correct.
-    os.makedirs("contig-groups", exist_ok=True)
-    json.dump( config["global"]["contig-bins"], open( "contig-groups/contigs.json", 'w' ))
 
 # Contigs in reference genome.
 def get_contigs( fai ):
@@ -110,13 +155,19 @@ def get_contigs( fai ):
     if "contigs" in config["global"]:
         return config["global"]["contigs"]
 
-    # If the config sets a small contig threshold, we use this
-    # to solve a bin packing problem to combine small contigs into a set, where each bin
-    # is at max as big as the threshold.
-    small_contig_thresh = config["settings"].get("small-contigs-threshold", 0)
-    if small_contig_thresh > 0:
-        make_small_contig_groups( fai )
-        assert "contigs" in config["global"]
+    # If the config sets a small contig threshold, we use this to solve a bin packing problem to
+    # combine small contigs into a set, where each bin is at max as big as the threshold.
+    # Here, we request the file via its checkpoit, to make sure that it is created by its rule
+    # before we continue. This is valid, as this function here is only ever called from
+    # within input functions of rules, which themselves request the fai file via checkpoint as well.
+    if config["settings"].get("small-contigs-threshold", 0) > 0:
+        # Get the contigs group file. We parse it as a dict, whose keys are the contig group names.
+        # Python wants us to explicitly convert this to a list here, as otherwise, some weird
+        # pickling issue occurs downstream when snakemake tries to pickle the config for usage
+        # in other rules...
+        contig_group_file = checkpoints.contig_groups.get().output[0]
+        contigs = json.load( open( contig_group_file ))
+        config["global"]["contigs"] = list(contigs.keys())
         return config["global"]["contigs"]
 
     # Without small contig threshold, just read the fai and return its first column,
@@ -128,7 +179,7 @@ def get_contigs( fai ):
     return config["global"]["contigs"]
 
 # =================================================================================================
-#     Restrict Regions & Small Contigs
+#     Restrict Regions
 # =================================================================================================
 
 # Interset the restict regions file with a given contig (chromosome), so that we can use the
@@ -148,54 +199,6 @@ if "restrict-regions" in config["settings"]:
 
     # Rule is not submitted as a job to the cluster.
     localrules: compose_regions
-
-if config["settings"].get("small-contigs-threshold", 0) > 0:
-
-    # Make the contig-group list files that contain the names of the contigs/scaffolds
-    # that have been bin-packed above.
-    rule group_contigs:
-        input:
-            ref=get_fai
-        output:
-            "contig-groups/{contig}.list"
-        log:
-            "logs/contig-groups/{contig}.log"
-        run:
-            # Get the contigs file that we created above. This will always exist, as this rule
-            # is only ever executed after we have resolved the "{contig}" var, which means,
-            # get_contigs() was already called.
-            if not os.path.exists( "contig-groups/contigs.json" ):
-                raise Exception( "Internal error: get_contigs() was not called yet." )
-            contigs = json.load( open( "contig-groups/contigs.json" ))
-
-            # Same for the group name itself: This rule is only executed
-            # for group names that we actually have made.
-            if wildcards.contig not in contigs:
-                raise Exception( "Internal error: contig " + wildcards.contig + " not found." )
-
-            # Write the output list file, using the contig names from the group.
-            with open(output[0], "w") as f:
-                f.writelines( f"{c[0]}\n" for c in contigs[wildcards.contig] )
-
-    # Rule is not submitted as a job to the cluster.
-    localrules: group_contigs
-
-    # Conflicts of interest:
-    if config["settings"].get("restrict-regions"):
-        raise Exception(
-            "Cannot combine settings small-contigs-threshold > 0 with restrict-regions "
-            "at the moment, as we have not implemented this yet. "
-            "If you need this combination of settings, please submit an issue to "
-            "https://github.com/lczech/grenepipe/issues and we will see what we can do."
-        )
-
-    if config["settings"]["calling-tool"] != "haplotypecaller":
-        raise Exception(
-            "Can only use setting small-contigs-threshold with calling-tool haplotypecaller "
-            "at the moment, as we have not implemented this for other calling tools yet. "
-            "If you need this combination of settings, please submit an issue to "
-            "https://github.com/lczech/grenepipe/issues and we will see what we can do."
-        )
 
 # =================================================================================================
 #     Variant Calling
