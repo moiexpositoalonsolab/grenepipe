@@ -2,12 +2,6 @@ trimming-tool: "trimmomatic"	trimming-tool: "adapterremoval"
 merge-paired-end-reads: false	merge-paired-end-reads: true
 mapping-tool: "bwamem"	mapping-tool: "bwamem"
 filter-mapped-reads: false	filter-mapped-reads: true
-remove-duplicates: true	remove-duplicates: true
-duplicates-tool: "picard"	duplicates-tool: "picard"
-recalibrate-base-qualities: false	recalibrate-base-qualities: false
-calling-tool: "haplotypecaller"	calling-tool: "haplotypecaller"
-snpeff: false	snpeff: true
-vep: false	vep: true
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
 frequency-table: false	frequency-table: true
