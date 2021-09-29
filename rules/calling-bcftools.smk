@@ -44,7 +44,7 @@ rule call_variants:
             config["settings"].get("restrict-regions")
         ) else (
             "contig-groups/{contig}.bed" if (
-                config["settings"].get("small-contigs-threshold")
+                config["settings"].get("contig-group-size")
             ) else []
         )
     output:
@@ -171,7 +171,7 @@ rule merge_variants:
         # Unfortunately, we cannot pipe here, as Picard fails with that, so temp file it is...
         # If we do not use small contigs, we directly output the final file.
         vcf = temp("genotyped/merged-all.vcf.gz") if (
-            config["settings"].get("small-contigs-threshold")
+            config["settings"].get("contig-group-size")
         ) else "genotyped/all.vcf.gz"
     log:
         "logs/vcflib/merge-genotyped.log"
@@ -184,7 +184,7 @@ rule merge_variants:
 
 # Also, when using small contigs, we further need to sort the output, as
 # this won't be done for us. Let's only do this extra work though if needed.
-if config["settings"].get("small-contigs-threshold"):
+if config["settings"].get("contig-group-size"):
 
     rule sort_variants:
         input:

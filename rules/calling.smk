@@ -10,18 +10,18 @@ def get_fai(wildcards):
     # return config["data"]["reference"]["genome"] + ".fai"
 
 # =================================================================================================
-#     Grouping of Small Contigs
+#     Grouping of (Small) Contigs
 # =================================================================================================
 
-if config["settings"].get("small-contigs-threshold", 0) > 0:
+if config["settings"].get("contig-group-size", 0) > 0:
 
     def solve_bin_packing( values, max_bin_size ):
-        # Sort by longest (of the small) contig first.
+        # Sort by length, decreasing, first.
         # This helps to get closer to an optimal solution.
         values.sort(key = lambda x: x[1], reverse=True)
 
         # Fill the bins as needed, using first-fit on the sorted list, and keeping track of
-        # how much we already put in each of them. We can have at most as many bins as contigs.
+        # how much we already put in each of them. We can have at most as many bins as elements.
         bins = []
         sums = [0] * len(values)
         for cont in values:
@@ -56,7 +56,7 @@ if config["settings"].get("small-contigs-threshold", 0) > 0:
         log:
             "logs/contig-groups/contigs.log"
         params:
-            small_contig_thresh = config["settings"].get("small-contigs-threshold", 0)
+            contig_group_size = config["settings"].get("contig-group-size", 0)
         run:
             # We store our resulting list of contigs containing all (large and small) contigs,
             # in tuples with their sizes. The contigs is a dict from group name to a list
@@ -67,13 +67,18 @@ if config["settings"].get("small-contigs-threshold", 0) > 0:
             # Read fai to get all contigs and their sizes.
             # Put the large ones into the result immediately, and collect the small ones in a list
             # of pairs, with name and size of each contig, so that we can run the bin packing.
+            # We could just add all to the list, and the solving algorithm would still work,
+            # but we implemented it this way now, and that just works fine as well...
+            # The only difference this makes is that large contigs (over the group size) will all
+            # be in the first groups, and the small ones that get combined in the later groups,
+            # instead of having those mixed. One might even argue that this is cleaner :-)
             with open(input.fai, "r") as f:
                 for line in f:
                     contig, length_str = line.split("\t")[:2]
                     contig = contig.strip()
                     length = int(length_str.strip())
 
-                    if length >= params.small_contig_thresh:
+                    if length >= params.contig_group_size:
                         # Large ones are immediately added to the result.
                         groupname = "contig-group-" + str(len(contigs))
                         contigs[groupname] = [( contig, length )]
@@ -82,7 +87,7 @@ if config["settings"].get("small-contigs-threshold", 0) > 0:
 
             # Solve the bin packing for the small contigs, to get a close to optimal solution
             # for putting them in groups.
-            small_contig_bins = solve_bin_packing( small_contigs, params.small_contig_thresh )
+            small_contig_bins = solve_bin_packing( small_contigs, params.contig_group_size )
 
             # Now turn the small contig bins into groups for the result of this function.
             for bin in small_contig_bins:
@@ -126,7 +131,7 @@ if config["settings"].get("small-contigs-threshold", 0) > 0:
     # Conflicts of interest:
     if config["settings"].get("restrict-regions"):
         raise Exception(
-            "Cannot combine settings small-contigs-threshold > 0 with restrict-regions "
+            "Cannot combine settings contig-group-size > 0 with restrict-regions "
             "at the moment, as we have not implemented this yet. "
             "If you need this combination of settings, please submit an issue to "
             "https://github.com/lczech/grenepipe/issues and we will see what we can do."
@@ -136,7 +141,7 @@ if config["settings"].get("small-contigs-threshold", 0) > 0:
     # The following check is no longer needed - just kept here for reference.
     # if config["settings"]["calling-tool"] != "haplotypecaller":
     #     raise Exception(
-    #         "Can only use setting small-contigs-threshold with calling-tool haplotypecaller "
+    #         "Can only use setting contig-group-size with calling-tool haplotypecaller "
     #         "at the moment, as we have not implemented this for other calling tools yet. "
     #         "If you need this combination of settings, please submit an issue to "
     #         "https://github.com/lczech/grenepipe/issues and we will see what we can do."
@@ -157,12 +162,12 @@ def get_contigs( fai ):
     if "contigs" in config["global"]:
         return config["global"]["contigs"]
 
-    # If the config sets a small contig threshold, we use this to solve a bin packing problem to
+    # If the config sets a contig group size, we use this to solve a bin packing problem to
     # combine small contigs into a set, where each bin is at max as big as the threshold.
     # Here, we request the file via its checkpoit, to make sure that it is created by its rule
     # before we continue. This is valid, as this function here is only ever called from
     # within input functions of rules, which themselves request the fai file via checkpoint as well.
-    if config["settings"].get("small-contigs-threshold", 0) > 0:
+    if config["settings"].get("contig-group-size", 0) > 0:
         # Get the contigs group file. We parse it as a dict, whose keys are the contig group names.
         # Python wants us to explicitly convert this to a list here, as otherwise, some weird
         # pickling issue occurs downstream when snakemake tries to pickle the config for usage
@@ -172,7 +177,7 @@ def get_contigs( fai ):
         config["global"]["contigs"] = list(contigs.keys())
         return config["global"]["contigs"]
 
-    # Without small contig threshold, just read the fai and return its first column,
+    # Without contig groups, just read the fai and return its first column,
     # which contains the ref sequence names (our contigs). Store it in the global variable
     # first to not have to do the reading each time.
     config["global"]["contigs"] = pd.read_csv(

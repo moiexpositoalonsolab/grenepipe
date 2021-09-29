@@ -38,7 +38,7 @@ rule call_variants:
             config["settings"].get("restrict-regions")
         ) else (
             "contig-groups/{contig}.bed" if (
-                config["settings"].get("small-contigs-threshold")
+                config["settings"].get("contig-group-size")
             ) else []
         )
     output:

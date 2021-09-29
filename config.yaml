@@ -76,15 +76,27 @@ settings:
 
   # For some reference genomes, not all chromosomes/contigs have been fully assembled yet,
   # and instead the reference genome consists of many small contigs/scaffolds.
-  # As some of the steps in the workflow however parallelize over contigs, this can lead to
-  # a large number of jobs being created, which in particular can cause slowdown when running
-  # in cluster environments. Hence, we offer this setting to combine small contigs/scaffolds
-  # for the computation. This does not change the resutls (which will still contain each of them
-  # as a separate contig), but merely combines them for the computation.
-  # If set to a value greater than 0, all contigs/scaffolds smaller than this size are combined
-  # into n bins, so that the sum of lengths of contigs in each bin is smaller than that size,
-  # while optimizing for a minimum number n of bins (bin packing problem).
-  small-contigs-threshold: 0
+  # As some of the steps in the workflow however parallelize over contigs (for speed),
+  # this can lead to a large number of jobs being created, which in particular can cause issues
+  # when running in cluster environments.
+  #
+  # Hence, we offer this setting to combine small contigs/scaffolds for the computation.
+  # This does not change the results (which will still contain each of them as a separate contig),
+  # but merely combines them for the computation.
+  #
+  # If set to a size greater than 0, small contigs/scaffolds are combined into bins,
+  # so that the sum of lengths (in basepairs) of contigs in each bin is smaller than the given size,
+  # while optimizing for a minimum number of bins (bin packing problem).
+  # Contigs that are already longer than the given size are not affected by this, and will just
+  # become their own bin.
+  #
+  # Note that this group size is measured in basepairs (or nucleotides), and hence is not the number
+  # of bins to create, but their total size. So, for example, when your genome has a total length of
+  # 1,000,000 bp, scattered into 1,000 scaffolds of (on average) 1,000 bp, you could set
+  # the `contig-group-size` to 1,000,000 / 10 = 100,000 (or a bit more) in order to create 10 groups
+  # of contigs for the computation, with each group containing about 1,000 / 10 = 100 contigs
+  # (and hence a sum of their lengths of 100,000 per bin).
+  contig-group-size: 0
 
   # ----------------------------------------------------------------------
   #     Optional Steps
@@ -123,22 +135,26 @@ settings:
   # the input data:sample table specified above.
   #
   # By default, we do not make any pileup files (the empty list `[]`). To produce pileup files,
-  # remove the empty list, and uncomment the types of pileups that you need, as listed (with
-  # explanations) below.
+  # remove the empty list brackets, and uncomment the types of pileups that you need, as listed
+  # (with explanations) below.
   pileups: []
     # Make one pileup file per sample, with each unit of the sample as an individual column.
     # - "samples-individual-units"
+    #
     # Make one pileup file per sample, with all units of the sample merged into one pile.
     # - "samples-merged-units"
+    #
     # Make a pileup file containing all samples with all units as individual columns.
     # This also creates a file `all-individual-units.names.txt`, which lists the order of the
     # pileup columns in the file, which is the same order as the data:samples input table.
     # - "all-individual-units"
+    #
     # Make a pileup file containing columns for each sample, with units per sample merged.
     # This also creates a file `all-merged-units.names.txt`, which lists the order of the
     # pileup columns in the file, which is the same order as the data:samples input table,
     # but using the first position of each sample (for samples that have multiple units).
     # - "all-merged-units"
+    #
     # Make a pileup file with one column only, by merging all samples with all units into one pile.
     # - "all-merged-samples"
 

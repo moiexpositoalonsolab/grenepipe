@@ -1,3 +1,3 @@
-small-contigs-threshold: 0	small-contigs-threshold: 38283346
+contig-group-size: 0	contig-group-size: 38283346
 snpeff: false	snpeff: true
 vep: false	vep: true

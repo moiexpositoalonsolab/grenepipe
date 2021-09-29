@@ -49,7 +49,7 @@ properties:
         enum: ["haplotypecaller", "freebayes", "bcftools"]
       restrict-regions:
         type: string
-      small-contigs-threshold:
+      contig-group-size:
         type: integer
       region-padding:
         type: integer
