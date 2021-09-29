@@ -9,6 +9,7 @@ rule select_calls:
     input:
         ref=config["data"]["reference"]["genome"],
         vcf="genotyped/all.vcf.gz",
+        refdict=genome_dict(),
 
         # bcftools does not automatically create vcf index files, so we need to specifically request them...
         # ... but the picard merge tool that we use right now does create tbi files, so all good atm.
