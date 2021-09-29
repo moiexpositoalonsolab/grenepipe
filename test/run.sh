@@ -48,6 +48,11 @@ make_config() {
     sed -i "s/threads: 12/threads: 6/g" ${TARGET}
 }
 
+# When we kill this script, we want snakemake (which we start in the background) to also be killed.
+# Otherwise, it would keep running and mess up files in the test dirs...
+# See https://stackoverflow.com/a/2173421/4184258 for this solution.
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
 # ==================================================================================================
 #      Run and Monitor Snakemake
 # ==================================================================================================
