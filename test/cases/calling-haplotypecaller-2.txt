@@ -1,0 +1,3 @@
+small-contigs-threshold: 0	small-contigs-threshold: 1000000
+snpeff: false	snpeff: true
+vep: false	vep: true

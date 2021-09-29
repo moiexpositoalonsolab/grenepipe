@@ -74,6 +74,18 @@ settings:
   # in order to include flanking areas.
   # region-padding: 100
 
+  # For some reference genomes, not all chromosomes/contigs have been fully assembled yet,
+  # and instead the reference genome consists of many small contigs/scaffolds.
+  # As some of the steps in the workflow however parallelize over contigs, this can lead to
+  # a large number of jobs being created, which in particular can cause slowdown when running
+  # in cluster environments. Hence, we offer this setting to combine small contigs/scaffolds
+  # for the computation. This does not change the resutls (which will still contain each of them
+  # as a separate contig), but merely combines them for the computation.
+  # If set to a value greater than 0, all contigs/scaffolds smaller than this size are combined
+  # into n bins, so that the sum of lengths of contigs in each bin is smaller than that size,
+  # while optimizing for a minimum number of bins (bin packing problem).
+  small-contigs-threshold: 0
+
   # ----------------------------------------------------------------------
   #     Optional Steps
   # ----------------------------------------------------------------------
