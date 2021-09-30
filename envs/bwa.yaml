@@ -1,4 +1,4 @@
-# Used by rules in mapping-bwap-mem.smk
+# Used by rules in mapping-bwa-mem.smk
 channels:
   - bioconda
   - conda-forge

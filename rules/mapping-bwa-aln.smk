@@ -120,7 +120,8 @@ rule bwa_sai_to_bam:
         "benchmarks/bwa-sam/{sample}-{unit}.bench.log"
     conda:
         # The wrapper does not include numpy and pandas as dependencies, but somehow needs them...
-        "../envs/bwa-samxe.yaml"
+        # So we just re-use our normal bwa env, which also workes for the above rule.
+        "../envs/bwa.yaml"
     wrapper:
         "0.74.0/bio/bwa/samxe"
 
