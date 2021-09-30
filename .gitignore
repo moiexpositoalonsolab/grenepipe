@@ -4,6 +4,7 @@
 
 test/.snakemake/
 test/conda-envs
+test/mamba-envs
 test/config.yaml
 test/out-*
 test/prep.log
