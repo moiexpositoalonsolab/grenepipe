@@ -5,6 +5,7 @@
 import pandas as pd
 import os, sys
 import socket, platform
+import subprocess
 from datetime import datetime
 
 # Ensure min Snakemake version
@@ -94,6 +95,11 @@ config["global"]["unit-names"] = list(set(
 # in the same order.
 config["global"]["sample-units"] = list()
 for index, row in config["global"]["samples"].iterrows():
+    if ( row["sample"], row["unit"] ) in config["global"]["sample-units"]:
+        raise Exception(
+            "Identical sample name and unit found in samples table: " +
+            str(row["sample"]) + " " + str(row["unit"])
+        )
     config["global"]["sample-units"].append(( row["sample"], row["unit"] ))
 
 # Helper function to get a list of all units of a given sample name.
@@ -118,6 +124,18 @@ wildcard_constraints:
 hostname = socket.gethostname()
 hostname = hostname + ("; " + platform.node() if platform.node() != socket.gethostname() else "")
 
+# Get the conda version, if available.
+try:
+    process = subprocess.Popen(['conda', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = process.communicate()
+    out = out.decode('ascii')
+    conda_ver = out[out.startswith("conda") and len("conda"):].strip()
+    del process, out, err
+    if not conda_ver:
+        conda_ver = "n/a"
+except:
+    conda_ver = "n/a"
+
 # Get nicely wrapped command line
 cmdline = sys.argv[0]
 for i in range( 1, len(sys.argv)):
@@ -140,23 +158,26 @@ else:
     smpcnt = str(len(config["global"]["sample-names"])) + ", with " + str(unitcnt) + " total units"
 
 # Some helpful messages
-logger.info("===========================================================================")
+logger.info("=====================================================================================")
 logger.info("    GRENEPIPE")
 logger.info("")
 logger.info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 logger.info("    Host:               " + hostname)
-logger.info("    Working Directory:  " + os.getcwd())
+logger.info("    Conda:              " + str(conda_ver))
+logger.info("    Python:             " + str(sys.version.split(' ')[0]))
+logger.info("    Snakemake:          " + str(snakemake.__version__))
 logger.info("    Command:            " + cmdline)
 logger.info("")
 logger.info("    Base directory:     " + workflow.basedir)
-logger.info("    Snakefile:          " + workflow.snakefile)
+logger.info("    Working directory:  " + os.getcwd())
 logger.info("    Config file(s):     " + cfgfiles)
 logger.info("    Samples:            " + smpcnt)
-logger.info("===========================================================================")
+logger.info("=====================================================================================")
 logger.info("")
 
 # No need to have these output vars available in the rest of the snakefiles
 del hostname
+del conda_ver
 del cmdline
 del cfgfiles
 del unitcnt
