@@ -49,11 +49,16 @@ make_config() {
     sed -i "s/threads: 12/threads: 6/g" ${TARGET}
 }
 
-# When we kill this script, we want snakemake (which we start in the background) to also be killed.
-# Otherwise, it would keep running and mess up files in the test dirs...
-# See https://stackoverflow.com/a/2173421/4184258 for this solution.
-# Hm, somehow not quite working. Deactivating for now...
-# trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+# Helper to list _all_ decendant processes of this script, so that when killing the script,
+# we can kill all of them. Killing just snakemake is not sufficient, as others keep running...
+list_descendants()
+{
+    local children=$(ps -o pid= --ppid "$1")
+    for pid in $children ; do
+        list_descendants "$pid"
+    done
+    echo "$children"
+}
 
 # We use the snamemake version to figure out whether it supports mamba already,
 # as this greatly increases runtime when installing packages.
@@ -81,6 +86,14 @@ run_snakemake() {
     # User output
     echo "[========" `date "+%F %T"` "========]"
     printf "${COLOR_GREEN}Running ${CASE}${COLOR_END}\n"
+
+    # When we kill this script, we want snakemake (which we start in the background, see below)
+    # and all its decendants to also be killed. Otherwise, it would keep running and mess up files
+    # in the test dirs. Just killing the snakemake process does not work, as this keeps its children
+    # alive. So, we use a hammer and kill all decendants of this script... Seems to work well so far.
+    # See https://stackoverflow.com/a/8927066/4184258, https://unix.stackexchange.com/a/124148
+    # and https://stackoverflow.com/a/5722874/4184258 for all sources that were needed here...
+    trap 'kill -9 $(list_descendants $$) 2> /dev/null ; exit 143' TERM SIGINT SIGTERM
 
     # Run snakemake in the background.
     # Importantly, specify the conda prefix, so that the tools do not have to be loaded each time.
