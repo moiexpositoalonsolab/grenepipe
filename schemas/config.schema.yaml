@@ -51,8 +51,8 @@ properties:
         type: string
       contig-group-size:
         type: integer
-      region-padding:
-        type: integer
+      # region-padding:
+      #   type: integer
       snpeff:
         type: boolean
       vep:

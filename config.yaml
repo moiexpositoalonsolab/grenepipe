@@ -66,14 +66,6 @@ settings:
   # Valid values: "haplotypecaller", "bcftools", "freebayes"
   calling-tool: "haplotypecaller"
 
-  # Uncomment and point to a bed file with, e.g., captured regions if necessary,
-  # see https://gatkforums.broadinstitute.org/gatk/discussion/4133/when-should-i-use-l-to-pass-in-a-list-of-intervals
-  # restrict-regions: captured_regions.bed
-
-  # If regions are restricted, uncomment this to enlarge them by the given value
-  # in order to include flanking areas.
-  # region-padding: 100
-
   # For some reference genomes, not all chromosomes/contigs have been fully assembled yet,
   # and instead the reference genome consists of many small contigs/scaffolds.
   # As some of the steps in the workflow however parallelize over contigs (for speed),
@@ -97,6 +89,23 @@ settings:
   # of contigs for the computation, with each group containing about 1,000 / 10 = 100 contigs
   # (and hence a sum of their lengths of 100,000 per bin).
   contig-group-size: 0
+
+  # EXPERIMENTAL.
+  # Path to a `bed` file with, e.g., captured regions, in order to restrict the whole workflow
+  # to just call variants on these regions. If empty (default), the whole reference genome is used.
+  # Excludes to use `contig-group-size` at the moment.
+  #
+  # Note: Currently, this only is tested with calling-tool: "haplotypecaller", and both bcftools
+  # and freebayes fail if not all contigs/chromosomes of the reference genome are present in the
+  # regions file (they cannot handle empty contigs). Both might still work as long as the provided
+  # bed file contains regions of each chromosome that have some reads mapped to them,
+  # but we did not fully test this.
+  # If you need to restrict regions with one of those callers and run into trouble, please submit
+  # an issue to https://github.com/lczech/grenepipe/issues and we will see what we can do.
+  #
+  # See https://gatkforums.broadinstitute.org/gatk/discussion/4133/when-should-i-use-l-to-pass-in-a-list-of-intervals
+  # for details on the usage of regions with GATK HaplotypeCaller.
+  restrict-regions: ""
 
   # ----------------------------------------------------------------------
   #     Optional Steps

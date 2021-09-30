@@ -30,12 +30,16 @@ Arabidopsis thaliana reference genome, obtained from
 
 The file `TAIR10_chr_all.fas.gz` has not to be decompressed, as this step is done automatically.
 
-Known Variants
+Known Variants and Regions
 ==============
 
 For testing purposes, we here also include a `known-variants.vcf.gz` file that can be used
 to constrain the variant calling process. This file is simply the resulting vcf from running
 the pipeline without known variants. It hence is of no actual use, and just for testing.
+
+Furthermore, for testing, we provide a simple `regions.bed` file that restricts the calling process
+to just some of the regions in the chromosomes. Note that this is mostly an experimental feature
+at the moment (see the `config.yaml`, under `settings: restrict-regions`, for details).
 
 
 Pipeline

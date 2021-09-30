@@ -1,0 +1,4 @@
+calling-tool: "haplotypecaller"	calling-tool: "freebayes"
+restrict-regions: ""	restrict-regions: "#BASEPATH#/test/reference/regions.bed"
+snpeff: false	snpeff: true
+vep: false	vep: true

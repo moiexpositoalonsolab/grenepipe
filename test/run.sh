@@ -24,8 +24,9 @@ BASEPATH=`pwd -P`
 # so that we can run here without cluttering the example directory.
 if [[ ! -d ./test/reference ]]; then
     mkdir -p ./test/reference/
-    cp ./example/TAIR10_chr_all.fa.gz ./test/reference/TAIR10_chr_all.fa.gz
+    cp ./example/TAIR10_chr_all.fa.gz  ./test/reference/TAIR10_chr_all.fa.gz
     cp ./example/known-variants.vcf.gz ./test/reference/known-variants.vcf.gz
+    cp ./example/regions.bed           ./test/reference/regions.bed
 fi
 
 # Copy the samples table, so that we can change the paths without changing the original,
@@ -170,8 +171,8 @@ for DICT in ${DICTS} ; do
             perl -pi -e "s?${FROM}?${TO}?g" ./test/out-${TARGET}/config.yaml
         done < ${DICT}
 
-        # The known variants entry in the test cases uses a placeholder for the directory,
-        # which we need to replace by the correct path here.
+        # The known variants and restrict regions entries in the test cases uses a placeholder
+        # for the directory, which we need to replace by the correct path here.
         sed -i "s?#BASEPATH#?${BASEPATH}?g" ./test/out-${TARGET}/config.yaml
     fi
 

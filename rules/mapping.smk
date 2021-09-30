@@ -111,9 +111,10 @@ def get_recal_input(bai=False):
 def get_gatk_regions_param(regions=config["settings"].get("restrict-regions"), default=""):
     if regions:
         params = "--intervals '{}' ".format(regions)
-        padding = config["settings"].get("region-padding")
-        if padding:
-            params += "--interval-padding {}".format(padding)
+        # Not used at the moment, as we deleted this config setting.
+        # padding = config["settings"].get("region-padding")
+        # if padding:
+        #     params += "--interval-padding {}".format(padding)
         return params
     return default
 
