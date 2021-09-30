@@ -52,7 +52,18 @@ make_config() {
 # When we kill this script, we want snakemake (which we start in the background) to also be killed.
 # Otherwise, it would keep running and mess up files in the test dirs...
 # See https://stackoverflow.com/a/2173421/4184258 for this solution.
-trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+# Hm, somehow not quite working. Deactivating for now...
+# trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
+# We use the snamemake version to figure out whether it supports mamba already,
+# as this greatly increases runtime when installing packages.
+# The below version comparison works as long as snakemake uses a three (or four) numbering scheme,
+# dot separated, without any letters or other things after the major-minor-patch versions.
+CONDA_FRONTEND=""
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+if [ $(version `snakemake --version`) -ge $(version "5.18.0") ]; then
+    CONDA_FRONTEND="--conda-frontend mamba"
+fi
 
 # ==================================================================================================
 #      Run and Monitor Snakemake
@@ -76,6 +87,7 @@ run_snakemake() {
     snakemake \
         --use-conda \
         --conda-prefix ${BASEPATH}/test/conda-envs \
+        ${CONDA_FRONTEND} \
         --cores ${CORES} \
         --directory ${DIRECTORY} \
         ${EXTRA} \
