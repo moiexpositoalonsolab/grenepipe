@@ -61,12 +61,14 @@ list_descendants()
 }
 
 # We use the snamemake version to figure out whether it supports mamba already,
-# as this greatly increases runtime when installing packages.
+# as this greatly decreases runtime when installing packages.
 # The below version comparison works as long as snakemake uses a three (or four) numbering scheme,
 # dot separated, without any letters or other things after the major-minor-patch versions.
 CONDA_FRONTEND=""
 CONDA_PREFIX="conda-envs"
-function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+function version {
+    echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'
+}
 if [ $(version `snakemake --version`) -ge $(version "5.18.0") ]; then
     CONDA_FRONTEND="--conda-frontend mamba"
     CONDA_PREFIX="mamba-envs"
