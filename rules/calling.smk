@@ -15,13 +15,17 @@ def get_fai(wildcards):
 
 if config["settings"].get("contig-group-size", 0) > 0:
 
+    # Simple greedy solver for the bin packing problem, here used to make bins of roughly equal
+    # size for the contigs. We except the input values to be tuples or pairs, where the index [1]
+    # element is the weight (index[0] here is used for the contig name itself).
     def solve_bin_packing( values, max_bin_size ):
-        # Sort by length, decreasing, first.
+        # First, sort by length, decreasing.
         # This helps to get closer to an optimal solution.
         values.sort(key = lambda x: x[1], reverse=True)
 
         # Fill the bins as needed, using first-fit on the sorted list, and keeping track of
-        # how much we already put in each of them. We can have at most as many bins as elements.
+        # how much we already put in each of them. We can have at most as many bins as elements,
+        # so use this to initialize the sums, to keep it simple.
         bins = []
         sums = [0] * len(values)
         for cont in values:
@@ -35,6 +39,8 @@ if config["settings"].get("contig-group-size", 0) > 0:
                 j += 1
 
             # If no bin could fit the contig, make a new bin.
+            # This in paticular catches contigs that are larger than the bin size, for example,
+            # if some chromosomes are fully assembled and are hence not in scaffolds of small size.
             if j == len(bins):
                 bins.append([])
                 bins[j].append( cont )
@@ -58,39 +64,26 @@ if config["settings"].get("contig-group-size", 0) > 0:
         params:
             contig_group_size = config["settings"].get("contig-group-size", 0)
         run:
-            # We store our resulting list of contigs containing all (large and small) contigs,
-            # in tuples with their sizes. The contigs is a dict from group name to a list
-            # (over contings in the group) of tuples.
-            contigs = {}
-            small_contigs = []
-
             # Read fai to get all contigs and their sizes.
-            # Put the large ones into the result immediately, and collect the small ones in a list
-            # of pairs, with name and size of each contig, so that we can run the bin packing.
-            # We could just add all to the list, and the solving algorithm would still work,
-            # but we implemented it this way now, and that just works fine as well...
-            # The only difference this makes is that large contigs (over the group size) will all
-            # be in the first groups, and the small ones that get combined in the later groups,
-            # instead of having those mixed. One might even argue that this is cleaner :-)
+            contig_list = []
             with open(input.fai, "r") as f:
                 for line in f:
                     contig, length_str = line.split("\t")[:2]
                     contig = contig.strip()
                     length = int(length_str.strip())
+                    contig_list.append(( contig, length ))
 
-                    if length >= params.contig_group_size:
-                        # Large ones are immediately added to the result.
-                        groupname = "contig-group-" + str(len(contigs))
-                        contigs[groupname] = [( contig, length )]
-                    else:
-                        small_contigs.append(( contig, length ))
+            # Solve the bin packing for the contigs, to get a close to optimal solution
+            # for putting them in groups. Large contigs (e.g., whole chromosomes) that are larger
+            # than the bin size will simply get their own (overflowing...) bin.
+            contig_bins = solve_bin_packing( contig_list, params.contig_group_size )
 
-            # Solve the bin packing for the small contigs, to get a close to optimal solution
-            # for putting them in groups.
-            small_contig_bins = solve_bin_packing( small_contigs, params.contig_group_size )
-
-            # Now turn the small contig bins into groups for the result of this function.
-            for bin in small_contig_bins:
+            # Now turn the contig bins into groups for the result of this function.
+            # We store our resulting list of contigs containing all contigs,
+            # in tuples with their sizes. The contigs is a dict from group name to a list
+            # (over contings in the group) of tuples.
+            contigs = {}
+            for bin in contig_bins:
                 groupname = "contig-group-" + str(len(contigs))
                 contigs[groupname] = bin
 

@@ -7,19 +7,26 @@
 data:
 
   # Input table that lists all samples with their units and fastq files.
-  # Paths in the table need to be absolute! No relative paths (e.g., `../data`)!
+  # Path to the file, and paths in the table need to be absolute! No relative paths
+  # (e.g., `../data`), and no paths using shortcuts such as `~`.
+  # See the wiki (https://github.com/lczech/grenepipe/wiki) for the expected format.
   samples: "/path/to/data/samples.tsv"
 
   reference:
 
     # Path to the reference genome in fasta format.
-    # Path needs to be absolute! No relative path (e.g., `../ref`)!
+    # Path needs to be absolute! No relative path (e.g., `../ref`), and no paths using shortcuts
+    # such as `~`.
+    # We expect that each sequence in the file represents a chromsome, contig, or scaffold.
+    # For genomes that are not fully assembled but consist of many small scaffolds,
+    # see the `contig-group-size` option below to help increase computational speed.
     genome: "/path/to/data/genome.fa"
 
     # Path to any database of known variants (in vcf or vcf.gz format),
     # ideally as it is provided by the GATK bundle.
-    # If no such file is available, use an empty list or string instead.
-    # Path needs to be absolute! No relative path (e.g., `../var`)!
+    # Use an empty list or string instead, if there is no reference of known variants or if you
+    # want to call variant without this guided approach.
+    # Path needs to be absolute, as above.
     known-variants: ""
 
 # =================================================================================================
@@ -78,9 +85,14 @@ settings:
   #
   # If set to a size greater than 0, small contigs/scaffolds are combined into bins,
   # so that the sum of lengths (in basepairs) of contigs in each bin is smaller than the given size,
-  # while optimizing for a minimum number of bins (bin packing problem).
-  # Contigs that are already longer than the given size are not affected by this, and will just
-  # become their own bin.
+  # while optimizing for a minimum number of bins (bin packing problem), that is, minimizing number
+  # of compute jobs that need to be executed. Contigs that are already longer than the given size
+  # (e.g., if some chromosomes are already fully assembled) are not affected by this, and will just
+  # get their own bin. We never split contigs further down, meaning that the computational resources
+  # needed for a particular dataset are lower bound by the largest contig. Combining contigs into
+  # bins increases the resources (time and memory) needed to process the bin, but reduces the
+  # overall number of compute tasks/jobs, so this is a tradeoff to be made depending on your data
+  # and available compute resources.
   #
   # Rule of thumb: If you have many small contigs and want to use this feature, you can set the value
   # to roughly the size of an actual chromosome of your species. This should give a total number
@@ -88,12 +100,13 @@ settings:
   # with each bin (that is, each computational job) containing contigs whose length in sum is
   # approximately the size of a chromosome.
   #
-  # Note that this group size is measured in basepairs (or nucleotides), and hence is not the number
-  # of bins to create, but their total size. So, for example, when your genome has a total length of
-  # 100,000,000 bp, scattered into 5,000 scaffolds of (on average) 20,000 bp, you could set
-  # the `contig-group-size` to 100,000,000 / 10 = 10,000,000 (or a bit more) in order to create
-  # 10 groups of contigs (bins) for the computation. Then, each group contains about
-  # 5,000 / 10 = 10,000,000 / 20,000 = 500 contigs (on average).
+  # Note that this contig group size is measured in basepairs (or nucleotides), and hence is not
+  # the number of bins to create, but their total size. So, for example, when your genome has a
+  # total length of 100,000,000 bp, scattered into 5,000 scaffolds of (on average) 20,000 bp, you
+  # could set the `contig-group-size` to 100,000,000 / 10 = 10,000,000 (or a bit more) in order
+  # to create 10 groups of contigs (bins) for the computation, each each representing ~10,000,000 bp
+  # of contigs. Then, each group contains about 5,000 / 10 = 10,000,000 / 20,000 = 500 contigs
+  # (on average).
   contig-group-size: 0
 
   # EXPERIMENTAL.
