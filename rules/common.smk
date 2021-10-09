@@ -3,7 +3,7 @@
 # =================================================================================================
 
 import pandas as pd
-import os, sys
+import os, sys, pwd
 import socket, platform
 import subprocess
 from datetime import datetime
@@ -120,7 +120,8 @@ wildcard_constraints:
 #     Pipeline User Output
 # =================================================================================================
 
-# Get a nicely formatted hostname
+# Get a nicely formatted username and hostname
+username = pwd.getpwuid( os.getuid() )[ 0 ]
 hostname = socket.gethostname()
 hostname = hostname + ("; " + platform.node() if platform.node() != socket.gethostname() else "")
 
@@ -162,6 +163,7 @@ logger.info("===================================================================
 logger.info("    GRENEPIPE")
 logger.info("")
 logger.info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+logger.info("    User:               " + username)
 logger.info("    Host:               " + hostname)
 logger.info("    Conda:              " + str(conda_ver))
 logger.info("    Python:             " + str(sys.version.split(' ')[0]))
@@ -176,6 +178,7 @@ logger.info("===================================================================
 logger.info("")
 
 # No need to have these output vars available in the rest of the snakefiles
+del username
 del hostname
 del conda_ver
 del cmdline
