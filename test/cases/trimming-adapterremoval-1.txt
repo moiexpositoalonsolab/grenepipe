@@ -1,1 +1,2 @@
 trimming-tool: "trimmomatic"	trimming-tool: "adapterremoval"
+input: "samples"	input: "trimmed"

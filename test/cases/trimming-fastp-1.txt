@@ -1,3 +1,4 @@
 trimming-tool: "trimmomatic"	trimming-tool: "fastp"
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
+input: "samples"	input: "trimmed"

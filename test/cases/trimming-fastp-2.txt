@@ -3,3 +3,4 @@ merge-paired-end-reads: false	merge-paired-end-reads: true
 filter-mapped-reads: false	filter-mapped-reads: true
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
+input: "samples"	input: "trimmed"

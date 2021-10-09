@@ -55,7 +55,7 @@ rule trim_reads_pe:
 
 def get_trimmed_reads(wildcards):
     """Get trimmed reads of given sample-unit."""
-    if is_single_end(**wildcards):
+    if is_single_end(wildcards.sample, wildcards.unit):
         # single end sample
         return [ "trimmed/{sample}-{unit}.fastq.gz".format(
             sample=wildcards.sample, unit=wildcards.unit

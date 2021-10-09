@@ -5,3 +5,4 @@ filter-mapped-reads: false	filter-mapped-reads: true
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
 frequency-table: false	frequency-table: true
+input: "samples"	input: "trimmed"
