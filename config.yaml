@@ -468,12 +468,12 @@ params:
 
     # Used only if settings:recalibrate-base-qualities == true
     # Extra parameters for BaseRecalibrator,
-    # see https://gatk.broadinstitute.org/hc/en-us/articles/360036803991-HaplotypeCaller
+    # see https://gatk.broadinstitute.org/hc/en-us/articles/360036898312-BaseRecalibrator
     BaseRecalibrator: ""
 
     # Used only if settings:calling-tool == haplotypecaller
     # Extra parameters for HaplotypeCaller and surrounding steps,
-    # see https://gatk.broadinstitute.org/hc/en-us/articles/360036898312-BaseRecalibrator
+    # see https://gatk.broadinstitute.org/hc/en-us/articles/360036803991-HaplotypeCaller
     HaplotypeCaller: ""
     HaplotypeCaller-threads: 2
     GenotypeGVCFs: ""
