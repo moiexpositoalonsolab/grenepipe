@@ -53,9 +53,10 @@ settings:
   mapping-tool: "bwamem"
 
   # After mapping, and before any subsequent steps (deduplication, variant calling etc),
-  # appy a filtering step using `samtools view`. If set to `true`,
+  # apply a filtering step using `samtools view`. If set to `true`,
   # use 'params: samtools: view' below to set the actual filtering parameters being used.
-  # This step is for example useful when working with ancient DNA, where such filtering is common.
+  # This step is for example useful when working with ancient DNA or pool sequencing data,
+  # where such filtering is common.
   filter-mapped-reads: false
 
   # Select whether to mark and remove duplicates after mapping,
@@ -375,8 +376,8 @@ params:
     # Used only if settings:filter-mapped-reads == true
     # Extra parameters for samtools/view.
     # These are the optional filtering criteria that are used beween mapping and subsequent steps.
-    # We also always add `-b` to this, so that the output is in the binary format that we expect
-    # for our subsequent steps.
+    # We internally always add `-b` to this, so that the output is in the binary format that we
+    # expect for our subsequent steps.
     view: "-q 1"
 
     # Used only if settings:pileups is not empty, that is, if pileup files are generated.
