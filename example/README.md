@@ -50,6 +50,8 @@ To analyze this exemplary dataset, follow these steps:
  * First, copy the `config.yaml` for the main grenepipe directory into this example directory.
  * Then set the file paths in `config.yaml` and `samples.tsv` to fit with where grenepipe is located.
 
+Alternative to these two steps, simply call `prepare.sh`, which does these steps automatically.
+
 Finally, from the main grenepipe directory, run
 
     snakemake --use-conda --cores 4 --directory example/
