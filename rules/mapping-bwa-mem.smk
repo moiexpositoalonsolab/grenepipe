@@ -34,9 +34,9 @@ rule map_reads:
         config["params"]["bwamem"]["threads"]
     conda:
         "../envs/bwa.yaml"
-    resources:
+    # resources:
         # Increase time limit in factors of 2h, if the job fails due to time limit.
-        time = lambda wildcards, input, threads, attempt: int(120 * int(attempt))
+        # time = lambda wildcards, input, threads, attempt: int(120 * int(attempt))
 
     # We need a full shadow directory, as `samtools sort` creates a bunch of tmp files that mess
     # up any later attempts, as `samtools sort` terminates if these files are already present.
