@@ -5,3 +5,5 @@ channels:
   - defaults
 dependencies:
   - fastqc ==0.11.9
+  - python ==3.9.12
+  - numpy ==1.21.0
