@@ -1,9 +1,11 @@
-# Used by rule plot_stats in stats.smk
 channels:
   - bioconda
   - conda-forge
 dependencies:
-  - python =3.6
+  # Python
+  - python ==3.7.10
+  - pandas ==1.3.1
+  - numpy ==1.21.0
+  # Tools
   - matplotlib =2.2
-  - pandas =0.23
   - seaborn =0.8

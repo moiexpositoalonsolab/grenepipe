@@ -1,6 +1,4 @@
-# Used by rules in trimming-adapterremoval.smk
 channels:
   - bioconda
-  - conda-forge
 dependencies:
   - adapterremoval ==2.3.1

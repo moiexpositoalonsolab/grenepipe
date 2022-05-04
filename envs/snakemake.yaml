@@ -1,9 +1,0 @@
-# This is the enviroment configuration recommended to use when installing snakemake via conda.
-# It is not used from without our snakemake rules, but rather as a setup helper beforehand.
-name: snakemake
-channels:
-  - bioconda
-  - conda-forge
-dependencies:
-  - python ==3.6.7
-  - snakemake ==5.19.3

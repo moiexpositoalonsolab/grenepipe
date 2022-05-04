@@ -1,7 +1,5 @@
-# Used by rule compress_vcf in damage.smk
 channels:
   - bioconda
-  - conda-forge
 dependencies:
   - mapdamage2=2.2.1=pyr40_0
   # - mapdamage2=2.2.1

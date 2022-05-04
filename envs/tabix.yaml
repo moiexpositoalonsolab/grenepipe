@@ -1,6 +1,4 @@
-# Used by rule compress_vcf in calling-freebayes.smk
 channels:
   - bioconda
-  - conda-forge
 dependencies:
   - htslib ==1.10

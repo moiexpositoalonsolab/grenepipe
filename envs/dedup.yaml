@@ -1,7 +1,4 @@
-# Used by rules in duplicates-dedup.smk
 channels:
   - bioconda
-  - conda-forge
-  - defaults
 dependencies:
   - dedup ==0.12.8-0

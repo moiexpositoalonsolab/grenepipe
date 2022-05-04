@@ -1,12 +1,10 @@
 channels:
   - bioconda
-  - conda-forge
-  - defaults
 dependencies:
-  - gatk4 ==4.1.4.1
-  - snakemake-wrapper-utils ==0.1.3
-  # Yet again, we need to specify a set of python/numpy/pandas versions
-  # that works with snakemake on our cluster...
+  # Python
   - python ==3.7.10
-  - numpy ==1.21.0
   - pandas ==1.3.1
+  - numpy ==1.21.0
+  # Tools
+  - gatk4 ==4.1.4.1
+  - snakemake-wrapper-utils >=0.1.3

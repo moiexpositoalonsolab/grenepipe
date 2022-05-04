@@ -1,4 +1,3 @@
-# Used by rules in qc.smk
 channels:
   - bioconda
 dependencies:

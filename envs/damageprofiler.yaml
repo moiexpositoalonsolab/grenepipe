@@ -1,6 +1,4 @@
-# Used by rule compress_vcf in damage.smk
 channels:
   - bioconda
-  - conda-forge
 dependencies:
   - damageprofiler ==1.1

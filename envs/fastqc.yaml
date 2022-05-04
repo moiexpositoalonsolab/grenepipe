@@ -1,9 +1,9 @@
-# Used by rule fastqc in qc.smk
 channels:
   - bioconda
-  - conda-forge
-  - defaults
 dependencies:
-  - fastqc ==0.11.9
-  - python ==3.9.12
+  # Python
+  - python ==3.7.10
+  - pandas ==1.3.1
   - numpy ==1.21.0
+  # Tools
+  - fastqc ==0.11.9

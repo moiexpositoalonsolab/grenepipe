@@ -1,4 +1,3 @@
-# Used by rule vcf_to_tsv in stats.smk
 channels:
   - bioconda
   - conda-forge
