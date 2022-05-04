@@ -326,7 +326,7 @@ params:
     extra: ""
 
     # Extra parameters for bwa sam(se/pe), which turns the bwa aln (*.sai) files into bam files.
-    # We internally already set `-r` to use read group ("@RG") tags "ID" and "SM".
+    # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM".
     # Note that we use samse or sampe depending on which type each sample is (single-end or
     # paired-end).
     extra-sam: ""
