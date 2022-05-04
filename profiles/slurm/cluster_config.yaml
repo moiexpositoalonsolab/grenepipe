@@ -14,8 +14,8 @@ trim_reads_pe:
   cpus-per-task: 4
 
 map_reads:
-  cpus-per-task: 12
+  cpus-per-task: 4
 
 call_variants:
   time: 1-0
-  cpus-per-task: 8
+  cpus-per-task: 4
