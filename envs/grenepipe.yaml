@@ -1,7 +1,7 @@
 name: grenepipe
 channels:
   - bioconda
-  # - conda-forge
+  - conda-forge
   # - defaults
   # - anaconda
   # - nodefaults

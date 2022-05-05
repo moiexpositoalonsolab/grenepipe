@@ -5,8 +5,8 @@
 # for full comfort, see rules/prep.smk
 
 channels:
-  - conda-forge
   - bioconda
+  - conda-forge
 dependencies:
   # Python
   - python ==3.7.10
