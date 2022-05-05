@@ -1,5 +1,8 @@
 channels:
   - bioconda
+  # Somehow, vcflib needs tabixpp, which needs bc, which is not on bioconda, it seems...
+  - conda-forge
+  - defaults
 dependencies:
   - vcflib =1.0.2
   - samtools ==1.12
