@@ -1,4 +1,5 @@
 channels:
   - bioconda
+  - conda-forge
 dependencies:
   - dedup ==0.12.8-0
