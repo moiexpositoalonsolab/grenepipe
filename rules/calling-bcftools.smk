@@ -48,7 +48,8 @@ rule call_variants:
             ) else []
         )
     output:
-        vcf=protected("called/{contig}.vcf.gz")
+        vcf="called/{contig}.vcf.gz"
+        # vcf=protected("called/{contig}.vcf.gz")
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
         mpileup=get_mpileup_params,

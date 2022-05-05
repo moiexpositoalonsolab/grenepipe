@@ -63,7 +63,8 @@ rule call_variants:
             ) else []
         )
     output:
-        gvcf=protected("called/{sample}.{contig}.g.vcf.gz")
+        gvcf="called/{sample}.{contig}.g.vcf.gz"
+        # gvcf=protected("called/{sample}.{contig}.g.vcf.gz")
     log:
         "logs/gatk/haplotypecaller/{sample}.{contig}.log"
     benchmark:

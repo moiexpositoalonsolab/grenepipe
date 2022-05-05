@@ -76,7 +76,8 @@ rule compress_vcf:
     input:
         "called/{contig}.vcf"
     output:
-        protected("called/{contig}.vcf.gz")
+        "called/{contig}.vcf.gz"
+        # protected("called/{contig}.vcf.gz")
     log:
         "logs/compress_vcf/{contig}.log"
     threads:

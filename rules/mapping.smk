@@ -129,7 +129,8 @@ rule recalibrate_base_qualities:
         ),
         known=config["data"]["reference"]["known-variants"]
     output:
-        bam=protected("recal/{sample}-{unit}.bam")
+        bam="recal/{sample}-{unit}.bam"
+        # bam=protected("recal/{sample}-{unit}.bam")
     params:
         extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"]
     log:

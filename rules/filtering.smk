@@ -89,7 +89,8 @@ rule merge_calls:
                    # Keeping vqsr here for reference. Not used at the moment.
                    # filtertype="recalibrated" if config["settings"]["vqsr"] else "hardfiltered")
     output:
-        vcf=protected("filtered/all.vcf.gz")
+        vcf="filtered/all.vcf.gz"
+        # vcf=protected("filtered/all.vcf.gz")
     log:
         "logs/picard/merge-filtered.log"
     benchmark:
