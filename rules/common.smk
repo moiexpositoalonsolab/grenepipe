@@ -90,13 +90,20 @@ config["global"]["unit-names"] = list(set(
     config["global"]["samples"].index.get_level_values("unit")
 ))
 
-# Helper to check that a string contains no invalid chars for file names
+# Helper to check that a string contains no invalid chars for file names.
+# This is just the file, not its path! Slashes are considered invalid by this function.
 def valid_filename(fn):
     # Only accept alnum, underscore, and dash.
     return fn.replace('_', '').replace('-', '').isalnum() and fn.isascii()
-
     # Bit more loose: allow all except Windows forbidden chars.
     # return not( True in [c in fn for c in "<>:\"/\\|?*"])
+
+# Helper to check if a file path contains weird characters.
+# We just want to warn about this for input fastq files, but still try to continue.
+def valid_filepath(fn):
+    # Only accept alnum, underscore, and dash, and slashes.
+    clean = fn.replace('_', '').replace('-', '').replace('/', '').replace('\\', '').replace('.', '')
+    return clean.isalnum() and clean.isascii()
 
 # List that contains tuples for all samples with their units.
 # In other words, a list of tuples of the sample and unit column of the sample table,
@@ -118,6 +125,24 @@ for index, row in config["global"]["samples"].iterrows():
             "which cannot be used as sample/unit names for naming output files: " +
             str(row["sample"]) + " " + str(row["unit"]) +
             " - for maximum robustness, we only allow alpha-numerical, dash, and underscore."
+        )
+
+    # Do a check of the fastq file names.
+    if not os.path.isfile(row["fq1"]) or (
+        not pd.isnull(row["fq2"]) and not os.path.isfile(row["fq2"])
+    ):
+        raise Exception(
+            "Input fastq files listed in the input files table " + config["data"]["samples"] +
+            " not found: " + str(row["fq1"]) + "; " + str(row["fq2"])
+        )
+    if not valid_filepath(row["fq1"]) or (
+        not pd.isnull(row["fq2"]) and not valid_filepath(row["fq2"])
+    ):
+        logger.warning(
+            "Input fastq files listed in the input files table " + config["data"]["samples"] +
+            " contain problematic characters: " + str(row["fq1"]) + "; " + str(row["fq2"]) +
+            ". We generally advise to only use alpha-numeric characters, dashes, and underscores. " +
+            "We will try to continue running with these files, but it might lead to errors."
         )
 
 # Helper function to get a list of all units of a given sample name.
