@@ -178,7 +178,13 @@ else:
 
 # Some helpful messages
 logger.info("=====================================================================================")
-logger.info("    GRENEPIPE")
+# logger.info("    GRENEPIPE")
+logger.info("       _____         _______ __   __   _______ ______  ___   ______   _______ ")
+logger.info("      /  ___\ ____  /  ____//  \ /  / /  ____/|   _  \ \  \ |   _  \ /  ____/ ")
+logger.info("     /  /____|  _ \|  |___  |   \|  ||  |___  |  |_]  ||  | |  |_]  |  |___   ")
+logger.info("    |  /|__  | |_) |   ___| |       ||   ___| |   ___/ |  | |   ___/|   ___|  ")
+logger.info("    \  \__|  |  _ <|  |____ |  |\   ||  |____ |  |     |  | |  |    |  |____  ")
+logger.info("     \______/|_| \_\_______\/__| \__|\_______\|__|     \___\|__|    \_______\ ")
 logger.info("")
 logger.info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 logger.info("    User:               " + username)
