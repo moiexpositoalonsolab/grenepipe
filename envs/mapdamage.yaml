@@ -1,6 +1,13 @@
 channels:
   - bioconda
   - conda-forge
+  - zegami
 dependencies:
   - mapdamage2=2.2.1=pyr40_0
+  # Somehow, not all dependencies of mapdamage2 are properly resolved on some machines...
+  # We got
+  #   Error: Could not import required module 'pysam':
+  #     - libcrypto.so.1.0.0: cannot open shared object file: No such file or directory
+  # and solve it here as described in https://unix.stackexchange.com/a/283609
+  - libssl-libcryptso6
   # - mapdamage2=2.2.1
