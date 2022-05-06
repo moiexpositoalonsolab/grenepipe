@@ -10,6 +10,7 @@ test/out-*
 test/prep.log
 test/reference
 test/samples.tsv
+test/samples-pe.tsv
 
 # ==================================================================================================
 #      Default Python Ignores

@@ -5,6 +5,7 @@ Snakemake pipeline for variant calling from raw sample sequences, with lots of b
 **Advantages**:
 
   - One command to run the whole pipeline!
+  - Many tools to choose from for each step
   - Simple configuration via a single file
   - Automatic download of tool dependencies
   - Resuming from failing jobs
@@ -24,6 +25,7 @@ Pipeline Overview
     - [AdapterRemoval](https://adapterremoval.readthedocs.io/en/latest/)
     - [Cutadapt](https://cutadapt.readthedocs.io/en/stable/)
     - [fastp](https://github.com/OpenGene/fastp)
+    - [SeqPrep](https://github.com/jstjohn/SeqPrep)
     - [skewer](https://github.com/relipmoc/skewer)
     - [trimmomatic](http://www.usadellab.org/cms/index.php?page=trimmomatic)
   - Read mapping, optionally with duplication removal and quality score recalibration

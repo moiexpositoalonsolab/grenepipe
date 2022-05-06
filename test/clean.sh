@@ -8,3 +8,4 @@ cd `dirname ${0}`/..
 rm -rf ./test/out-*
 rm -rf ./test/reference
 rm -f  ./test/samples.tsv
+rm -f  ./test/samples-pe.tsv

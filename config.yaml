@@ -40,11 +40,12 @@ settings:
   # ----------------------------------------------------------------------
 
   # Select the tool used for read trimming.
-  # Valid values: "adapterremoval", "cutadapt", "fastp", "skewer", "trimmomatic"
+  # Valid values: "adapterremoval", "cutadapt", "fastp", "seqprep", "skewer", "trimmomatic".
+  # Note that seqprep can only handle paired end reads.
   trimming-tool: "trimmomatic"
 
   # Select whether to merge paired end reads into a single read while trimming.
-  # Only works with adapterremoval and fastp;
+  # Only works with adapterremoval, fastp, and seqprep;
   # cannot be used with cutadapt, skewer, or trimmomatic, as those do not support merging reads.
   merge-paired-end-reads: false
 
@@ -261,6 +262,18 @@ params:
 
     # Extra parameters for paired end reads.
     pe: ""
+
+  # ----------------------------------------------------------------------
+  #     seqprep
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:trimming-tool == seqprep
+  # See seqprep manual: https://github.com/jstjohn/SeqPrep
+  seqprep:
+
+    # Extra parameters to use, e.g., adapter sequences.
+    # We internally already set the inputs (-f, -r), and outputs (-1, -2, -3, -4, -s).
+    extra: ""
 
   # ----------------------------------------------------------------------
   #     skewer

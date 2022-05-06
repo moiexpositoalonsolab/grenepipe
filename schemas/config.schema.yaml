@@ -29,7 +29,7 @@ properties:
     properties:
       trimming-tool:
         type: string
-        enum: ["adapterremoval", "cutadapt", "fastp", "trimmomatic", "skewer"]
+        enum: ["adapterremoval", "cutadapt", "fastp", "trimmomatic", "seqprep", "skewer"]
       merge-paired-end-reads:
         type: boolean
       mapping-tool:
@@ -111,6 +111,11 @@ properties:
           se:
             type: string
           pe:
+            type: string
+      seqprep:
+        type: object
+        properties:
+          extra:
             type: string
       skewer:
         type: object

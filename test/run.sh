@@ -33,6 +33,10 @@ fi
 # We need to use a different sed separator here that cannot occur in paths, to avoid conflict.
 cat ./test/samples_template.tsv | sed "s?#BASEPATH#?${BASEPATH}?g" > ./test/samples.tsv
 
+# For seqprep, we also want a samples table with only paired-end reads.
+# So let's make a copy and remove the line that contains the single-end file.
+cat ./test/samples.tsv | egrep -v "^S3" > ./test/samples-pe.tsv
+
 # For the config, we need a bit of a special setup, as we need to replace some paths in
 # different ways. We do this a bit more complicated setup here, in order to be able to work
 # with the original config file, so that we do not need to keep track of copies and changes.
@@ -190,8 +194,14 @@ for DICT in ${DICTS} ; do
             # Test that the FROM part exists, to make sure that we are doing the right thing
             # if we replace config lines later on.
             if ! grep -q "${FROM}" ./test/out-${TARGET}/config.yaml; then
-                printf "${COLOR_RED}Test setting does not exist: ${FROM}${COLOR_END}\n"
-                exit 1
+                # For seqprep, we need special treatment: It only wants paired end sequences,
+                # so we need to provide it with a different sample table. The samples table does
+                # have a different path every time though, so that the grep here will fail.
+                # Fetch this, and do not treat that particular one as an error.
+                if [[ "${FROM}" != \samples* ]]; then
+                    printf "${COLOR_RED}Test setting does not exist: ${FROM}${COLOR_END}\n"
+                    exit 1
+                fi
             fi
 
             # Replace the content in the config file. We use perl to be able to process

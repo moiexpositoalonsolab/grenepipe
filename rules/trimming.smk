@@ -18,6 +18,11 @@ elif config["settings"]["trimming-tool"] == "fastp":
     # Use `fastp`
     include: "trimming-fastp.smk"
 
+elif config["settings"]["trimming-tool"] == "seqprep":
+
+    # Use `seqprep`
+    include: "trimming-seqprep.smk"
+
 elif config["settings"]["trimming-tool"] == "skewer":
 
     # Use `skewer`

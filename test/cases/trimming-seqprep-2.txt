@@ -1,0 +1,5 @@
+samples: "(.*)/samples.tsv"	samples: "\\1/samples-pe.tsv"
+trimming-tool: "trimmomatic"	trimming-tool: "seqprep"
+merge-paired-end-reads: false	merge-paired-end-reads: true
+mapdamage: false	mapdamage: true
+damageprofiler: false	damageprofiler: true

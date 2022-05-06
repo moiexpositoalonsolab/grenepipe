@@ -1,0 +1,7 @@
+channels:
+  - bioconda
+  - conda-forge
+  # - tgroth
+dependencies:
+  - seqprep ==1.3.2
+  # - seqprep2 ==93fccac84a9f5a37ebfdc13be876a2769dba9792
