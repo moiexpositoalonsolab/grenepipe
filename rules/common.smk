@@ -90,6 +90,14 @@ config["global"]["unit-names"] = list(set(
     config["global"]["samples"].index.get_level_values("unit")
 ))
 
+# Helper to check that a string contains no invalid chars for file names
+def valid_filename(fn):
+    # Only accept alnum, underscore, and dash.
+    return fn.replace('_', '').replace('-', '').isalnum() and fn.isascii()
+
+    # Bit more loose: allow all except Windows forbidden chars.
+    # return not( True in [c in fn for c in "<>:\"/\\|?*"])
+
 # List that contains tuples for all samples with their units.
 # In other words, a list of tuples of the sample and unit column of the sample table,
 # in the same order.
@@ -101,6 +109,16 @@ for index, row in config["global"]["samples"].iterrows():
             str(row["sample"]) + " " + str(row["unit"])
         )
     config["global"]["sample-units"].append(( row["sample"], row["unit"] ))
+
+    # Do a check that the sample and unit names are valid file names.
+    # They are used for file names, and would cause weird errors if they contain bad chars.
+    if not valid_filename( row["sample"] ) or not valid_filename( row["unit"] ):
+        raise Exception(
+            "Invalid sample name or unit name found in samples table that contains characters " +
+            "which cannot be used as sample/unit names for naming output files: " +
+            str(row["sample"]) + " " + str(row["unit"]) +
+            " - for maximum robustness, we only allow alpha-numerical, dash, and underscore."
+        )
 
 # Helper function to get a list of all units of a given sample name.
 def get_sample_units( sample ):
