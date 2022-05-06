@@ -83,6 +83,8 @@ rule trimmomatic_multiqc_log:
     shell:
         "cp logs/trimmomatic/{wildcards.sample}-{wildcards.unit}.log {output}"
 
+localrules: trimmomatic_multiqc_log
+
 def get_trimming_report(sample, unit):
     """Get the report needed for MultiQC."""
     if is_single_end(sample, unit):
