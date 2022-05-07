@@ -75,12 +75,15 @@ properties:
       - duplicates-tool
       - recalibrate-base-qualities
       - calling-tool
+      - contig-group-size
+      - restrict-regions
       - snpeff
       - vep
       - mapdamage
       - damageprofiler
       - pileups
       - frequency-table
+      - frequency-table-fields
 
   params:
     type: object
@@ -285,12 +288,7 @@ properties:
             type: string
           download-dir:
             type: string
-          extra:
-            type: string
-      snpeff:
-        type: object
-        properties:
-          species:
+          custom-db-dir:
             type: string
           extra:
             type: string
@@ -313,6 +311,7 @@ properties:
       - adapterremoval
       - cutadapt
       - fastp
+      - seqprep
       - trimmomatic
       - skewer
       - bowtie2

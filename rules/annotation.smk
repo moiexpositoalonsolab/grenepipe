@@ -2,9 +2,10 @@
 #     SnpEff Setup
 # =================================================================================================
 
-# Get the path where we store the database, so that we do not have to download it all the time.
+# Get the path where we download the database to, so that we do not have to download it all the time.
 # If not provided by the user, we use the directory where the reference genome is.
-def get_snpeff_db_path():
+# Not used with a custom db, in which case we just use the provided dir directly.
+def get_snpeff_db_download_path():
     if config["params"]["snpeff"]["download-dir"]:
         # Return path from config, and make sure that it has trailing slash
         return os.path.join( config["params"]["snpeff"]["download-dir"], '' )
@@ -19,7 +20,7 @@ def get_snpeff_db_path():
 rule snpeff_db:
     output:
         # wildcard {reference} may be anything listed in the first column of `snpeff databases`
-        directory(get_snpeff_db_path() + "{reference}")
+        directory(get_snpeff_db_download_path() + "{reference}")
     log:
         "logs/snpeff-download-{reference}.log"
     group:
@@ -37,6 +38,14 @@ rule snpeff_db:
 # Rule is not submitted as a job to the cluster.
 localrules: snpeff_db
 
+# Get the path to the snpeff database. Usually, this is the path to a database from the available
+# ones of snpEff. If however a custom db path is given, we return this instead.
+def get_snpeff_db_path():
+    if config["params"]["snpeff"]["custom-db-dir"]:
+        return config["params"]["snpeff"]["custom-db-dir"]
+    else:
+        return get_snpeff_db_download_path() + config["params"]["snpeff"]["name"]
+
 # =================================================================================================
 #     SnpEff
 # =================================================================================================
@@ -47,7 +56,7 @@ rule snpeff:
         calls="filtered/all.vcf.gz",
 
         # path to reference db downloaded with the snpeff download wrapper above
-        db=get_snpeff_db_path() + config["params"]["snpeff"]["name"]
+        db=get_snpeff_db_path()
     output:
         # annotated calls (vcf, bcf, or vcf.gz)
         calls=report(

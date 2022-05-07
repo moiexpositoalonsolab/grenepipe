@@ -538,14 +538,22 @@ params:
   snpeff:
 
     # Name of the reference genome. Only used if settings:snpeff is set to `true`.
-    # This has to be a valid SnpEff database genome name.
+    # This has to be a valid SnpEff database genome name, see here for how to obain a list:
+    # https://pcingola.github.io/SnpEff/se_buildingdb/
+    # Alternatively, when the below `custom-db-dir` is specified, this is ignored.
     name: "Arabidopsis_thaliana"
 
     # Set the directory to download the SnpEff database to.
     # In many cases, this helps to avoid re-downloaded the database for every run of grenepipe.
     # Hence we recommend to use absolute paths!
     # If left blank, we use the same directory where the reference genome is located.
+    # This is ignored if a `custom-db-dir` is provided below.
     download-dir: ""
+
+    # Instead of using one of the avialable databases, use a custom one.
+    # If set, the two options above, `name` and `download-dir`, are ignored, and instead,
+    # this path is used, which is expected to contain a valid snpEff database.
+    custom-db-dir: ""
 
     # Additional parameters for snpeff, see https://pcingola.github.io/SnpEff/se_commandline/
     extra: "-Xmx4g"
