@@ -6,8 +6,10 @@
 # If not provided by the user, we use the directory where the reference genome is.
 def get_snpeff_db_path():
     if config["params"]["snpeff"]["download-dir"]:
-        return os.path.dirname( config["params"]["snpeff"]["download-dir"] ) + "/"
+        # Return path from config, and make sure that it has trailing slash
+        return os.path.join( config["params"]["snpeff"]["download-dir"], '' )
     else:
+        # Use the ref genome path, with trailing slash
         return os.path.join(
             os.path.dirname( config["data"]["reference"]["genome"] ), "snpeff-db"
         ) + "/"
