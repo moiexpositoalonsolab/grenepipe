@@ -2,6 +2,11 @@
 #     Read Mapping
 # =================================================================================================
 
+def get_bwa_mem_extra( wildcards ):
+    rg_tags = "\\t".join( get_read_group_tags(wildcards) )
+    extra = "-R '@RG\\t" + rg_tags + "' " + config["params"]["bwamem"]["extra"]
+    return extra
+
 rule map_reads:
     input:
         reads=get_trimmed_reads,
@@ -14,11 +19,7 @@ rule map_reads:
         "mapped/{sample}-{unit}.sorted.bam"
     params:
         index=config["data"]["reference"]["genome"],
-
-        # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
-        extra=r"-R '@RG\tID:{sample}\tSM:{sample}' " + config["params"]["bwamem"]["extra"],
-        # TODO Add LD field as well for the unit?! http://www.htslib.org/workflow/
-        # If so, same for bwa aln and bwa mem2 rules as well?
+        extra=get_bwa_mem_extra,
 
         # Sort as we need it.
         sort="samtools",

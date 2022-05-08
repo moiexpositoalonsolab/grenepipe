@@ -13,6 +13,7 @@ properties:
   platform:
     type: string
     # enum: ["CAPILLARY", "LS454", "ILLUMINA", "SOLID", "HELICOS", "IONTORRENT", "ONT", "PACBIO"]
+    description: type of sequencing platform used in the instrument
   fq1:
     type: string
     description: path to FASTQ file
@@ -23,5 +24,6 @@ properties:
 required:
   - sample
   - unit
-  - platform
+  # - platform
   - fq1
+  # - fq2

@@ -116,6 +116,9 @@ def write_table(mates, outfile):
     samplenames = {}
     mate_cnt = 0
     with open( outfile, 'w' ) as out:
+        # Write the table header. We currently also write the `platform` column, but as do not know
+        # what the platform is, we just provide a dummy '-' here. Users can then edit this as needed.
+        # We could make this an argument of the script, but let's keep it simple for now.
         out.write("sample\tunit\tplatform\tfq1\tfq2\n")
         for tup in mates:
 

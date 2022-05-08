@@ -1,6 +1,36 @@
 from itertools import chain
 
 # =================================================================================================
+#     Read Group
+# =================================================================================================
+
+# We here get the read group tags list that is used per sample for the reads in the bam file.
+# This differs a bit depending on whether the `platform` field is properly set in the samples table.
+# We do not construct a full string here, as mapping tools take this information in different ways.
+def get_read_group_tags( wildcards ):
+    # We need the @RG read group tags, including `ID` and `SM`, as downstream tools use these.
+    # Potentially, we also set the PL platform. Also add the config extra settings.
+    res = [ "ID:" + wildcards.sample, "SM:" + wildcards.sample ]
+    # TODO Add LD field as well for the unit?! http://www.htslib.org/workflow/
+
+    # Add platform information, if available, giving precedence to the table over the config.
+    pl = ""
+    if config["params"]["gatk"]["platform"]:
+        pl = config["params"]["gatk"]["platform"]
+    if 'platform' in config["global"]["samples"]:
+        s = config["global"]["samples"].loc[(wildcards.sample, wildcards.unit), ["platform"]].dropna()
+        pl = s.platform
+    if pl:
+        res.append( "PL:" + pl )
+    return res
+
+    # For reference: https://github.com/snakemake-workflows/dna-seq-gatk-variant-calling/blob/cffa77a9634801152971448bd41d0687cf765723/workflow/rules/common.smk#L60
+    # return r"-R '@RG\tID:{sample}\tSM:{sample}\tPL:{platform}'".format(
+    #     sample=wildcards.sample,
+    #     platform=units.loc[(wildcards.sample, wildcards.unit), "platform"],
+    # )
+
+# =================================================================================================
 #     Read Mapping
 # =================================================================================================
 
@@ -85,6 +115,43 @@ else:
 #     Base Quality Score Recalibration
 # =================================================================================================
 
+# If recal base quals is set, we need a few extra checks to make sure that this works.
+# This gives nicer user output in cases of these issues than relying on the tool-internal errors.
+# The platform information is provided for GATK BaseRecalibrator via the bam RG tags,
+# meaning that the mapping tool needs to know them and add them to the bam files.
+if config["settings"]["recalibrate-base-qualities"]:
+    if not config["data"]["reference"].get("known-variants"):
+        raise Exception(
+            "Setting recalibrate-base-qualities can only be activated if a known-variants "
+            "file is also provided, as GATK BaseRecalibrator needs this."
+        )
+    if 'platform' not in config["global"]["samples"] and not config["params"]["gatk"]["platform"]:
+        raise Exception(
+            "Setting recalibrate-base-qualities can only be activated if either a `platform` column "
+            "is provided in the input samples table (" + config["global"]["samples"] +
+            ") or if a platform for all samples is given in the `params: gatk: platform` setting "
+            "in the config file."
+        )
+    if 'platform' in config["global"]["samples"] and config["params"]["gatk"]["platform"]:
+        logger.warning(
+            "The samples table contains a column `platform` for each sample, "
+            "but the `params: gatk: platform` setting is also provided. "
+            "We will use the table, as this is more specific."
+        )
+    if config["params"]["gatk"]["platform"]:
+        platforms = set( config["params"]["gatk"]["platform"] )
+    if 'platform' in config["global"]["samples"]:
+        platforms = set( config["global"]["samples"]["platform"] )
+    for p in ["CAPILLARY", "LS454", "ILLUMINA", "SOLID", "HELICOS", "IONTORRENT", "ONT", "PACBIO"]:
+        if p in platforms:
+            platforms.remove(p)
+    if platforms:
+        logger.warning(
+            "Provided sequencing platforms (in the samples table `platform` column, or in the "
+            "`params: gatk: platform` setting) contains values that might not be recognized by "
+            "GATK BaseRecalibrator, and hence might lead to errors: " + str(platforms)
+        )
+
 def get_recal_input(bai=False):
     # case 1: no duplicate removal
     f = "mapped/{sample}-{unit}.sorted.bam"
@@ -139,6 +206,8 @@ rule recalibrate_base_qualities:
         "benchmarks/gatk/bqsr/{sample}-{unit}.bench.log"
     group:
         "mapping_extra"
+    conda:
+        "../envs/gatk.yaml"
     wrapper:
         "0.51.3/bio/gatk/baserecalibrator"
 
@@ -179,11 +248,6 @@ def get_mapping_result(bai=False):
 
     # case 4: recalibrate base qualities
     if config["settings"]["recalibrate-base-qualities"]:
-        if not config["data"]["reference"].get("known-variants"):
-            raise Exception(
-                "Setting recalibrate-base-qualities can only be activated if a known-variants "
-                "file is also provided. As far as we are aware, GATK BaseRecalibrator needs this."
-            )
         f = "recal/{sample}-{unit}.bam"
 
     # Additionally, this function is run for getting bai files as well

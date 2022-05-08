@@ -35,6 +35,14 @@ localrules: bowtie2_index
 #     Read Mapping
 # =================================================================================================
 
+def get_bowtie2_extra( wildcards ):
+    extra = r"--rg-id \"" + wildcards.sample + r"\""
+    rg_tags = get_read_group_tags(wildcards)
+    for tag in rg_tags:
+        extra += r" --rg \"" + tag + r"\""
+    extra += " " + config["params"]["bowtie2"]["extra"]
+    return extra
+
 rule map_reads:
     input:
         sample=get_trimmed_reads,
@@ -47,10 +55,7 @@ rule map_reads:
     params:
         # Prefix of reference genome index (built with bowtie2-build above)
         index=config["data"]["reference"]["genome"],
-
-        # Optional and extra parameters.
-        # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
-        extra="--rg-id {sample} --rg SM:{sample} " + config["params"]["bowtie2"]["extra"]
+        extra=get_bowtie2_extra
     threads:
         # Use at least two threads
         config["params"]["bowtie2"]["threads"]

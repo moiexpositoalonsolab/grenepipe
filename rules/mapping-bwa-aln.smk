@@ -89,6 +89,14 @@ def get_sai(wildcards):
             sample=wildcards.sample, unit=wildcards.unit, pair=[1, 2]
         )
 
+def get_bwa_aln_extra( wildcards ):
+    # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
+    # Contrary to bwa mem, this is here specified with lowercase -r, instead of uppercase -R.
+    # As if bioinformatics tools were ever consistent...
+    rg_tags = "\\t".join( get_read_group_tags(wildcards) )
+    extra = "-r '@RG\\t" + rg_tags + "' " + config["params"]["bwaaln"]["extra-sam"]
+    return extra
+
 rule bwa_sai_to_bam:
     input:
         fastq=get_trimmed_reads,
@@ -102,11 +110,7 @@ rule bwa_sai_to_bam:
         pipe( "mapped/{sample}-{unit}.sorted-unclean.bam" )
     params:
         index=config["data"]["reference"]["genome"],
-
-        # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
-        # Contrary to bwa mem, this is here specified with lowercase -r, instead of uppercase -R.
-        # As if bioinformatics tools were ever consistent...
-        extra=r"-r '@RG\tID:{sample}\tSM:{sample}' " + config["params"]["bwaaln"]["extra-sam"],
+        extra=get_bwa_aln_extra,
 
         # Sort as we need it.
         sort="samtools",

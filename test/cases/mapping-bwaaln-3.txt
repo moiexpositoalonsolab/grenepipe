@@ -1,0 +1,5 @@
+known-variants: ""	known-variants: "#BASEPATH#/test/reference/known-variants.vcf.gz"
+mapping-tool: "bwamem"	mapping-tool: "bwaaln"
+recalibrate-base-qualities: false	recalibrate-base-qualities: true
+mapdamage: false	mapdamage: true
+damageprofiler: false	damageprofiler: true

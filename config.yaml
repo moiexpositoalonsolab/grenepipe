@@ -68,7 +68,15 @@ settings:
   # Valid values: "picard", "dedup"
   duplicates-tool: "picard"
 
-  # Select whether to recalibrate base frequencies after mapping, using gatk/baserecalibrator
+  # Select whether to recalibrate base frequencies after mapping, using gatk/baserecalibrator.
+  # If set to true, "data: known-variants" has to be provided as well.
+  # Furthermore, either the samples table (as provided via "data: samples") needs to contain
+  # a `platform` column containing the sequencing platform/instrument for each sample,
+  # or the setting "params: gatk: platform" has to be set below to one of the valid platform values,
+  # which is then used for all samples.
+  # As far as we are aware, valid platform values (in either the table or the setting) are
+  # "CAPILLARY", "LS454", "ILLUMINA", "SOLID", "HELICOS", "IONTORRENT", "ONT", "PACBIO".
+  # Others might work as well, depending on GATK BaseRecalibrator.
   recalibrate-base-qualities: false
 
   # Select the tool used for SNP calling.
@@ -323,7 +331,8 @@ params:
   bowtie2:
     threads: 12
 
-    # Extra parameters. We internally already set `--rg` and `--rg-id`
+    # Extra parameters. We internally already set `--rg` and `--rg-id`, using read group ("@RG")
+    # tags "ID" and "SM", and potentially "PL".
     extra: ""
 
   # ----------------------------------------------------------------------
@@ -335,13 +344,13 @@ params:
   bwaaln:
     threads: 4
 
-    # Extra parameters for bwa aln.
+    # Extra parameters for bwa aln, which maps the reads and produces intermediate *.sai files.
     extra: ""
 
     # Extra parameters for bwa sam(se/pe), which turns the bwa aln (*.sai) files into bam files.
-    # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM".
-    # Note that we use samse or sampe depending on which type each sample is (single-end or
-    # paired-end).
+    # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM",
+    # and potentially "PL". Note that we use samse or sampe depending on which type each sample
+    # is (single-end or paired-end).
     extra-sam: ""
 
     # Extra parameters for samtools, which we use after bwa aln for sorting its output.
@@ -357,7 +366,8 @@ params:
     threads: 12
 
     # Extra parameters for bwa mem.
-    # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM".
+    # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM",
+    # and potentially "PL".
     extra: ""
 
     # Extra parameters for samtools, which we use after bwa mem for sorting its output.
@@ -373,7 +383,8 @@ params:
     threads: 12
 
     # Extra parameters for bwa mem.
-    # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM".
+    # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM",
+    # and potentially "PL".
     extra: ""
 
     # Extra parameters for samtools, which we use after bwa mem for sorting its output.
@@ -484,6 +495,15 @@ params:
     # Extra parameters for BaseRecalibrator,
     # see https://gatk.broadinstitute.org/hc/en-us/articles/360036898312-BaseRecalibrator
     BaseRecalibrator: ""
+
+    # Futhermore, the BaseRecalibrator needs to know the sequencing platform, see
+    # https://gatk.broadinstitute.org/hc/en-us/articles/360035890671-Read-groups
+    # This can either be provided per-sample as a column in the samples table, or, if it is the
+    # same for all samples, provided here for all of them.
+    # As far as we are aware, valid platform values are
+    # "CAPILLARY", "LS454", "ILLUMINA", "SOLID", "HELICOS", "IONTORRENT", "ONT", "PACBIO"
+    # Others might work as well, depending on GATK BaseRecalibrator.
+    platform: ""
 
     # Used only if settings:calling-tool == haplotypecaller
     # Extra parameters for HaplotypeCaller and surrounding steps,
