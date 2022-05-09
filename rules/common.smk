@@ -16,6 +16,10 @@ basedir = workflow.basedir
 #     Basic Configuration
 # =================================================================================================
 
+# We want to report the grenepipe version for the user, for reproducibility.
+# The following line is automatically replaced by the deploy scripts. Do not change manually.
+grenepipe_version = "0.7.0" #GRENEPIPE_VERSION#
+
 # Add a description of the workflow to the final report
 report: os.path.join(workflow.basedir, "reports/workflow.rst")
 
@@ -192,7 +196,7 @@ for i in range( 1, len(sys.argv)):
 cfgfiles = []
 for cfg in workflow.configfiles:
     cfgfiles.append( os.path.abspath(cfg) )
-cfgfiles = ", ".join(cfgfiles)
+cfgfiles = "\n                        ".join(cfgfiles)
 
 # Get a nice output of the number of samples and units
 unitcnt=len(config["global"]["samples"].index.get_level_values("unit"))
@@ -217,12 +221,14 @@ logger.info("    Host:               " + hostname)
 logger.info("    Conda:              " + str(conda_ver))
 logger.info("    Python:             " + str(sys.version.split(' ')[0]))
 logger.info("    Snakemake:          " + str(snakemake.__version__))
+logger.info("    Grenepipe:          " + str(grenepipe_version))
 logger.info("    Command:            " + cmdline)
 logger.info("")
 logger.info("    Base directory:     " + workflow.basedir)
 logger.info("    Working directory:  " + os.getcwd())
 logger.info("    Config file(s):     " + cfgfiles)
 logger.info("    Samples:            " + smpcnt)
+logger.info("")
 logger.info("=====================================================================================")
 logger.info("")
 
