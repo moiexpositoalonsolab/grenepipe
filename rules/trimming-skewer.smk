@@ -21,7 +21,6 @@ rule trim_reads_se:
         "benchmarks/skewer/{sample}-{unit}.bench.log"
     conda:
         "../envs/skewer.yaml"
-    shadow: "full"
     shell:
         "skewer {params.extra} {params.params} --threads {threads} --output {params.outpref} "
         "{input.r1} > {log} 2>&1"
@@ -46,7 +45,6 @@ rule trim_reads_pe:
         "benchmarks/skewer/{sample}-{unit}.bench.log"
     conda:
         "../envs/skewer.yaml"
-    shadow: "full"
     shell:
         "skewer {params.extra} {params.params} --threads {threads} --output {params.outpref} "
         "{input.r1} {input.r2} > {log} 2>&1"

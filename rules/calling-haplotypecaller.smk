@@ -85,7 +85,6 @@ rule call_variants:
     conda:
         # Need to specify, yet again...
         "../envs/gatk.yaml"
-    shadow: "full"
     wrapper:
         "0.51.3/bio/gatk/haplotypecaller"
 

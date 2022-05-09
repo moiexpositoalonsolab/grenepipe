@@ -53,9 +53,6 @@ rule map_reads:
     # resources:
         # Increase time limit in factors of 2h, if the job fails due to time limit.
         # time = lambda wildcards, input, threads, attempt: int(120 * int(attempt))
-    shadow:
-        # See the bwa mem rule for the rationale to use a full shadow directory here.
-        "full"
     conda:
         "../envs/bwa.yaml"
     wrapper:

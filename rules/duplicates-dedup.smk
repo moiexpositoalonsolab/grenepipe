@@ -35,7 +35,6 @@ rule mark_duplicates:
         "../envs/dedup.yaml"
     group:
         "mapping_extra"
-    shadow: "full"
     shell:
         "dedup -i {input} -o {params.out_dir} {params.extra} > {log} 2>&1"
 
