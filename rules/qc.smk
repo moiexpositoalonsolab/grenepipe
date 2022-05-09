@@ -14,12 +14,24 @@
 assert "fastqc" not in config["global"]
 config["global"]["fastqc"] = pd.DataFrame( columns = [ "sample", "unit", "id", "file" ])
 def add_fastqc_file( sample, unit, id, file ):
-    config["global"]["fastqc"] = config["global"]["fastqc"].append({
-        "sample": sample,
-        "unit":   unit,
-        "id":     id,
-        "file":   file
-    }, ignore_index=True)
+    config["global"]["fastqc"] = pd.concat([
+        config["global"]["fastqc"],
+        pd.DataFrame({
+            "sample": [sample],
+            "unit":   [unit],
+            "id":     [id],
+            "file":   [file]
+        })
+    ], ignore_index=True)
+
+    # Deprecated way of using append instead of concat. We use concat now to avoid warnings
+    # with newer pandas versions, but keep the below for reference.
+    # config["global"]["fastqc"] = config["global"]["fastqc"].append({
+    #     "sample": sample,
+    #     "unit":   unit,
+    #     "id":     id,
+    #     "file":   file
+    # }, ignore_index=True)
 
 if config["params"]["fastqc"]["input"] == "samples":
     # Simple case: raw fastq files from the samples.
