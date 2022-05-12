@@ -15,7 +15,7 @@ def get_read_group_tags( wildcards ):
 
     # Add platform information, if available, giving precedence to the table over the config.
     pl = ""
-    if config["params"]["gatk"]["platform"]:
+    if 'platform' in config["params"]["gatk"] and config["params"]["gatk"]["platform"]:
         pl = config["params"]["gatk"]["platform"]
     if 'platform' in config["global"]["samples"]:
         s = config["global"]["samples"].loc[(wildcards.sample, wildcards.unit), ["platform"]].dropna()
