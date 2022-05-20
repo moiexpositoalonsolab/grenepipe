@@ -83,18 +83,56 @@ def get_mates(seqfiles):
     while len(seqfiles):
         seq1 = seqfiles.pop(0)
         # print(seq)
-        found_mate = False
+        candidates = []
         for j in range(len(seqfiles)):
             seq2 = seqfiles[j]
             match_pos = match_pe_files(seq1, seq2)
             if match_pos > -1:
                 # print(seq1, seqfiles[j])
-                mates.append(( seq1, seq2, match_pos ))
-                seqfiles.pop(j)
-                found_mate = True
-                break
-        if not found_mate:
+                # We found a candidate. Add it, as well as the index of the second match file.
+                candidates.append(( seq1, seq2, match_pos, j ))
+        if len(candidates) == 0:
+            # Did not find any matches. Single end read.
             mates.append(( seq1, "", -1 ))
+        elif len(candidates) == 1:
+            # Found one match, which we now use. Add to results,
+            # and remove the second match file from the inputs.
+            mates.append(candidates[0])
+            seqfiles.pop(candidates[0][3])
+        else:
+            # Found multiple matches. We look for one that has "R" or "r" in front of the match
+            # position, which often denotes the forward/backward. If that does not work, we fail,
+            # as in that case, we cannot determine the right match from the file naming scheme.
+            cand_idx = -1
+            multiple_r = False
+            for i in range(len(candidates)):
+                cand = candidates[i]
+                if cand[2] == 0:
+                    # If the match position is 0 (that is, the first char is '1'/'2' in the files),
+                    # these cannot have an 'R' in front of them.
+                    continue
+                if cand[0][ cand[2] - 1 ] == 'R' or cand[0][ cand[2] - 1 ] == 'r':
+                    # We found an 'R'. If we already found another, that is also a fail.
+                    if cand_idx > -1:
+                        multiple_r = True
+                    cand_idx = i
+            if cand_idx == -1 or multiple_r:
+                # Here, we either found no 'R', or multiple ones. Either way, we fail.
+                print(colored("Found multiple conflicting match pair candidates.", "red"))
+                print("File " + seq1 + " matches with:")
+                for cand in candidates:
+                    print("  -  " + cand[1])
+                print(
+                    "We cannot automatically determine match pairs with this. Please consider "
+                    "renaming your files so that the intended match pairs have the letter 'R' "
+                    "in front of the two numbers, like 'R1' and 'R2'."
+                )
+                sys.exit()
+            # Here, we have determined a pair that works. Add it to the results, and remove
+            # the second sequence from the inputs.
+            mates.append(candidates[cand_idx])
+            seqfiles.pop(candidates[cand_idx][3])
+
     return mates
 
 def get_sample_name(tup):
