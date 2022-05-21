@@ -4,6 +4,7 @@ import sys, os
 import re
 from glob import glob
 from termcolor import colored
+from collections import namedtuple
 
 # =================================================================================================
 #     Usage and Description
@@ -25,6 +26,11 @@ outfile = "samples.tsv"
 # =================================================================================================
 #     Functions
 # =================================================================================================
+
+# We want nicer names than just addressing matches by tuple indices.
+# We store the file names of the two matches, as well as the position where the '1'/'2' match
+# occurrs. While finding match candidates, we also need the indices in the input list.
+Match = namedtuple("Match", ['seq1', 'seq2', 'pos', 'idx1', 'idx2'])
 
 def get_fastq_files(indir):
     # Get all files in the given directory that match our file extensions, and sort them,
@@ -90,15 +96,17 @@ def get_mates(seqfiles):
             if match_pos > -1:
                 # print(seq1, seqfiles[j])
                 # We found a candidate. Add it, as well as the index of the second match file.
-                candidates.append(( seq1, seq2, match_pos, j ))
+                match = Match(seq1=seq1, seq2=seq2, pos=match_pos, idx1=0, idx2=j)
+                candidates.append(match)
         if len(candidates) == 0:
             # Did not find any matches. Single end read.
-            mates.append(( seq1, "", -1 ))
+            match = Match(seq1=seq1, seq2="", pos=-1, idx1=0, idx2=None)
+            mates.append(match)
         elif len(candidates) == 1:
             # Found one match, which we now use. Add to results,
             # and remove the second match file from the inputs.
             mates.append(candidates[0])
-            seqfiles.pop(candidates[0][3])
+            seqfiles.pop(candidates[0].idx2)
         else:
             # Found multiple matches. We look for one that has "R" or "r" in front of the match
             # position, which often denotes the forward/backward. If that does not work, we fail,
@@ -107,11 +115,11 @@ def get_mates(seqfiles):
             multiple_r = False
             for i in range(len(candidates)):
                 cand = candidates[i]
-                if cand[2] == 0:
+                if cand.pos == 0:
                     # If the match position is 0 (that is, the first char is '1'/'2' in the files),
                     # these cannot have an 'R' in front of them.
                     continue
-                if cand[0][ cand[2] - 1 ] == 'R' or cand[0][ cand[2] - 1 ] == 'r':
+                if cand.seq1[ cand.pos - 1 ] == 'R' or cand.seq1[ cand.pos - 1 ] == 'r':
                     # We found an 'R'. If we already found another, that is also a fail.
                     if cand_idx > -1:
                         multiple_r = True
@@ -121,7 +129,7 @@ def get_mates(seqfiles):
                 print(colored("Found multiple conflicting match pair candidates.", "red"))
                 print("File " + seq1 + " matches with:")
                 for cand in candidates:
-                    print("  -  " + cand[1])
+                    print("  -  " + cand.seq2)
                 print(
                     "We cannot automatically determine match pairs with this. Please consider "
                     "renaming your files so that the intended match pairs have the letter 'R' "
@@ -131,19 +139,19 @@ def get_mates(seqfiles):
             # Here, we have determined a pair that works. Add it to the results, and remove
             # the second sequence from the inputs.
             mates.append(candidates[cand_idx])
-            seqfiles.pop(candidates[cand_idx][3])
+            seqfiles.pop(candidates[cand_idx].idx2)
 
     return mates
 
-def get_sample_name(tup):
+def get_sample_name(match):
     # Expects one element of the get_mates function output list,
     # and cleans up the beginning and end of the file names to get a clean sample name.
-    if tup[2] >=0:
-        return re.split( '/', tup[0][:tup[2]] )[-1].strip( '-_R' )
+    if match.pos >= 0:
+        return re.split( '/', match.seq1[:match.pos] )[-1].rstrip( '-_R' )
     else:
         # Remove directory, and try to find the extension to remove
         # (which should always succeed, as we only picked those files in the first place).
-        n = re.split( '/', tup[0] )[-1]
+        n = re.split( '/', match.seq1 )[-1]
         for s in extensions:
             if n.endswith(s):
                 return n[:-len(s)]
@@ -158,11 +166,11 @@ def write_table(mates, outfile):
         # what the platform is, we just provide a dummy '-' here. Users can then edit this as needed.
         # We could make this an argument of the script, but let's keep it simple for now.
         out.write("sample\tunit\tplatform\tfq1\tfq2\n")
-        for tup in mates:
+        for match in mates:
 
             # Get the name and unit for the sample.
             # If samples with the same name appear, we give them increasing unit numbers.
-            name = get_sample_name( tup )
+            name = get_sample_name( match )
             if name not in samplenames.keys():
                 samplenames[name] = 1
             else:
@@ -170,23 +178,31 @@ def write_table(mates, outfile):
             unit = samplenames[name]
 
             # If this is a mate pair, print its two files. If it is single, print the file.
-            if tup[2] >= 0:
+            if match.pos >= 0:
                 # Print the matches, with the difference in red, so that the user
                 # can check that the pairing is correct.
-                match_pos = tup[2]
+                match_pos = match.pos
                 print()
                 print(colored("Match (paired end):", "green"))
-                print(tup[0][0:match_pos] + colored(tup[0][match_pos], "red") + tup[0][match_pos+1:])
-                print(tup[1][0:match_pos] + colored(tup[1][match_pos], "red") + tup[1][match_pos+1:])
+                print(
+                    match.seq1[0:match_pos] +
+                    colored(match.seq1[match_pos], "red") +
+                    match.seq1[match_pos+1:]
+                )
+                print(
+                    match.seq2[0:match_pos] +
+                    colored(match.seq2[match_pos], "red") +
+                    match.seq2[match_pos+1:]
+                )
             else:
                 print()
                 print(colored("No match (single end):", "yellow"))
-                print(tup[0])
+                print(match.seq1)
             print(colored("Name: " + name + ", unit: " + str(unit), "blue"))
 
             # Now print the result table.
-            out.write(name + "\t" + str(unit) + "\t-\t" + tup[0] + "\t" + tup[1] + "\n")
-            if tup[2] >= 0:
+            out.write(name + "\t" + str(unit) + "\t-\t" + match.seq1 + "\t" + match.seq2 + "\n")
+            if match.pos >= 0:
                 mate_cnt += 1
 
     # Summary for the user
