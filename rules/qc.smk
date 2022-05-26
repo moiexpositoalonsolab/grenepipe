@@ -342,4 +342,5 @@ rule multiqc:
     #     "../scripts/multiqc.py"
 
 # Rule is not submitted as a job to the cluster.
-localrules: multiqc
+# Edit: It is now, as it turns out to be quite the process for large datasets...
+# localrules: multiqc
