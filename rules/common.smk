@@ -172,6 +172,20 @@ username = pwd.getpwuid( os.getuid() )[ 0 ]
 hostname = socket.gethostname()
 hostname = hostname + ("; " + platform.node() if platform.node() != socket.gethostname() else "")
 
+# Get the git commit hash of grenepipe, if available.
+try:
+    process = subprocess.Popen(
+        ['git', 'rev-parse', '--short', 'HEAD'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    out, err = process.communicate()
+    out = out.decode('ascii')
+    grenepipe_git_hash = out.strip()
+    if grenepipe_git_hash:
+        grenepipe_version += "-" + grenepipe_git_hash
+    del process, out, err, grenepipe_git_hash
+except:
+    pass
+
 # Get the conda version, if available.
 try:
     process = subprocess.Popen(['conda', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
