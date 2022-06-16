@@ -16,10 +16,10 @@ def get_fai(wildcards):
 if config["settings"].get("contig-group-size", 0) > 0:
 
     # Simple greedy solver for the bin packing problem, here used to make bins of roughly equal
-    # size for the contigs. We except the input values to be tuples or pairs, where the index [1]
-    # element is the weight (index[0] here is used for the contig name itself).
+    # size for the contigs. We expect the input values to be tuples or pairs, where the index [1]
+    # element is the weight that we use for packing (index[0] here is used for the contig name itself).
     def solve_bin_packing( values, max_bin_size ):
-        # First, sort by length, decreasing.
+        # First, sort by length, large ones first, decreasing.
         # This helps to get closer to an optimal solution.
         values.sort(key = lambda x: x[1], reverse=True)
 

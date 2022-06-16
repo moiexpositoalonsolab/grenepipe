@@ -44,10 +44,12 @@ rule call_variants:
         config["params"]["bcftools"]["threads"]
     shell:
         "("
-        "bcftools mpileup {params.mpileup} --fasta-ref {input.ref} --output-type u {input.samples} "
-        "-a 'INFO/AD' -a 'FORMAT/AD' -a 'FORMAT/DP' --gvcf 5,10,25,50 | "
-        "bcftools call --threads {threads} {params.call} --gvcf 5,10,25,50 "
-        "--output-type z -o {output.gvcf} ; "
+        "bcftools mpileup "
+        "   {params.mpileup} --fasta-ref {input.ref} --output-type u {input.samples} "
+        "   -a 'INFO/AD' -a 'FORMAT/AD' -a 'FORMAT/DP' --gvcf 5,10,25,50 | "
+        "bcftools call "
+        "   --threads {threads} {params.call} --gvcf 5,10,25,50 "
+        "   --output-type z -o {output.gvcf} ; "
         "bcftools index --tbi {output.gvcf}"
         ") &> {log}"
 
@@ -100,7 +102,11 @@ rule combine_contig:
 #     Combining All
 # =================================================================================================
 
-# Need an input function to work with the fai checkpoint
+# We use the fai file of the reference genome to obtain a list of contigs. This is used as input in
+# the rule below, which then request all per-contig gvcfs. We need to provide this as an input
+# function for the rule input, so that the fai snakemake checkpoint gets executed before evaluating.
+# The list of contigs is either just the list of chromosomes, or, if we use contig grouping in the
+# config file, this is the list of the group names.
 def combined_contig_gvcfs(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]
     return expand("called/all.{contig}.g.vcf.gz", contig=get_contigs( fai ))
@@ -108,6 +114,7 @@ def combined_contig_gvcfs(wildcards):
 # We also need a comma-separated list of the contigs, so that bcftools can output
 # the concatenated entries in the correct order as given in the fai.
 # For this, we use the same technique of using the fai checkpoint as before.
+# Here however, we use the actual list of chromosome names, and never the list of contig group names.
 def combined_contig_order(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]
     contig_list = []
@@ -130,6 +137,7 @@ rule combine_all:
         tbi="genotyped/all.vcf.gz.tbi",
         lst="genotyped/all.txt"
     params:
+        # Use a list of the chromosomes in the same order as the fai, for bcftools to sort the output.
         regionorder=combined_contig_order
     log:
         "logs/bcftools/combine-all.log"
@@ -138,14 +146,17 @@ rule combine_all:
     conda:
         "../envs/bcftools.yaml"
     shell:
-        # Use the order of gvfcs as provided by the fai file by default, which works if we call
-        # per chromosome, but gives them out of order if we use contig groups insteads.
+        # Create a list of the input files. We use the order of gvfcs as provided by the fai file
+        # by default, which works if we call per chromosome, so that bcftool has an easier job
+        # with the data, but gives them out of order if we use  contig groups insteads.
         "echo {input.gvcfs} | sed 's/ /\\n/g' > {output.lst} ; "
-        # Hence enforce the order by specifing them as regions, see
-        # https://github.com/samtools/bcftools/issues/268#issuecomment-105772010
+
+        # Hence, we further enforce the order that we want by specifing the chromosomes as regions,
+        # see https://github.com/samtools/bcftools/issues/268#issuecomment-105772010,
         # by providing a list of regions in the order that we want.
         "("
-        "bcftools concat --file-list \"{output.lst}\" --regions \"{params.regionorder}\" --allow-overlaps "
-        "--output-type z -o {output.vcf} ;"
+        "bcftools concat "
+        "   --file-list \"{output.lst}\" --regions \"{params.regionorder}\" --allow-overlaps "
+        "   --output-type z -o {output.vcf} ;"
         "bcftools index --tbi {output.vcf}"
         ") &> {log}"

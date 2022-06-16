@@ -111,10 +111,10 @@ settings:
   # approximately the size of a chromosome.
   #
   # Note that this contig group size is measured in basepairs (or nucleotides), and hence is not
-  # the number of bins to create, but their total size. So, for example, when your genome has a
+  # the number of bins to create, but the size of each. So, for example, when your genome has a
   # total length of 100,000,000 bp, scattered into 5,000 scaffolds of (on average) 20,000 bp, you
   # could set the `contig-group-size` to 100,000,000 / 10 = 10,000,000 (or a bit more) in order
-  # to create 10 groups of contigs (bins) for the computation, each each representing ~10,000,000 bp
+  # to create 10 groups of contigs (bins) for the computation, each one representing ~10,000,000 bp
   # of contigs. Then, each group contains about 5,000 / 10 = 10,000,000 / 20,000 = 500 contigs
   # (on average).
   contig-group-size: 0
