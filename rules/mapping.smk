@@ -256,7 +256,12 @@ def get_mapping_result(bai=False):
 
     return f
 
-# Return the bam file(s) for a given sample
+# Return the bam file(s) for a given sample.
+# Get all aligned reads of given sample, with all its units.
+# This is where all units are merged together. The function also automatically gets
+# which of the mapping resutls to use, depending on the config setting (whether to remove
+# duplicates, and whether to recalibrate the base qualities), by using the get_mapping_result
+# function, that gives the respective files depending on the config.
 def get_sample_bams(sample):
     return expand(
         get_mapping_result(),
@@ -273,6 +278,14 @@ def get_sample_bais(sample):
         unit=get_sample_units(sample)
         # unit=config["global"]["samples"].loc[sample].unit
     )
+
+# Return the bam file(s) for a sample, given a wildcard param from a rule.
+def get_sample_bams_wildcard(wildcards):
+    return get_sample_bams( wildcards.sample )
+
+# Return the bai file(s) for a sample, given a wildcard param from a rule.
+def get_sample_bais_wildcard(wildcards):
+    return get_sample_bais( wildcards.sample )
 
 # Return the bam file(s) for all samples
 def get_all_bams():

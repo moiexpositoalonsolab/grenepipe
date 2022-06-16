@@ -2,29 +2,6 @@
 #     Variant Calling
 # =================================================================================================
 
-# Return the bam file(s) for a given sample
-def get_sample_bams_wildcard(wildcards):
-    """
-    Get all aligned reads of given sample, with all its units.
-    This is where all units are merged together. The function also automatically gets
-    which of the mapping resutls to use, depending on the config setting (whether to remove
-    duplicates, and whether to recalibrate the base qualities), by using the get_mapping_result
-    function, that gives the respective files depending on the config.
-    """
-    return expand(
-        get_mapping_result(),
-        sample=wildcards.sample,
-        unit=config["global"]["samples"].loc[wildcards.sample].unit
-    )
-
-# Return the bai file(s) for a given sample
-def get_sample_bais_wildcard(wildcards):
-    return expand(
-        get_mapping_result(True),
-        sample=wildcards.sample,
-        unit=config["global"]["samples"].loc[wildcards.sample].unit
-    )
-
 # Combine all params to call gatk. We may want to set regions, we set that bit of multithreading
 # that gatk is capable of (not much, but the best we can do without spark...), and we add
 # all additional params from the config file.

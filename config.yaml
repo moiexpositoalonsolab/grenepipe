@@ -463,6 +463,16 @@ params:
   bcftools:
     threads: 8
 
+    # We offer two ways to run bcftools call: Combined on all samples at the same time,
+    # or on each sample individually, merging the calls later.
+    # Combined calling might yield calls of higher quality, as the caller can take information from
+    # all samples into account; however, bcftools can be prohibitively slow when using on too many
+    # samples at the same time.
+    # We hence offer invididual calling, which parallelizes over samples, and hence works for larger
+    # datasets.
+    # Valid values: "combined" (default), "individual"
+    mode: "combined"
+
     # Extra parameters for the mpileup step.
     mpileup: "--max-depth 10000"
 

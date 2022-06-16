@@ -1,0 +1,5 @@
+calling-tool: "haplotypecaller"	calling-tool: "bcftools"
+snpeff: false	snpeff: true
+vep: false	vep: true
+frequency-table: false	frequency-table: true
+mode: "combined"	mode: "individual"

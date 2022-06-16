@@ -229,6 +229,8 @@ properties:
             type: string
           threads:
             type: integer
+          mode:
+            type: string
           # concat:
           #   type: string
       freebayes:
