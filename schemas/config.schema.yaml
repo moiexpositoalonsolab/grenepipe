@@ -231,6 +231,10 @@ properties:
             type: integer
           mode:
             type: string
+          stats:
+            type: string
+          stats-plot:
+            type: string
           # concat:
           #   type: string
       freebayes:

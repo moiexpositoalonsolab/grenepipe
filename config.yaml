@@ -479,6 +479,15 @@ params:
     # Extra parameters for the bcftools call step.
     call: "--multiallelic-caller"
 
+    # Extra parameters for the bcftools stats step.
+    # The result of this is also included in the MultiQC report.
+    stats: ""
+
+    # Extra parameters for the bcftools stats plot (`plot-vcfstats`) command.
+    # The output path `--prefix` is already set in the rule - do not specify this here;
+    # furthermore, do not set `--no-PDF`, as we rely on the PDF for the snakemake rule.
+    stats-plot: ""
+
   # ----------------------------------------------------------------------
   #     freebayes
   # ----------------------------------------------------------------------
