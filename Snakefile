@@ -24,6 +24,9 @@ rule all:
         # Quality control
         "qc/multiqc.html",
 
+        # Reference genome statistics
+        config["data"]["reference"]["genome"] + ".seqkit",
+
         # Pileup
         expand(
             "mpileup/{sample}-individual-units.mpileup.gz",
@@ -72,7 +75,10 @@ include: "rules/pileup.smk"
 rule all_qc:
     input:
         # Quality control
-        "qc/multiqc.html"
+        "qc/multiqc.html",
+
+        # Reference genome statistics
+        config["data"]["reference"]["genome"] + ".seqkit"
 
 # The `all_qc` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.

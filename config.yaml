@@ -671,6 +671,17 @@ params:
     extra: ""
 
   # ----------------------------------------------------------------------
+  #     SeqKit
+  # ----------------------------------------------------------------------
+
+  # Used to deliver statistics on the reference genome.
+  seqkit:
+
+    # Additional parameter for SeqKit stats for the reference genome,
+    # see https://bioinf.shenwei.me/seqkit/usage/#stats
+    extra: ""
+
+  # ----------------------------------------------------------------------
   #     MultiQC
   # ----------------------------------------------------------------------
 

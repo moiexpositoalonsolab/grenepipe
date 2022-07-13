@@ -308,6 +308,11 @@ properties:
         properties:
           extra:
             type: string
+      seqkit:
+        type: object
+        properties:
+          extra:
+            type: string
       multiqc:
         type: object
         properties:
@@ -337,6 +342,7 @@ properties:
       - vep
       - mapdamage
       - damageprofiler
+      - seqkit
       - multiqc
 
 required:

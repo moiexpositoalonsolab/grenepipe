@@ -131,6 +131,21 @@ rule sequence_dictionary:
     shell:
         "gatk CreateSequenceDictionary -R {input} -O {output} > {log} 2>&1"
 
+# Get some statistics about the reference genome
+rule reference_seqkit:
+    input:
+        genome
+    output:
+        genome + ".seqkit"
+    params:
+        extra = config["params"]["seqkit"]["extra"]
+    log:
+        "logs/" + genomename + ".seqkit.log"
+    conda:
+        "../envs/seqkit.yaml"
+    shell:
+        "seqkit stats {input} {params.extra} > {output} 2> {log}"
+
 # Clean up the variables that we used above
 del genome
 del genomename
