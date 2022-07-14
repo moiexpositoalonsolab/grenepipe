@@ -21,7 +21,7 @@ from snakemake.shell import shell
 
 shell.executable("bash")
 
-log = snakemake.log_fmt_shell(stdout=False, stderr=True)
+log = snakemake.log_fmt_shell(stdout=True, stderr=True)
 
 extra_params = snakemake.params.get("extra", "")
 norm = snakemake.params.get("normalize", False)

@@ -18,7 +18,7 @@ import re
 from tempfile import TemporaryDirectory
 from snakemake.shell import shell
 
-log = snakemake.log_fmt_shell(stdout=False, stderr=True)
+log = snakemake.log_fmt_shell(stdout=True, stderr=True, append=True)
 
 def basename_without_ext(file_path):
     """Returns basename of file path, without the file extension."""
@@ -59,12 +59,12 @@ with TemporaryDirectory() as tempdir:
     # More verbose output than the wrapper, for debugging
     shell(
         # "echo \"{tempdir:q}\" ; "
-        "echo \"Input:       {snakemake.input[0]:q}\" > {tempdir:q}/log.txt ; "
-        "echo \"Output zip:  {snakemake.output.zip:q}\" >> {tempdir:q}/log.txt ; "
-        "echo \"Output html: {snakemake.output.html:q}\" >> {tempdir:q}/log.txt ; "
-        "echo -e \"\n--\n\" >> {tempdir:q}/log.txt ; "
+        "echo \"Input:       {snakemake.input[0]:q}\" log ; "
+        "echo \"Output zip:  {snakemake.output.zip:q}\" log ; "
+        "echo \"Output html: {snakemake.output.html:q}\" log ; "
+        "echo -e \"\n--\n\" log ; "
         "fastqc {snakemake.params} -t {snakemake.threads} "
-        "--outdir {tempdir:q} {snakemake.input[0]:q} >> {tempdir:q}/log.txt 2>&1 ;"
+        "    --outdir {tempdir:q} {snakemake.input[0]:q} log ;"
         # "ls {tempdir:q}"
     )
 
@@ -72,13 +72,9 @@ with TemporaryDirectory() as tempdir:
     output_base = basename_without_ext(snakemake.input[0])
     html_path = path.join(tempdir, output_base + "_fastqc.html")
     zip_path = path.join(tempdir, output_base + "_fastqc.zip")
-    log_path = path.join(tempdir, "log.txt")
 
     if snakemake.output.html != html_path:
         shell("mv {html_path:q} {snakemake.output.html:q}")
 
     if snakemake.output.zip != zip_path:
         shell("mv {zip_path:q} {snakemake.output.zip:q}")
-
-    if snakemake.log != log_path:
-        shell("mv {log_path:q} {snakemake.log:q}")
