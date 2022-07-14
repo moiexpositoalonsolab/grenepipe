@@ -43,13 +43,17 @@ rule call_variants:
     threads:
         config["params"]["bcftools"]["threads"]
     shell:
+        # We need a normalization step in between, because somehow bcftools spits out data
+        # in some non-normal format by default... see https://www.biostars.org/p/404061/#404245
         "("
         "bcftools mpileup "
-        "   {params.mpileup} --fasta-ref {input.ref} --output-type u {input.samples} "
-        "   -a 'INFO/AD' -a 'FORMAT/AD' -a 'FORMAT/DP' --gvcf 5,10,25,50 | "
+        "    {params.mpileup} --fasta-ref {input.ref} --output-type u {input.samples} "
+        "    -a 'INFO/AD' -a 'FORMAT/AD' -a 'FORMAT/DP' --gvcf 0 | "
         "bcftools call "
-        "   --threads {threads} {params.call} --gvcf 5,10,25,50 "
-        "   --output-type z -o {output.gvcf} ; "
+        "    --threads {threads} {params.call} --gvcf 0 --output-type u | "
+        "bcftools norm "
+        "    --fasta-ref {input.ref} "
+        "    --output-type z -o {output.gvcf} ; "
         "bcftools index --tbi {output.gvcf}"
         ") &> {log}"
 
