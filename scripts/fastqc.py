@@ -59,12 +59,12 @@ with TemporaryDirectory() as tempdir:
     # More verbose output than the wrapper, for debugging
     shell(
         # "echo \"{tempdir:q}\" ; "
-        "echo \"Input:       {snakemake.input[0]:q}\" log ; "
-        "echo \"Output zip:  {snakemake.output.zip:q}\" log ; "
-        "echo \"Output html: {snakemake.output.html:q}\" log ; "
-        "echo -e \"\n--\n\" log ; "
+        "echo \"Input:       {snakemake.input[0]:q}\" {log} ; "
+        "echo \"Output zip:  {snakemake.output.zip:q}\" {log} ; "
+        "echo \"Output html: {snakemake.output.html:q}\" {log} ; "
+        "echo -e \"\n--\n\" {log} ; "
         "fastqc {snakemake.params} -t {snakemake.threads} "
-        "    --outdir {tempdir:q} {snakemake.input[0]:q} log ;"
+        "    --outdir {tempdir:q} {snakemake.input[0]:q} {log} ;"
         # "ls {tempdir:q}"
     )
 
