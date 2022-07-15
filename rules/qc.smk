@@ -243,19 +243,21 @@ rule bcftools_stats_plot:
         "bcftools-stats"
     shell:
         # According to this thread: https://stackoverflow.com/a/69671413/4184258
-        # there are issues with pdflatex and conda (because, why would software ever work?!).
-        # So we work our way around this by working with tectonic instead as well...
-        # We also need to stop the bash pipefail (strict mode) that is activated by snakemake
-        # from interfering here, so that the failing plot command does not stop the whole exection,
+        # there are issues with pdflatex from conda (because, why would software ever work?!).
+        # So we work our way around this by working with tectonic instead as well,
+        # in case that pdflatex fails. For this to work, we also need to stop the bash pipefail
+        # (strict mode) that is activated by snakemake from interfering here, so that the failing
+        # plot command does not stop the whole exection,
         # see https://stackoverflow.com/a/11231970/4184258 for that.
+        # Lastly, in a freak way, somehow using a simple `cd` here seems to fail on our cluster...
+        # So instead we specify the path to the file directly. So weird.
         "( plot-vcfstats --prefix {params.outdir} {params.extra} {input} &> {log} || true ) ; "
-        "if [ -f \"{output}\" ]; then "
+        "if [ -f {output} ]; then "
         "    echo \"Success with pdflatex\" >> {log} ; "
         "else"
         "    echo \"Failed with pdflatex\" >> {log} ; "
         "    echo \"Trying tectonic instead\" >> {log} ; "
-        "    cd {params.outdir} ; "
-        "    tectonic summary.tex >> {log} 2>&1 ; "
+        "    tectonic {params.outdir}/summary.tex >> {log} 2>&1 ; "
         "fi"
 
 # =================================================================================================
