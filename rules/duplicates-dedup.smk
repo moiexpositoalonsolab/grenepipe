@@ -8,6 +8,7 @@
 # that it needs a directory instead... and then litters the output directory with all kinds
 # of files that we do not want. So, let's use a shadow directory, and let's pray that the file naming
 # of the `*rmdup.bam` file is consistent (hard to tell, as this is not documented in dedup)...
+# --> Update: Not using a shadow diretory any more, still seems to work fine.
 # Furthermore, dedup does not sort, so we have to do this ourselves (Again! We already sorted
 # after mapping... How does that program mess up the existing order?!).
 # Luckily, this combination of unfortunate usages (weird output files, and additional need to sort)
@@ -44,7 +45,8 @@ rule sort_reads_dedup:
     output:
         "dedup/{sample}-{unit}.bam"
     params:
-        "-m 4G"
+        extra=config["params"]["samtools"]["sort"],
+        tmp_dir=config["params"]["samtools"]["temp-dir"]
     threads:  # Samtools takes additional threads through its option -@
         1     # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
@@ -52,4 +54,4 @@ rule sort_reads_dedup:
     group:
         "mapping_extra"
     wrapper:
-        "0.58.0/bio/samtools/sort"
+        "0.80.0/bio/samtools/sort"

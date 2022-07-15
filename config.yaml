@@ -335,6 +335,9 @@ params:
     # tags "ID" and "SM", and potentially "PL".
     extra: ""
 
+    # Extra parameters for samtools sort, which we use after bowtie2 for sorting its output,
+    # can be set via `samtools: sort` below.
+
   # ----------------------------------------------------------------------
   #     bwa aln
   # ----------------------------------------------------------------------
@@ -353,8 +356,8 @@ params:
     # is (single-end or paired-end).
     extra-sam: ""
 
-    # Extra parameters for samtools, which we use after bwa aln for sorting its output.
-    extra-sort: ""
+    # Extra parameters for samtools sort, which we use after bwa aln for sorting its output,
+    # can be set via `samtools: sort` below.
 
   # ----------------------------------------------------------------------
   #     bwa mem
@@ -370,8 +373,8 @@ params:
     # and potentially "PL".
     extra: ""
 
-    # Extra parameters for samtools, which we use after bwa mem for sorting its output.
-    extra-sort: ""
+    # Extra parameters for samtools sort, which we use after bwa mem for sorting its output,
+    # can be set via `samtools: sort` below.
 
   # ----------------------------------------------------------------------
   #     bwa mem2
@@ -387,8 +390,8 @@ params:
     # and potentially "PL".
     extra: ""
 
-    # Extra parameters for samtools, which we use after bwa mem for sorting its output.
-    extra-sort: ""
+    # Extra parameters for samtools sort, which we use after bwa mem2 for sorting its output,
+    # can be set via `samtools: sort` below.
 
   # ----------------------------------------------------------------------
   #     samtools
@@ -412,6 +415,16 @@ params:
     # Extra parameters for the samtools/merge step prior to the samtools/mpileup step.
     merge: ""
     merge-threads: 4
+
+    # Extra parameters for samtools sort, where ever it is used in the pipeline
+    # (e.g., after mapping, see above tools as well).
+    sort: "-m 4G"
+
+    # Temporary directory, used for example for samtools sort, which can cause trouble.
+    # Samtools sort creates temporary files that are not cleaned up when a cluster job runs out of
+    # time or otherwise fails, but which cause samtools to immediately terminate if called again.
+    # By default (empty), we use a system-specified temp directory.
+    temp-dir: ""
 
   # ----------------------------------------------------------------------
   #     picard
@@ -453,6 +466,9 @@ params:
   # See https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/dedupe-guide/
   dedup:
     extra: "-m"
+
+    # Extra parameters for samtools sort, which we use after dedup for sorting its output,
+    # can be set via `samtools: sort` above.
 
   # ----------------------------------------------------------------------
   #     bcftools
@@ -528,8 +544,11 @@ params:
     # Extra parameters for HaplotypeCaller and surrounding steps,
     # see https://gatk.broadinstitute.org/hc/en-us/articles/360036803991-HaplotypeCaller
     HaplotypeCaller: ""
-    HaplotypeCaller-threads: 2
     GenotypeGVCFs: ""
+
+    # Number of threads to use for the HaplotypeCaller. We recommend to keep this at 2,
+    # as GATK does not seem to do a great job of parallelizing anyway.
+    HaplotypeCaller-threads: 2
 
   # ----------------------------------------------------------------------
   #     gatk / variantfiltration

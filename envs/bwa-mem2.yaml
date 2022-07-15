@@ -8,6 +8,5 @@ dependencies:
   - numpy ==1.21.2
   # Tools
   - bwa-mem2 ==2.2.1
-  # Somehow on Resnick, we got /usr/bin/bash: samtools: command not found
-  # So let's add it here...
+  - picard ==2.20.1
   - samtools ==1.12

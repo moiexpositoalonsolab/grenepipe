@@ -84,7 +84,8 @@ rule sort_reads:
     output:
         "mapped/{sample}-{unit}.sorted.bam"
     params:
-        "-m 4G"
+        extra=config["params"]["samtools"]["sort"],
+        tmp_dir=config["params"]["samtools"]["temp-dir"]
     threads:  # Samtools takes additional threads through its option -@
         1     # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
@@ -92,4 +93,4 @@ rule sort_reads:
     group:
         "mapping"
     wrapper:
-        "0.58.0/bio/samtools/sort"
+        "0.80.0/bio/samtools/sort"

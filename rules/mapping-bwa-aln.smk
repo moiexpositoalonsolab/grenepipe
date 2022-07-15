@@ -99,20 +99,25 @@ rule bwa_sai_to_bam:
         fastq=get_trimmed_reads,
         sai=get_sai,
         ref=config["data"]["reference"]["genome"],
-        refidcs=expand(
+
+        # Somehow, the wrapper expects the index extensions to be given,
+        # instead of the underlying fasta file... Well, so let's do that.
+        # We provide the fasta above as well; it's not used,
+        # but might be important as a rule dependency so that it is present.
+        idx=expand(
             config["data"]["reference"]["genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         )
     output:
         pipe( "mapped/{sample}-{unit}.sorted-unclean.bam" )
     params:
-        index=config["data"]["reference"]["genome"],
         extra=get_bwa_aln_extra,
 
         # Sort as we need it.
         sort="samtools",
         sort_order="coordinate",
-        sort_extra=config["params"]["bwaaln"]["extra-sort"]
+        sort_extra=config["params"]["samtools"]["sort"],
+        tmp_dir=config["params"]["samtools"]["temp-dir"]
     group:
         "mapping"
     log:
@@ -123,8 +128,12 @@ rule bwa_sai_to_bam:
         # The wrapper does not include numpy and pandas as dependencies, but somehow needs them...
         # So we just re-use our normal bwa env, which also workes for the above rule.
         "../envs/bwa.yaml"
-    wrapper:
-        "0.74.0/bio/bwa/samxe"
+    script:
+        # We use our own version of the wrapper here, as that wrapper misses temp dirs for
+        # samtools sort, causing all kinds of trouble...
+        "../scripts/bwa-samxe.py"
+    # wrapper:
+    #     "0.74.0/bio/bwa/samxe"
 
 # Apparently, yet another bioinformatics tool fail is at play here. The bam files written above
 # lead to a SAM validation error: ERROR::INVALID_MAPPING_QUALITY, MAPQ should be 0 for unmapped read

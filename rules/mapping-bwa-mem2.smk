@@ -11,20 +11,25 @@ rule map_reads:
     input:
         reads=get_trimmed_reads,
         ref=config["data"]["reference"]["genome"],
-        refidcs=expand(
+
+        # Somehow, the wrapper expects the index extensions to be given,
+        # instead of the underlying fasta file... Well, so let's do that.
+        # We provide the fasta above as well; it's not used,
+        # but might be important as a rule dependency so that it is present.
+        idx=expand(
             config["data"]["reference"]["genome"] + ".{ext}",
             ext=[ "0123", "amb", "ann", "bwt.2bit.64", "pac" ]
         )
     output:
         "mapped/{sample}-{unit}.sorted.bam"
     params:
-        index=config["data"]["reference"]["genome"],
         extra=get_bwa_mem2_extra,
 
         # Sort as we need it.
         sort="samtools",
         sort_order="coordinate",
-        sort_extra=config["params"]["bwamem2"]["extra-sort"]
+        sort_extra=config["params"]["samtools"]["sort"],
+        tmp_dir=config["params"]["samtools"]["temp-dir"]
     group:
         "mapping"
     log:
@@ -37,5 +42,9 @@ rule map_reads:
         # As always, we need our own env here that overwrites the python/pandas/numpy stack
         # to make sure that we do not run into a version conflict.
         "../envs/bwa-mem2.yaml"
-    wrapper:
-        "0.78.0/bio/bwa-mem2/mem"
+    script:
+        # We use our own version of the wrapper here, as that wrapper misses temp dirs for
+        # samtools sort, causing all kinds of trouble...
+        "../scripts/bwa-mem2-mem.py"
+    # wrapper:
+    #     "0.78.0/bio/bwa-mem2/mem"

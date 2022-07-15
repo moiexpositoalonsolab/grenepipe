@@ -25,7 +25,8 @@ rule map_reads:
         sort="samtools",
         sorting="samtools",
         sort_order="coordinate",
-        sort_extra=config["params"]["bwamem"]["extra-sort"]
+        sort_extra=config["params"]["samtools"]["sort"],
+        tmp_dir=config["params"]["samtools"]["temp-dir"]
     group:
         "mapping"
     log:
