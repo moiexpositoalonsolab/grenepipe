@@ -221,6 +221,8 @@ rule bcftools_stats:
         config["params"]["bcftools"]["stats"]
     conda:
         "../envs/bcftools.yaml"
+    group:
+        "bcftools-stats"
     wrapper:
         "v1.7.0/bio/bcftools/stats"
 
@@ -237,6 +239,8 @@ rule bcftools_stats_plot:
         extra=config["params"]["bcftools"]["stats-plot"]
     conda:
         "../envs/bcftools.yaml"
+    group:
+        "bcftools-stats"
     shell:
         # According to this thread: https://stackoverflow.com/a/69671413/4184258
         # there are issues with pdflatex and conda (because, why would software ever work?!).
@@ -245,7 +249,11 @@ rule bcftools_stats_plot:
         # from interfering here, so that the failing plot command does not stop the whole exection,
         # see https://stackoverflow.com/a/11231970/4184258 for that.
         "( plot-vcfstats --prefix {params.outdir} {params.extra} {input} &> {log} || true ) ; "
-        "if [ ! -f \"{output}\" ]; then "
+        "if [ -f \"{output}\" ]; then "
+        "    echo \"Success with pdflatex\" >> {log} ; "
+        "else"
+        "    echo \"Failed with pdflatex\" >> {log} ; "
+        "    echo \"Trying tectonic instead\" >> {log} ; "
         "    cd {params.outdir} ; "
         "    tectonic summary.tex >> {log} 2>&1 ; "
         "fi"
