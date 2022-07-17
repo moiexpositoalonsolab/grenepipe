@@ -41,7 +41,7 @@ Pipeline Overview
     - [mapDamage](https://github.com/ginolhac/mapDamage)
     - [DamageProfiler](https://github.com/Integrative-Transcriptomics/DamageProfiler)
   - Variant calling, genotyping, and filtering
-    - [bcftools call](http://samtools.github.io/bcftools/bcftools.html)
+    - [bcftools call](http://samtools.github.io/bcftools/bcftools.html#call)
     - [freebayes](https://github.com/freebayes/freebayes)
     - [GATK HaplotypeCaller](https://gatk.broadinstitute.org/hc/en-us/articles/360037225632-HaplotypeCaller) / [GATK GenotypeGVCFs](https://gatk.broadinstitute.org/hc/en-us/articles/360037057852-GenotypeGVCFs)
     - [GATK SelectVariants](https://gatk.broadinstitute.org/hc/en-us/articles/360037055952-SelectVariants)
@@ -53,6 +53,7 @@ Pipeline Overview
     - [samtool flagstat](http://www.htslib.org/doc/samtools-flagstat.html)
     - [QualiMap](http://qualimap.conesalab.org/)
     - [Picard CollectMultipleMetrics](https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard-)
+    - [bcftools stats](http://samtools.github.io/bcftools/bcftools.html#stats)
     - [snpEff](https://pcingola.github.io/SnpEff/)
     - [VEP](https://uswest.ensembl.org/info/docs/tools/vep/index.html) (Ensembl Variant Effect Predictor)
     - [MultiQC](https://multiqc.info/)
@@ -60,7 +61,7 @@ Pipeline Overview
 **Output:**
 
   - Variant calls `vcf`, and table of allele frequencies (optional, e.g., for pool sequencing data)
-  - MultiQC report (includes summaries of most other tools)
+  - MultiQC report (includes summaries of most other tools, and of the final `vcf`)
   - Snakemake report (optional)
 
 Intermediate output files such as `bam` files are also kept,
