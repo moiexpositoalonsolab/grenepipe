@@ -161,7 +161,6 @@ def get_sample_units( sample ):
 wildcard_constraints:
     sample="|".join(config["global"]["sample-names"]),
     unit="|".join(config["global"]["unit-names"])
-    # vartype="snvs|indels" TODO?!
 
 # =================================================================================================
 #     Pipeline User Output

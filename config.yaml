@@ -136,6 +136,14 @@ settings:
   # for details on the usage of regions with GATK HaplotypeCaller.
   restrict-regions: ""
 
+  # Set to true in order to apply machine learning based recalibration (GATK VQSR)
+  # of quality scores instead of hard filtering, using the GATK VariantRecalibrator tool,
+  # see https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
+  # According to their documentation, "VQSR is probably the hardest part [...] to get right",
+  # so you will likely need a few tries to get it to work properly.
+  # See settings: variantfiltration-vqsr below for detailled settings when using this step.
+  vqsr: false
+
   # ----------------------------------------------------------------------
   #     Optional Steps
   # ----------------------------------------------------------------------
@@ -551,18 +559,102 @@ params:
     HaplotypeCaller-threads: 2
 
   # ----------------------------------------------------------------------
-  #     gatk / variantfiltration
+  #     GATK VariantFiltration
   # ----------------------------------------------------------------------
 
+  # Used only if settings:vqsr == false,
+  # Uses the GATK VariantFiltration tool for hard filtering SNPs and INDELs.
   variantfiltration-hard:
 
     # Extra parameters for the hard filtering as outlined in GATK docs
     # https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
     # The filtering is separated for SNPs/SNVs and indels.
-    snvs:
+    SNP:
       "QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0"
-    indels:
+    INDEL:
       "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0"
+
+  # ----------------------------------------------------------------------
+  #     GATK VariantRecalibrator + ApplyVQSR
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:vqsr == true,
+  # Uses the GATK VariantRecalibrator and ApplyVQSR tools for filtering SNPs and INDELs,
+  # see https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
+  # and https://gatk.broadinstitute.org/hc/en-us/articles/360036431392-ApplyVQSR for the tools,
+  # and see https://gatk.broadinstitute.org/hc/en-us/articles/360035531612-Variant-Quality-Score-Recalibration-VQSR-
+  # for the workflow itself, including hints and tipps for the settings used here.
+  # This is a complicated step that WILL NEED YOUR EXPERIMENTATION with settings to fully leverage
+  # the tool! Note that the settings here are solely used because they work for our test data,
+  # so that we can keep the tests simple. REPLACE WITH YOUR SETTINGS AS NEEDED!
+  variantfiltration-vqsr:
+    # Resource settings and files, according to the documentation at
+    # https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
+    # Note that the names (here, e.g., "1001G") are arbitrary, but need to match between
+    # the `resources` and the `resource-files` - that is, for every resource, there also needs to
+    # be a file associated with it. Multiple resources can also be provided. We below also provide
+    # (commented out) the resources used in the GATK documentation, for reference.
+    resources:
+      # Example resource using a 1001G Arabidopsis thaliana VCF.
+      - 1001G:
+        - known: false
+        - training: true
+        - truth: true
+        - prior: 10.0
+
+      # Other examples, from the GATK documentation, for the human genome.
+      # - hapmap:
+      #   - known: false
+      #   - training: true
+      #   - truth: true
+      #   - prior: 15.0
+      # - omni:
+      #   - known: false
+      #   - training: true
+      #   - truth: false
+      #   - prior: 12.0
+      # - 1000G:
+      #   - known: false
+      #   - training: true
+      #   - truth: false
+      #   - prior: 10.0
+      # - dbsnp:
+      #   - known: true
+      #   - training: false
+      #   - truth: false
+      #   - prior: 2.0
+    resource-files:
+      # Example resource using a 1001G Arabidopsis thaliana VCF.
+      - 1001G: "1001genomes_snp-short-indel_only_ACGTN.vcf.gz"
+
+      # Other examples, from the GATK documentation, for the human genome.
+      # - hapmap: "hapmap_3.3.hg38.sites.vcf.gz"
+      # - omni: "1000G_omni2.5.hg38.sites.vcf.gz"
+      # - 1000G: "1000G_phase1.snps.high_confidence.hg38.vcf.gz"
+      # - dbsnp: "Homo_sapiens_assembly38.dbsnp138.vcf.gz"
+
+    # Provide the annotions of the VCF INFO field to be used for VQSR. These should match the fields
+    # that are actually available in your resource files.
+    annotation:
+      - "DP"
+      # - "QD"
+      # - "MQ"
+      # - "MQRankSum"
+      # - "ReadPosRankSum"
+      # - "FS"
+      # - "SOR"
+
+    # Extra command line params, and optional Java runtime options to provide
+    # to GATK VariantRecalibrator. We already set the --rscript-file internally for some plots
+    # of the recalibration (only gives plots for the SNPs though, according to GATK).
+    extra-variantrecalibrator-SNP: "--max-gaussians 2"
+    extra-variantrecalibrator-INDEL: "--max-gaussians 1"
+    java-variantrecalibrator: ""
+
+    # Extra command line params, and optional Java runtime options to provide to GATK ApplyVQSR
+    extra-applyvqsr-SNP: "--truth-sensitivity-filter-level 99.0"
+    extra-applyvqsr-INDEL: "--truth-sensitivity-filter-level 99.0"
+    java-applyvqsr: ""
 
   # ----------------------------------------------------------------------
   #     fastqc

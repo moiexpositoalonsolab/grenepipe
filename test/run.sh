@@ -51,6 +51,16 @@ make_config() {
     # Need an extra replacement step for threads. Might change in the future - this is a bit
     # volatile. But works for now.
     sed -i "s/threads: 12/threads: 6/g" ${TARGET}
+
+    # We also copy over the VQSR training data. It's only needed for few test cases,
+    # but doesn't hurt to have it in the other directories as well. As this might not be available
+    # for every user that wants to run our tests, we might skip - VSQR tests fail in that case!
+    if test -f "test/1001genomes_snp-short-indel_only_ACGTN.vcf.gz"; then
+        cd "$(dirname "${TARGET}")"
+        ln -s ../1001genomes_snp-short-indel_only_ACGTN.vcf.gz .
+        ln -s ../1001genomes_snp-short-indel_only_ACGTN.vcf.gz.tbi .
+        cd -
+    fi
 }
 
 # Helper to list _all_ decendant processes of this script, so that when killing the script,

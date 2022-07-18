@@ -85,16 +85,16 @@ def merge_variants_tbis_input(wildcards):
 # bcftools does not automatically create vcf index files, so we need a rule for that...
 # ... but picard does! So, if we continue using the below picard mergevcfs tool, we don't need tabix
 # ...... buuuuut vcflib does not! So, we reactivate it again!
-rule vcf_index:
+rule called_vcf_index:
     input:
-        "{prefix}.vcf.gz"
+        "called/{contig}.vcf.gz"
     output:
-        "{prefix}.vcf.gz.tbi"
+        "called/{contig}.vcf.gz.tbi"
     params:
         # pass arguments to tabix (e.g. index a vcf)
         "-p vcf"
     log:
-        "logs/tabix/{prefix}.log"
+        "logs/tabix/called/{contig}.log"
     wrapper:
         "0.55.1/bio/tabix"
 

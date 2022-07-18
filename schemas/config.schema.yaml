@@ -53,6 +53,8 @@ properties:
         type: integer
       # region-padding:
       #   type: integer
+      vqsr:
+        type: boolean
       snpeff:
         type: boolean
       vep:
@@ -259,20 +261,39 @@ properties:
             type: string
           GenotypeGVCFs:
             type: string
-          VariantRecalibrator:
-            type: string
         required:
           - GenotypeGVCFs
       variantfiltration-hard:
         type: object
         properties:
-          snvs:
+          SNP:
             type: string
-          indels:
+          INDEL:
             type: string
         required:
-          - snvs
-          - indels
+          - SNP
+          - INDEL
+      variantfiltration-vqsr:
+        type: object
+        properties:
+          resources:
+            type: [array, object]
+          resource-files:
+            type: [array, object]
+          annotation:
+            type: [array, object]
+          extra-variantrecalibrator-SNP:
+            type: string
+          extra-variantrecalibrator-INDEL:
+            type: string
+          java-variantrecalibrator:
+            type: string
+          extra-applyvqsr-SNP:
+            type: string
+          extra-applyvqsr-INDEL:
+            type: string
+          java-applyvqsr:
+            type: string
       fastqc:
         type: object
         properties:
@@ -336,6 +357,7 @@ properties:
       - freebayes
       - gatk
       - variantfiltration-hard
+      - variantfiltration-vqsr
       - fastqc
       - qualimap
       - snpeff
