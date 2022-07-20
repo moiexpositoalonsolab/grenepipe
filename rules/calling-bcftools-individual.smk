@@ -48,6 +48,8 @@ rule call_variants:
         "("
         "bcftools mpileup "
         "    {params.mpileup} --fasta-ref {input.ref} --output-type u {input.samples} "
+        # See https://www.biostars.org/p/397616/ for details on the annotations
+        # "    -a \"AD,ADF,ADR,DP,SP,INFO/AD,INFO/ADF,INFO/ADR,FORMAT/AD,FORMAT/DP\" --gvcf 0 | "
         "    -a 'INFO/AD' -a 'FORMAT/AD' -a 'FORMAT/DP' --gvcf 0 | "
         "bcftools call "
         "    --threads {threads} {params.call} --gvcf 0 --output-type u | "
@@ -56,6 +58,9 @@ rule call_variants:
         "    --output-type z -o {output.gvcf} ; "
         "bcftools index --tbi {output.gvcf}"
         ") &> {log}"
+
+# Potential reference implementation:
+# https://gist.github.com/lindenb/f5311887f5a5df0abfaf487df4ae2858
 
 # =================================================================================================
 #     Combining Contigs

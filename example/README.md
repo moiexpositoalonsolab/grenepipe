@@ -30,6 +30,7 @@ Arabidopsis thaliana reference genome, obtained from
 
 The file `TAIR10_chr_all.fas.gz` has not to be decompressed, as this step is done automatically.
 
+
 Known Variants and Regions
 ==============
 
