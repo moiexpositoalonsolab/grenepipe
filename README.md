@@ -63,11 +63,11 @@ Pipeline Overview
 
 **Output:**
 
-  - Variant calls `vcf`, and table of allele frequencies (optional, e.g., for pool sequencing data)
+  - Variant calls `vcf`, potentially with annotations
   - MultiQC report (includes summaries of most other tools, and of the final `vcf`)
   - Snakemake report (optional)
 
-Intermediate output files such as `bam` files are also kept,
+Intermediate output files such as `bam` files are also kept by default,
 and `mpileup` files can optionally be created if needed.
 In addition to the above tools, there are some tools used as glue between the steps.
 If you are interested in the details, have a look at the snakemake [rules](https://github.com/lczech/grenepipe/tree/master/rules) for each step.
