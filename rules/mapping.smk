@@ -59,7 +59,7 @@ else:
     raise Exception("Unknown mapping-tool: " + config["settings"]["mapping-tool"])
 
 # =================================================================================================
-#     Filtering Mapped Reads
+#     Filtering and Clipping Mapped Reads
 # =================================================================================================
 
 rule filter_mapped_reads:
@@ -68,16 +68,65 @@ rule filter_mapped_reads:
     output:
         "mapped/{sample}-{unit}.filtered.bam"
     params:
-        config["params"]["samtools"]["view"] + " -b"
+        extra=config["params"]["samtools"]["view"] + " -b"
+    conda:
+        # Need our own env again, because of conflicting numpy and pandas version...
+        "../envs/samtools.yaml"
     wrapper:
-        "0.72.0/bio/samtools/view"
+        "0.85.0/bio/samtools/view"
+
+rule clip_read_overlaps:
+    input:
+        # Either get the mapped reads directly, or if we do filtering before, take that instead.
+        "mapped/{sample}-{unit}.filtered.bam" if (
+            config["settings"]["filter-mapped-reads"]
+        ) else (
+            "mapped/{sample}-{unit}.sorted.bam"
+        )
+    output:
+        "mapped/{sample}-{unit}.clipped.bam"
+    params:
+        extra=config["params"]["bamutil"]["extra"]
+    log:
+        "logs/bamutil/{sample}-{unit}.log"
+    benchmark:
+        "benchmarks/bamutil/{sample}-{unit}.bench.log"
+    conda:
+        "../envs/bamutil.yaml"
+    shell:
+        "bam clipOverlap --in {input[0]} --out {output[0]} {params.extra} &> {log}"
 
 def get_mapped_reads(wildcards):
-    """Get mapped reads of given sample-unit, either filtered or unfiltered"""
+    """Get mapped reads of given sample-unit, either unfiltered, filtered, and/or clipped."""
+
+    # Default case: just the mapped and sorted reads.
+    result = "mapped/{sample}-{unit}.sorted.bam".format(**wildcards)
+
+    # If we want filtering, do that instead.
     if config["settings"]["filter-mapped-reads"]:
-        return "mapped/{sample}-{unit}.filtered.bam".format(**wildcards)
-    else:
-        return "mapped/{sample}-{unit}.sorted.bam".format(**wildcards)
+        result = "mapped/{sample}-{unit}.filtered.bam".format(**wildcards)
+
+    # If we want clipping, do that. The clipping rule above also might already use the
+    # filtered reads, so that is taking into account as well.
+    if config["settings"]["clip-read-overlaps"]:
+        result = "mapped/{sample}-{unit}.clipped.bam".format(**wildcards)
+
+    return result
+
+# We need to get a bit dirty here, as dedup names output files based on input file names,
+# so that depending on what kind of input (mapped, filtered, clipped) we give it,
+# we get differently named output files, which does not work well with snakemake.
+# So we need to hardcode this here, it seems...
+# We keep this function here, so that if we ever add an additinal step here, we will (hopefully)
+# notice, and adapt this function as well.
+def get_mapped_read_infix():
+    # Same logic as the function above.
+    result = "sorted"
+    if config["settings"]["filter-mapped-reads"]:
+        result = "filtered"
+    if config["settings"]["clip-read-overlaps"]:
+        result = "clipped"
+    return result
 
 # =================================================================================================
 #     Mark Duplicates
@@ -160,17 +209,21 @@ def get_recal_input(bai=False):
     if config["settings"]["filter-mapped-reads"]:
         f = "mapped/{sample}-{unit}.filtered.bam"
 
+    # case 3: clipping reads with BamUtil
+    if config["settings"]["clip-read-overlaps"]:
+        f = "mapped/{sample}-{unit}.clipped.bam"
+
+    # case 4: remove duplicates
     if config["settings"]["remove-duplicates"]:
-        # case 3: remove duplicates
         f = "dedup/{sample}-{unit}.bam"
 
     if bai:
         if config["settings"].get("restrict-regions"):
-            # case 4: need an index because random access is required
+            # case 5: need an index because random access is required
             f += ".bai"
             return f
         else:
-            # case 5: no index needed
+            # case 6: no index needed
             return []
     else:
         return f
@@ -233,6 +286,10 @@ rule bam_index:
 
 # At this point, we have several choices of which files we want to hand down to the next
 # pipleine step. We offer a function so that downstream does not have to deal with this.
+# The way this works is as follows: Each optional step that could be applied
+# overwrites the previous setting, until we have the final file that we want to use downstream.
+# As each of these optional steps itself also takes care of using previous optional steps
+# (see above), what we get here is the file name of the last step that we want to apply.
 
 def get_mapping_result(bai=False):
     # case 1: no duplicate removal
@@ -242,11 +299,15 @@ def get_mapping_result(bai=False):
     if config["settings"]["filter-mapped-reads"]:
         f = "mapped/{sample}-{unit}.filtered.bam"
 
-    # case 3: remove duplicates
+    # case 3: clipping reads with BamUtil
+    if config["settings"]["clip-read-overlaps"]:
+        f = "mapped/{sample}-{unit}.clipped.bam"
+
+    # case 4: remove duplicates
     if config["settings"]["remove-duplicates"]:
         f = "dedup/{sample}-{unit}.bam"
 
-    # case 4: recalibrate base qualities
+    # case 5: recalibrate base qualities
     if config["settings"]["recalibrate-base-qualities"]:
         f = "recal/{sample}-{unit}.bam"
 

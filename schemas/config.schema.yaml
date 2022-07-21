@@ -37,6 +37,8 @@ properties:
         enum: ["bowtie2", "bwaaln", "bwamem", "bwamem2"]
       filter-mapped-reads:
         type: boolean
+      clip-read-overlaps:
+        type: boolean
       remove-duplicates:
         type: boolean
       duplicates-tool:
@@ -73,6 +75,7 @@ properties:
       - merge-paired-end-reads
       - mapping-tool
       - filter-mapped-reads
+      - clip-read-overlaps
       - remove-duplicates
       - duplicates-tool
       - recalibrate-base-qualities
@@ -178,6 +181,11 @@ properties:
         type: object
         properties:
           view:
+            type: string
+      bamutil:
+        type: object
+        properties:
+          extra:
             type: string
       picard:
         type: object

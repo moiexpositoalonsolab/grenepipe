@@ -60,15 +60,34 @@ settings:
   # where such filtering is common.
   filter-mapped-reads: false
 
-  # Select whether to mark and remove duplicates after mapping,
+  # Furthermore, after mapping, and potentially after filtering if activated above, but again
+  # before subsequent steps (deduplication, variant calling etc), clip overlapping reads,
+  # using BamUtil clipOverlap.
+  # Using the base calls from both reads might violate the implicit assumption of genotype likelihood
+  # models of downstream callers: that each read represents unique insert information. This might
+  # bias the genotype likelihoods, particularly in low coverage settings.
+  # We hence offer this clipping step, to remove any potential overlap between paired reads.
+  # If set to `true`, use `params: bamutil` below to set additional parameters for this step.
+  # Using this option can lead to one of the read mates being fully soft clipped (if the respective
+  # other read is of higher quality), which will cause picard MarkDuplicates to fail;
+  # if duplicate removal is however still necessary, you can silence this with the additional
+  # setting `VALIDATION_STRINGENCY=SILENT` for picard MarkDuplicates, in its settings below.
+  clip-read-overlaps: false
+
+  # After the above steps (mapping, and potentially filtering and/or clipping),
+  # select whether to mark and remove duplicates after mapping,
   # using either picard/markduplicates or dedup, depending on "settings: duplicates-tool"
   remove-duplicates: true
 
-  # Select the tool to mark duplicates.
+  # Select the tool to mark duplicates, when `remove-duplicates` above is set to `true`.
+  # See the respective `params` sections below for setting the parameters for the chosen tool.
+  # Note that DeDup expects certain name prefixes for the reads, and is mainly designed for merged
+  # pair end reads; see https://github.com/apeltzer/DeDup
   # Valid values: "picard", "dedup"
   duplicates-tool: "picard"
 
-  # Select whether to recalibrate base frequencies after mapping, using gatk/baserecalibrator.
+  # Select whether to recalibrate base frequencies after mapping (in fact, after all the above
+  # steps that might include filtering and duplicate removal), using gatk/baserecalibrator.
   # If set to true, "data: known-variants" has to be provided as well.
   # Furthermore, either the samples table (as provided via "data: samples") needs to contain
   # a `platform` column containing the sequencing platform/instrument for each sample,
@@ -435,6 +454,18 @@ params:
     temp-dir: ""
 
   # ----------------------------------------------------------------------
+  #     BamUtil
+  # ----------------------------------------------------------------------
+
+  # Used only if settings:clip-read-overlaps == true
+  bamutil:
+    # Set extra parameters to use for clipOverlap,
+    # see https://genome.sph.umich.edu/wiki/BamUtil:_clipOverlap for details.
+    # By default, we print the parameter settings and produce some statistics about the clipping,
+    # which will be located in the log file produced by the step.
+    extra: "--params --stats"
+
+  # ----------------------------------------------------------------------
   #     picard
   # ----------------------------------------------------------------------
 
@@ -473,6 +504,7 @@ params:
   # Used only if settings:duplicates-tool == dedup
   # See https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/dedupe-guide/
   dedup:
+    # Extra settings to provide to DeDup
     extra: "-m"
 
     # Extra parameters for samtools sort, which we use after dedup for sorting its output,

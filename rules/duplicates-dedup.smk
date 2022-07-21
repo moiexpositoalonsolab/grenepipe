@@ -23,8 +23,8 @@ rule mark_duplicates:
         get_mapped_reads
         # "mapped/{sample}-{unit}.sorted.bam"
     output:
-        bam=temp("dedup/{sample}-{unit}.sorted_rmdup.bam"),
-        metrics="dedup/{sample}-{unit}.sorted.dedup.json"
+        bam=temp("dedup/{sample}-{unit}_rmdup.bam"),
+        metrics="dedup/{sample}-{unit}.dedup.json"
     log:
         "logs/dedup/{sample}-{unit}.log"
     benchmark:
@@ -37,11 +37,19 @@ rule mark_duplicates:
     group:
         "mapping_extra"
     shell:
-        "dedup -i {input} -o {params.out_dir} {params.extra} > {log} 2>&1"
+        # Dedup bases its output names on this, so we need some more trickery to make it
+        # output the file names that we want.
+        "dedup -i {input} -o {params.out_dir} {params.extra} > {log} 2>&1 ; "
+        "mv"
+        "    dedup/{wildcards.sample}-{wildcards.unit}." + get_mapped_read_infix() + "_rmdup.bam"
+        "    dedup/{wildcards.sample}-{wildcards.unit}_rmdup.bam ; "
+        "mv"
+        "    dedup/{wildcards.sample}-{wildcards.unit}." + get_mapped_read_infix() + ".dedup.json"
+        "    dedup/{wildcards.sample}-{wildcards.unit}.dedup.json"
 
 rule sort_reads_dedup:
     input:
-        "dedup/{sample}-{unit}.sorted_rmdup.bam"
+        "dedup/{sample}-{unit}_rmdup.bam"
     output:
         "dedup/{sample}-{unit}.bam"
     params:

@@ -59,7 +59,7 @@ make_config() {
         cd "$(dirname "${TARGET}")"
         ln -s ../1001genomes_snp-short-indel_only_ACGTN.vcf.gz .
         ln -s ../1001genomes_snp-short-indel_only_ACGTN.vcf.gz.tbi .
-        cd -
+        cd - > /dev/null
     fi
 }
 

@@ -297,7 +297,7 @@ def get_dedup_report():
     if config["settings"]["duplicates-tool"] == "picard":
         return "qc/dedup/{u.sample}-{u.unit}.metrics.txt"
     elif config["settings"]["duplicates-tool"] == "dedup":
-        return "dedup/{u.sample}-{u.unit}.sorted.dedup.json"
+        return "dedup/{u.sample}-{u.unit}.dedup.json"
     else:
         raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
 

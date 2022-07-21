@@ -28,15 +28,18 @@ Pipeline Overview
     - [SeqPrep](https://github.com/jstjohn/SeqPrep)
     - [skewer](https://github.com/relipmoc/skewer)
     - [trimmomatic](http://www.usadellab.org/cms/index.php?page=trimmomatic)
-  - Read mapping, optionally with duplication removal and quality score recalibration
+  - Read mapping
     - [bwa mem](http://bio-bwa.sourceforge.net/bwa.shtml)
     - [bwa aln](http://bio-bwa.sourceforge.net/bwa.shtml)
     - [bwa mem2](https://github.com/bwa-mem2/bwa-mem2)
     - [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
+  - Optional read filtering, clipping, duplication removal, and quality score recalibration
+    - [samtool view](http://www.htslib.org/doc/samtools-view.html)
+    - [BamUtil clipOverlap](https://genome.sph.umich.edu/wiki/BamUtil:_clipOverlap)
     - [Picard MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates)
     - [DeDup](https://github.com/apeltzer/dedup)
-    - [GATK BaseRecalibrator](https://gatk.broadinstitute.org/hc/en-us/articles/360036898312-BaseRecalibrator)
-    - [samtools mpileup](http://www.htslib.org/doc/samtools-mpileup.html) (optional)
+    - [GATK BaseRecalibrator](https://gatk.broadinstitute.org/hc/en-us/articles/360036898312-BaseRecalibrator) (BQSR)
+    - [samtools mpileup](http://www.htslib.org/doc/samtools-mpileup.html)
   - Damage profiling (optional; e.g., for ancient DNA)
     - [mapDamage](https://github.com/ginolhac/mapDamage)
     - [DamageProfiler](https://github.com/Integrative-Transcriptomics/DamageProfiler)
@@ -46,7 +49,7 @@ Pipeline Overview
     - [GATK HaplotypeCaller](https://gatk.broadinstitute.org/hc/en-us/articles/360037225632-HaplotypeCaller) / [GATK GenotypeGVCFs](https://gatk.broadinstitute.org/hc/en-us/articles/360037057852-GenotypeGVCFs)
     - [GATK SelectVariants](https://gatk.broadinstitute.org/hc/en-us/articles/360037055952-SelectVariants)
     - [GATK VariantFiltration](https://gatk.broadinstitute.org/hc/en-us/articles/360036834871-VariantFiltration)
-    - [GATK VariantRecalibrator](https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator)
+    - [GATK VariantRecalibrator](https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator) (VQSR)
   - Quality control, statistics, SNP annotation, reporting
     - [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
     - [samtool stats](http://www.htslib.org/doc/samtools-stats.html)
