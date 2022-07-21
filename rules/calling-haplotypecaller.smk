@@ -40,7 +40,11 @@ rule call_variants:
             ) else []
         )
     output:
-        gvcf="called/{sample}.{contig}.g.vcf.gz"
+        gvcf=(
+            "called/{sample}.{contig}.g.vcf.gz"
+            if config["settings"]["keep-intermediate"]["calling"]
+            else temp("called/{sample}.{contig}.g.vcf.gz")
+        )
         # gvcf=protected("called/{sample}.{contig}.g.vcf.gz")
     log:
         "logs/gatk/haplotypecaller/{sample}.{contig}.log"
@@ -107,7 +111,11 @@ rule combine_calls:
             sample=config["global"]["sample-names"]
         )
     output:
-        gvcf=temp("called/all.{contig}.g.vcf.gz")
+        gvcf=(
+            "called/all.{contig}.g.vcf.gz"
+            if config["settings"]["keep-intermediate"]["calling"]
+            else temp("called/all.{contig}.g.vcf.gz")
+        )
     log:
         "logs/gatk/combine-gvcfs/{contig}.log"
     benchmark:
@@ -131,7 +139,11 @@ rule genotype_variants:
 
         gvcf="called/all.{contig}.g.vcf.gz"
     output:
-        vcf=temp("genotyped/all.{contig}.vcf.gz")
+        vcf=(
+            "genotyped/all.{contig}.vcf.gz"
+            if config["settings"]["keep-intermediate"]["calling"]
+            else temp("genotyped/all.{contig}.vcf.gz")
+        )
     params:
         extra=config["params"]["gatk"]["GenotypeGVCFs"]
     log:

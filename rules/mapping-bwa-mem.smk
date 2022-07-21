@@ -16,7 +16,11 @@ rule map_reads:
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         )
     output:
-        "mapped/{sample}-{unit}.sorted.bam"
+        (
+            "mapped/{sample}-{unit}.sorted.bam"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("mapped/{sample}-{unit}.sorted.bam")
+        )
     params:
         index=config["data"]["reference"]["genome"],
         extra=get_bwa_mem_extra,

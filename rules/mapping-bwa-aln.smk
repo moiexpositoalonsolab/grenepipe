@@ -33,7 +33,11 @@ rule map_reads:
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         )
     output:
-        "sai/{sample}-{unit}-{pair}.sai"
+        (
+            "sai/{sample}-{unit}-{pair}.sai"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("sai/{sample}-{unit}-{pair}.sai")
+        )
         # Absolutely no idea why the following does not work. Snakemake complains that the pipe
         # is not used at all, which is simply wrong, as it is clearly used by bwa_sai_to_bam,
         # and also why would this rul here be called if its output file was not requested at all?!
@@ -144,7 +148,11 @@ rule bwa_bam_clean:
     input:
         "mapped/{sample}-{unit}.sorted-unclean.bam"
     output:
-        "mapped/{sample}-{unit}.sorted.bam"
+        (
+            "mapped/{sample}-{unit}.sorted.bam"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("mapped/{sample}-{unit}.sorted.bam")
+        )
     group:
         "mapping"
     log:

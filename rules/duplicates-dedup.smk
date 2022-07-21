@@ -51,7 +51,11 @@ rule sort_reads_dedup:
     input:
         "dedup/{sample}-{unit}_rmdup.bam"
     output:
-        "dedup/{sample}-{unit}.bam"
+        (
+            "dedup/{sample}-{unit}.bam"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("dedup/{sample}-{unit}.bam")
+        )
     params:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"]

@@ -1,0 +1,4 @@
+trimming-tool: "trimmomatic"	trimming-tool: "skewer"
+trimming: True	trimming: False
+mapdamage: false	mapdamage: true
+damageprofiler: false	damageprofiler: true

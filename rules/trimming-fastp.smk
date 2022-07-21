@@ -12,7 +12,11 @@ rule trim_reads_se:
     input:
         sample=unpack_fastp_files
     output:
-        trimmed="trimmed/{sample}-{unit}.fastq.gz",
+        trimmed=(
+            "trimmed/{sample}-{unit}.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.fastq.gz")
+        ),
         html="trimmed/{sample}-{unit}-se-fastp.html",
         json="trimmed/{sample}-{unit}-se-fastp.json"
     log:
@@ -30,7 +34,11 @@ rule trim_reads_pe:
     input:
         sample=unpack_fastp_files
     output:
-        trimmed=["trimmed/{sample}-{unit}.1.fastq.gz", "trimmed/{sample}-{unit}.2.fastq.gz"],
+        trimmed=(
+            ["trimmed/{sample}-{unit}.1.fastq.gz", "trimmed/{sample}-{unit}.2.fastq.gz"]
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp(["trimmed/{sample}-{unit}.1.fastq.gz", "trimmed/{sample}-{unit}.2.fastq.gz"])
+        ),
         html="trimmed/{sample}-{unit}-pe-fastp.html",
         json="trimmed/{sample}-{unit}-pe-fastp.json"
     log:
@@ -50,7 +58,11 @@ rule trim_reads_pe_merged:
     output:
         # Need to leave "trimmed" empty here, so that the wrapper works properly with merged,
         # so we use "merged" instead, and use it as an extra param.
-        merged="trimmed/{sample}-{unit}-merged.fastq.gz",
+        merged=(
+            "trimmed/{sample}-{unit}-merged.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}-merged.fastq.gz")
+        ),
         html="trimmed/{sample}-{unit}-pe-merged-fastp.html",
         json="trimmed/{sample}-{unit}-pe-merged-fastp.json"
     log:

@@ -57,6 +57,15 @@ properties:
       #   type: integer
       vqsr:
         type: boolean
+      keep-intermediate:
+        type: object
+        properties:
+          trimming:
+            type: boolean
+          mapping:
+            type: boolean
+          calling:
+            type: boolean
       snpeff:
         type: boolean
       vep:

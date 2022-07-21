@@ -6,7 +6,11 @@ rule trim_reads_se:
     input:
         unpack(get_fastq)
     output:
-        "trimmed/{sample}-{unit}.fastq.gz"
+        (
+            "trimmed/{sample}-{unit}.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.fastq.gz")
+        )
         # trimlog="trimmed/{sample}-{unit}-se.trimlog.log"
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
@@ -28,10 +32,26 @@ rule trim_reads_pe:
     input:
         unpack(get_fastq)
     output:
-        r1="trimmed/{sample}-{unit}.1.fastq.gz",
-        r2="trimmed/{sample}-{unit}.2.fastq.gz",
-        r1_unpaired="trimmed/{sample}-{unit}.1.unpaired.fastq.gz",
-        r2_unpaired="trimmed/{sample}-{unit}.2.unpaired.fastq.gz"
+        r1=(
+            "trimmed/{sample}-{unit}.1.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.1.fastq.gz")
+        ),
+        r2=(
+            "trimmed/{sample}-{unit}.2.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.2.fastq.gz")
+        ),
+        r1_unpaired=(
+            "trimmed/{sample}-{unit}.1.unpaired.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.1.unpaired.fastq.gz")
+        ),
+        r2_unpaired=(
+            "trimmed/{sample}-{unit}.2.unpaired.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.2.unpaired.fastq.gz")
+        )
         # trimlog="trimmed/{sample}-{unit}-pe.trimlog.log"
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),

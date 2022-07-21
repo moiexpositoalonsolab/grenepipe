@@ -26,7 +26,11 @@ rule call_variants:
             ) else []
         )
     output:
-        gvcf="called/{sample}.{contig}.g.vcf.gz",
+        gvcf=(
+            "called/{sample}.{contig}.g.vcf.gz"
+            if config["settings"]["keep-intermediate"]["calling"]
+            else temp("called/{sample}.{contig}.g.vcf.gz")
+        ),
         gtbi="called/{sample}.{contig}.g.vcf.gz.tbi"
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
@@ -76,9 +80,16 @@ rule combine_contig:
         ),
 
         # Get the sample data, including indices, which are produced above.
-        gvcfs=expand(
-            "called/{sample}.{{contig}}.g.vcf.gz",
-            sample=config["global"]["sample-names"]
+        gvcfs=(
+            expand(
+                "called/{sample}.{{contig}}.g.vcf.gz",
+                sample=config["global"]["sample-names"]
+            )
+            if config["settings"]["keep-intermediate"]["calling"]
+            else temp( expand(
+                "called/{sample}.{{contig}}.g.vcf.gz",
+                sample=config["global"]["sample-names"]
+            ))
         ),
         indices=expand(
             "called/{sample}.{{contig}}.g.vcf.gz.tbi",

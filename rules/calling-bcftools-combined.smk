@@ -27,7 +27,11 @@ rule call_variants:
             ) else []
         )
     output:
-        vcf="called/{contig}.vcf.gz"
+        vcf=(
+            "called/{contig}.vcf.gz"
+            if config["settings"]["keep-intermediate"]["calling"]
+            else temp("called/{contig}.vcf.gz")
+        )
         # vcf=protected("called/{contig}.vcf.gz")
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).

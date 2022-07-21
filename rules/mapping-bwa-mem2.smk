@@ -21,7 +21,11 @@ rule map_reads:
             ext=[ "0123", "amb", "ann", "bwt.2bit.64", "pac" ]
         )
     output:
-        "mapped/{sample}-{unit}.sorted.bam"
+        (
+            "mapped/{sample}-{unit}.sorted.bam"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("mapped/{sample}-{unit}.sorted.bam")
+        )
     params:
         extra=get_bwa_mem2_extra,
 

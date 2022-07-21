@@ -11,7 +11,11 @@ rule mark_duplicates:
         get_mapped_reads
         # "mapped/{sample}-{unit}.sorted.bam"
     output:
-        bam="dedup/{sample}-{unit}.bam",
+        bam=(
+            "dedup/{sample}-{unit}.bam"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("dedup/{sample}-{unit}.bam")
+        ),
         metrics="qc/dedup/{sample}-{unit}.metrics.txt"
     log:
         "logs/picard/dedup/{sample}-{unit}.log"

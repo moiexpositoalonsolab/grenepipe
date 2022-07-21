@@ -14,7 +14,11 @@ rule select_calls:
         # ... but the picard merge tool that we use right now does create tbi files, so all good atm.
         # tbi="genotyped/all.vcf.gz.tbi" if config["settings"]["calling-tool"] == "bcftools" else []
     output:
-        vcf=temp("filtered/all.select-{vartype}.vcf.gz")
+        vcf=(
+            "filtered/all.select-{vartype}.vcf.gz"
+            if config["settings"]["keep-intermediate"]["filtering"]
+            else temp("filtered/all.select-{vartype}.vcf.gz")
+        )
     params:
         extra="--select-type-to-include {vartype}"
     log:
@@ -41,7 +45,11 @@ rule hard_filter_calls:
         ref=config["data"]["reference"]["genome"],
         vcf="filtered/all.select-{vartype}.vcf.gz"
     output:
-        vcf=temp("filtered/all.{vartype}.hardfiltered.vcf.gz")
+        vcf=(
+            "filtered/all.{vartype}.hardfiltered.vcf.gz"
+            if config["settings"]["keep-intermediate"]["filtering"]
+            else temp("filtered/all.{vartype}.hardfiltered.vcf.gz")
+        )
     params:
         filters=get_filter
     log:
@@ -177,7 +185,11 @@ rule apply_vqsr:
         recal="filtered/all.{vartype}.vqsr-recal.vcf.gz",
         tranches="filtered/all.{vartype}.vqsr-recal.tranches"
     output:
-        vcf="filtered/all.{vartype}.recalibrated.vcf.gz"
+        vcf=(
+            "filtered/all.{vartype}.recalibrated.vcf.gz"
+            if config["settings"]["keep-intermediate"]["filtering"]
+            else temp("filtered/all.{vartype}.recalibrated.vcf.gz")
+        )
     log:
         "logs/gatk/applyvqsr/{vartype}.log"
     benchmark:

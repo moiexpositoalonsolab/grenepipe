@@ -2,6 +2,7 @@ trimming-tool: "trimmomatic"	trimming-tool: "fastp"
 merge-paired-end-reads: false	merge-paired-end-reads: true
 filter-mapped-reads: false	filter-mapped-reads: true
 clip-read-overlaps: false	clip-read-overlaps: true
+trimming: True	trimming: False
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
 input: "samples"	input: "trimmed"

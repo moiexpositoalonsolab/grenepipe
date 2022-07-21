@@ -82,7 +82,11 @@ rule sort_reads:
     input:
         "mapped/{sample}-{unit}.bam"
     output:
-        "mapped/{sample}-{unit}.sorted.bam"
+        (
+            "mapped/{sample}-{unit}.sorted.bam"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("mapped/{sample}-{unit}.sorted.bam")
+        )
     params:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"]

@@ -163,6 +163,26 @@ settings:
   # See settings: variantfiltration-vqsr below for detailled settings when using this step.
   vqsr: false
 
+  # Keep or remove intermediate files.
+  # This is a housekeeping setting to save disk storage space. By default, we keep (almost) all
+  # intermediate files, so that the pipeline can easily continue and that any file can be
+  # inspected manually when problems occur. Using the below settings, this can be changed, and
+  # large intermediate files will be deleted once they are no longer needed by any downstream job
+  # (that is, if all files that need them have been successfully created).
+  # At the moment, we only offer this coarse granularity. For example, with `mapping == False`,
+  # all mapping-related bam files will be removed (including the read filtered, clipped, and
+  # duplicate removed bam files, for instance, if those options are activated above).
+  # Note that we only remove the large data files, while often index files, additional logs, etc,
+  # will remain, as they are mostly created incidentally by the tools in the pipeline.
+  # Alternatively, instead of using these options here, it is also possible to manually delete
+  # intermediate files after the pipeline has completed steps that depend on them - snakemake
+  # is able to handle this as well.
+  keep-intermediate:
+    trimming: True
+    mapping: True
+    calling: True
+    filtering: True
+
   # ----------------------------------------------------------------------
   #     Optional Steps
   # ----------------------------------------------------------------------

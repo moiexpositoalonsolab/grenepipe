@@ -6,7 +6,11 @@ rule trim_reads_se:
     input:
         unpack(get_fastq)
     output:
-        r1="trimmed/{sample}-{unit}.fastq.gz",
+        r1=(
+            "trimmed/{sample}-{unit}.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.fastq.gz")
+        ),
         settings="trimmed/{sample}-{unit}.se.settings"
     params:
         extra="--gzip",
@@ -28,8 +32,16 @@ rule trim_reads_pe:
     input:
         unpack(get_fastq)
     output:
-        r1="trimmed/{sample}-{unit}.pair1.fastq.gz",
-        r2="trimmed/{sample}-{unit}.pair2.fastq.gz",
+        r1=(
+            "trimmed/{sample}-{unit}.pair1.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.pair1.fastq.gz")
+        ),
+        r2=(
+            "trimmed/{sample}-{unit}.pair2.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.pair2.fastq.gz")
+        ),
         settings="trimmed/{sample}-{unit}.pe.settings"
     params:
         extra="--gzip",
@@ -55,13 +67,37 @@ rule trim_reads_pe_merged:
         # We mostly use the default output file names of AdapterRemoval here,
         # except for the settings file, which we have to rename so that its name is distinct from
         # the settings files of the other two rules above.
-        pair1_truncated     = "trimmed/{sample}-{unit}.pair1.truncated.gz",
-        pair2_truncated     = "trimmed/{sample}-{unit}.pair2.truncated.gz",
-        singleton_truncated = "trimmed/{sample}-{unit}.singleton.truncated.gz",
-        collapsed           = "trimmed/{sample}-{unit}.collapsed.gz",
-        collapsed_truncated = "trimmed/{sample}-{unit}.collapsed.truncated.gz",
-        discarded           = "trimmed/{sample}-{unit}.discarded.gz",
-        settings            = "trimmed/{sample}-{unit}.pe-merged.settings"
+        pair1_truncated = (
+            "trimmed/{sample}-{unit}.pair1.truncated.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.pair1.truncated.gz")
+        ),
+        pair2_truncated = (
+            "trimmed/{sample}-{unit}.pair2.truncated.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.pair2.truncated.gz")
+        ),
+        singleton_truncated = (
+            "trimmed/{sample}-{unit}.singleton.truncated.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.singleton.truncated.gz")
+        ),
+        collapsed = (
+            "trimmed/{sample}-{unit}.collapsed.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.collapsed.gz")
+        ),
+        collapsed_truncated = (
+            "trimmed/{sample}-{unit}.collapsed.truncated.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.collapsed.truncated.gz")
+        ),
+        discarded = (
+            "trimmed/{sample}-{unit}.discarded.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.discarded.gz")
+        ),
+        settings = "trimmed/{sample}-{unit}.pe-merged.settings"
     params:
         extra="--gzip --collapse",
         params=config["params"]["adapterremoval"]["pe"],

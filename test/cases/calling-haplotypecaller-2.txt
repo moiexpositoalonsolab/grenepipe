@@ -1,3 +1,4 @@
 contig-group-size: 0	contig-group-size: 38283346
+filtering: True	filtering: False
 snpeff: false	snpeff: true
 vep: false	vep: true

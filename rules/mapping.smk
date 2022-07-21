@@ -66,7 +66,11 @@ rule filter_mapped_reads:
     input:
         "mapped/{sample}-{unit}.sorted.bam"
     output:
-        "mapped/{sample}-{unit}.filtered.bam"
+        (
+            "mapped/{sample}-{unit}.filtered.bam"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("mapped/{sample}-{unit}.filtered.bam")
+        )
     params:
         extra=config["params"]["samtools"]["view"] + " -b"
     conda:
@@ -84,7 +88,11 @@ rule clip_read_overlaps:
             "mapped/{sample}-{unit}.sorted.bam"
         )
     output:
-        "mapped/{sample}-{unit}.clipped.bam"
+        (
+            "mapped/{sample}-{unit}.clipped.bam"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("mapped/{sample}-{unit}.clipped.bam")
+        )
     params:
         extra=config["params"]["bamutil"]["extra"]
     log:
@@ -249,7 +257,11 @@ rule recalibrate_base_qualities:
         ),
         known=config["data"]["reference"]["known-variants"]
     output:
-        bam="recal/{sample}-{unit}.bam"
+        bam=(
+            "recal/{sample}-{unit}.bam"
+            if config["settings"]["keep-intermediate"]["mapping"]
+            else temp("recal/{sample}-{unit}.bam")
+        )
         # bam=protected("recal/{sample}-{unit}.bam")
     params:
         extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"]

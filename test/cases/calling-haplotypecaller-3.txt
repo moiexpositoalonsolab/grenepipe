@@ -1,3 +1,4 @@
 restrict-regions: ""	restrict-regions: "#BASEPATH#/test/reference/regions.bed"
+mapping: True	mapping: False
 snpeff: false	snpeff: true
 vep: false	vep: true

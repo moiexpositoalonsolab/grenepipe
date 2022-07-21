@@ -6,7 +6,11 @@ rule trim_reads_se:
     input:
         unpack(get_fastq)
     output:
-        fastq="trimmed/{sample}-{unit}.fastq.gz",
+        fastq=(
+            "trimmed/{sample}-{unit}.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.fastq.gz")
+        ),
         qc="trimmed/{sample}-{unit}.qc-se.txt"
     params:
         adapters = config["params"]["cutadapt"]["se"]["adapters"],
@@ -27,8 +31,16 @@ rule trim_reads_pe:
     input:
         unpack(get_fastq)
     output:
-        fastq1="trimmed/{sample}-{unit}.1.fastq.gz",
-        fastq2="trimmed/{sample}-{unit}.2.fastq.gz",
+        fastq1=(
+            "trimmed/{sample}-{unit}.1.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.1.fastq.gz")
+        ),
+        fastq2=(
+            "trimmed/{sample}-{unit}.2.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.2.fastq.gz")
+        ),
         qc="trimmed/{sample}-{unit}.qc-pe.txt"
     params:
         adapters = config["params"]["cutadapt"]["pe"]["adapters"],

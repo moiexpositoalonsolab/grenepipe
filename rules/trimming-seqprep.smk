@@ -6,11 +6,31 @@ rule trim_reads_pe:
     input:
         unpack(get_fastq)
     output:
-        merged="trimmed/{sample}-{unit}-merged.fastq.gz",
-        fastq1="trimmed/{sample}-{unit}.1.fastq.gz",
-        fastq2="trimmed/{sample}-{unit}.2.fastq.gz",
-        fastq1_discarded="trimmed/{sample}-{unit}.1.discarded.fastq.gz",
-        fastq2_discarded="trimmed/{sample}-{unit}.2.discarded.fastq.gz",
+        merged=(
+            "trimmed/{sample}-{unit}-merged.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}-merged.fastq.gz")
+        ),
+        fastq1=(
+            "trimmed/{sample}-{unit}.1.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.1.fastq.gz")
+        ),
+        fastq2=(
+            "trimmed/{sample}-{unit}.2.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.2.fastq.gz")
+        ),
+        fastq1_discarded=(
+            "trimmed/{sample}-{unit}.1.discarded.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.1.discarded.fastq.gz")
+        ),
+        fastq2_discarded=(
+            "trimmed/{sample}-{unit}.2.discarded.fastq.gz"
+            if config["settings"]["keep-intermediate"]["trimming"]
+            else temp("trimmed/{sample}-{unit}.2.discarded.fastq.gz")
+        ),
     params:
         extra = config["params"]["seqprep"]["extra"]
     log:

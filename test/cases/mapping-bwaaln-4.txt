@@ -4,5 +4,6 @@ merge-paired-end-reads: false	merge-paired-end-reads: true
 mapping-tool: "bwamem"	mapping-tool: "bwaaln"
 recalibrate-base-qualities: false	recalibrate-base-qualities: true
 duplicates-tool: "picard"	duplicates-tool: "dedup"
+mapping: True	mapping: False
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
