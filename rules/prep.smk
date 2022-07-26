@@ -146,28 +146,25 @@ rule reference_seqkit:
     shell:
         "seqkit stats {input} {params.extra} > {output} 2> {log}"
 
-# Clean up the variables that we used above
-del genome
-del genomename
-del genomedir
-
 # =================================================================================================
 #     Known Variants
 # =================================================================================================
 
 # We need the variants entry in the config to be either an empty list or a file path, which we
-# already ensure in common.smk. This is becausae snakemake does not accept empty strings as input
-# files - it has to either a file path or an empty list. So here we need to do a bit of trickery
+# already ensure in common.smk. This is because snakemake does not accept empty strings as input
+# files - it has to be either a file path or an empty list. So here we need to do a bit of trickery
 # to allow for the case that no known variants file is given in the config:
 # We define a local variable that is always a string. If it is empty, that does not seem to matter
 # here, because those rules will never be invoked in that case, and so, snakemake does not seem to
 # fail then. Still, we make it even more fail safe by setting it to a dummy string then that
 # will just lead to rules that are never executed (in the case of no known variants file).
 variants=config["data"]["reference"]["known-variants"]
+has_known_variants = True
 if isinstance(variants, list) or not variants:
     if len(variants) > 0:
         raise Exception("Known variants has to be either a file path or an empty list." )
     variants="dummyfile"
+    has_known_variants = False
 else:
     # Somehow, some tool (was it GATK?) requires known variants to be in vcf.gz format,
     # so let's ensure this, and overwrite the config. We then also set our local variants to
@@ -214,5 +211,33 @@ rule variants_vcf_index:
     wrapper:
         "0.55.1/bio/tabix"
 
-# Clean up.
+# =================================================================================================
+#     All prep rule
+# =================================================================================================
+
+# This alternative target rule executes all prep rules, so that we can get all indices of the
+# reference etc. This is useful in settings where we have an unprepared reference, but want
+# to run the pipeline multiple times already. If we did not prep the genome first, each pipeline
+# would try to do that on its own, which might lead to conflicts and broken files.
+rule all_prep:
+    input:
+        ref=genome,
+        ref_idcs=expand(
+            genome + ".{ext}",
+            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+        ),
+        ref_idcs2=expand(
+            genome + ".{ext}",
+            ext=[ "0123", "bwt.2bit.64" ]
+        ) if config["settings"]["mapping-tool"] == "bwamem2" else [],
+        ref_dict=genome_dict(),
+        ref_stat=genome + ".seqkit",
+        known_vars=variants + ".gz.tbi" if has_known_variants else []
+
+localrules: all_prep
+
+# Clean up the variables that we used above
+del genome
+del genomename
+del genomedir
 del variants
