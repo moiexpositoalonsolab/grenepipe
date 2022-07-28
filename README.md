@@ -13,7 +13,7 @@ Snakemake pipeline for variant calling from raw sample sequences, with lots of b
 Getting Started
 -------------------
 
-See [**the Wiki pages**](https://github.com/lczech/grenepipe/wiki) for setup and documentation.
+See [**--&gt; the Wiki pages &lt;--**](https://github.com/lczech/grenepipe/wiki) for setup and documentation.
 
 For **bug reports and feature requests**, please
 [open an issue on our GitHub page](https://github.com/lczech/grenepipe/issues).
