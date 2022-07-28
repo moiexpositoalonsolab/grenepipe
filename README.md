@@ -10,6 +10,14 @@ Snakemake pipeline for variant calling from raw sample sequences, with lots of b
   - Automatic download of tool dependencies
   - Resuming from failing jobs
 
+Getting Started
+-------------------
+
+See [**the Wiki pages**](https://github.com/lczech/grenepipe/wiki) for setup and documentation.
+
+For **bug reports and feature requests**, please
+[open an issue on our GitHub page](https://github.com/lczech/grenepipe/issues).
+
 Pipeline Overview
 -------------------
 
@@ -71,14 +79,6 @@ Intermediate output files such as `bam` files are also kept by default,
 and `mpileup` files can optionally be created if needed.
 In addition to the above tools, there are some tools used as glue between the steps.
 If you are interested in the details, have a look at the snakemake [rules](https://github.com/lczech/grenepipe/tree/master/rules) for each step.
-
-Getting Started
--------------------
-
-See [**the Wiki pages**](https://github.com/lczech/grenepipe/wiki) for setup and documentation.
-
-For **bug reports and feature requests**, please
-[open an issue on our GitHub page](https://github.com/lczech/grenepipe/issues).
 
 Citation
 -------------------
