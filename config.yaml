@@ -364,10 +364,14 @@ params:
     pe:
       extra: ""
       trimmer:
+        # We recommend playing with these settings, e.g., LEADING and TRAILING might be better at 5,
+        # and SLIDINGWINDOW might work better with, e.g., 4:20.
+        # Adapter sequences can also be provided as in the ILLUMINACLIP example below.
         - "LEADING:3"
         - "TRAILING:3"
         - "SLIDINGWINDOW:4:15"
         - "MINLEN:36"
+        # - "ILLUMINACLIP:/path/to/adapters/TruSeq3-PE-2.fa:2:30:10:2:True"
 
   # ----------------------------------------------------------------------
   #     bowtie2
