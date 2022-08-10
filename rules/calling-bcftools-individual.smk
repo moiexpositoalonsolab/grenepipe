@@ -106,10 +106,11 @@ rule combine_contig:
     conda:
         "../envs/bcftools.yaml"
     shell:
-        # Sort the input gvcfs into a list file, so that we always have the same order,
-        # in the hope that this works with large numbers of files without exceeding the ulimit
+        # Store the input gvcfs in a list file to be accessed by bcftool; we are using the same
+        # order as the samples table, to keep the gvcf headers identical (needed for concat later).
+        # Let's hope that this works with large numbers of files without exceeding the ulimit
         # for number of files that can be kept open. Needs to be tested on a large dataset though...
-        "echo {input.gvcfs} | sed 's/ /\\n/g' | sort > {output.gvcflist} ;"
+        "echo {input.gvcfs} | sed 's/ /\\n/g' > {output.gvcflist} ; "
         "("
         "bcftools merge --merge all --gvcf {input.ref} --file-list {output.gvcflist} --output-type u | "
         "bcftools convert --gvcf2vcf --fasta-ref {input.ref} --output-type u | "
