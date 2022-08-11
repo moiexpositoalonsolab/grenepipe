@@ -229,8 +229,6 @@ rule merge_calls:
         "logs/picard/merge-filtered.log"
     benchmark:
         "benchmarks/picard/merge-filtered.bench.log"
-    group:
-        "filtering"
     conda:
         "../envs/picard.yaml"
     wrapper:
