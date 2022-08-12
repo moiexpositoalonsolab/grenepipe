@@ -232,6 +232,11 @@ for DICT in ${DICTS} ; do
         EXTRA="all_pileups"
     fi
 
+    # Same for HAFpipe.
+    if [[ ${TARGET} == hafpipe* ]] ; then
+        EXTRA="all_hafpipe"
+    fi
+
     # Now run snakemake on the new config file.
     run_snakemake "${TARGET}" "./test/out-${TARGET}" "${EXTRA}"
 

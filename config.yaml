@@ -648,8 +648,9 @@ params:
     # https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
     # Note that the names (here, e.g., "1001G") are arbitrary, but need to match between
     # the `resources` and the `resource-files` - that is, for every resource, there also needs to
-    # be a file associated with it. Multiple resources can also be provided. We below also provide
-    # (commented out) the resources used in the GATK documentation, for reference.
+    # be an entry in `resource-files` below associated with it. Multiple resources can also be
+    # provided. We below also provide (commented out) the resources used in the GATK documentation,
+    # for reference.
     resources:
       # Example resource using a 1001G Arabidopsis thaliana VCF.
       - 1001G:
@@ -681,6 +682,7 @@ params:
       #   - prior: 2.0
     resource-files:
       # Example resource using a 1001G Arabidopsis thaliana VCF.
+      # (Not delivered with grenepipe - only here for illustration purposes for the above resource.)
       - 1001G: "1001genomes_snp-short-indel_only_ACGTN.vcf.gz"
 
       # Other examples, from the GATK documentation, for the human genome.
@@ -836,6 +838,102 @@ params:
     # Additional parameters for damageprofiler,
     # see https://damageprofiler.readthedocs.io/en/latest/contents/generalUsage.html
     extra: ""
+
+  # ----------------------------------------------------------------------
+  #     HAFpipe
+  # ----------------------------------------------------------------------
+
+  # Used to calculate haplotype-inferred allele frequencies from pool-seq data and founder SNPs,
+  # see https://github.com/petrov-lab/HAFpipe-line and https://doi.org/10.1534/g3.119.400755
+  hafpipe:
+
+    # HAFpipe is a tool to compute improved allele frequencies for pool-seq data, using SNPs of
+    # the founder generation of the pools to calculate haplotype frequencies that yield better
+    # estimates of the later generations in, e.g., Evolve and Resequence experiments.
+    # HAFpipe is a bit tricky to use, as it runs separately on each chromosome. We here execute
+    # it for each chromosome (that is specified) and one merged bam file per sample, containing
+    # all its sequences (from paired ends and/or multiple units).
+
+    # List of chromosomes of the reference genome for which we want to run HAFpipe.
+    # If left empty, all chromosomes are used. We however recommend to exclude chromosomes
+    # such as chloroplast or mitochondria, and to exclude small unassembled contigs.
+    # Can be provided as a yaml list `[ "1", "2" ]`, or as separate lines following
+    # the `chromosomes:` line, indented and with dashes in front.
+    chromosomes: []
+
+    # The multi-sample VCF file of each individual founder in the starting population,
+    # which will be converted to a snp table in Task 1 (in HAFpipe, this is the `--vcf` option).
+    founder-vcf: ""
+
+    # Directory where to store the SNP tables of Task 1 of HAFpipe.
+    # If left empty (default), we use a directory within the run of grenpipe.
+    # However, as the SNP tables only have to be computed once per founder VCF,
+    # this directory can be specified to allow re-using the tables (also with Task 2, see below).
+    # If the respective tables are found in that directory, Task 1 is not executed again;
+    # the tables are named `{chrom}.csv`, for the chromsomes as provided above.
+    # We recommend to set this to a sub-directory of where the above `founder-vcf` is located,
+    # e.g., a subdirectory called "hafpipe-snp-tables".
+    snp-table-dir: ""
+
+    # Extra settings for Task 1: Make SNP table from VCF.
+    # We internally already set --vcf, --chrom, --snptable, --logfile.
+    # This can be used for example for `--keephets`, `--subsetlist`, `--mincalls`
+    snp-table-extra: ""
+
+    # By default, we do not run Task 2 (Impute SNP table), and instead just use the SNP tables
+    # as provided by Task 1. However, if desired, imputation can be done in two ways:
+    #
+    #   - When provided with one of the two imputation methods offered by HAFpipe
+    #     ("simpute" or "npute") we run Task 2 with that method (unless this has already been done
+    #     in a previous run, when using `snp-table-dir` to avoid these recomputations).
+    #   - Alternatively, we also allow you to use your own imputation method. This can be based off
+    #     the tables obtained via Task 1, for example. The method can be named arbitrarily
+    #     (except for "simpute" or "npute"), and the imputed table files are then expected to be
+    #     named with a suffix according to that name - the same way that HAFpipe expects it.
+    #     Our tables from Task 1 are named `{chrom}.csv` for the chromosomes specified above.
+    #     Hence, we expect the imputed tables to be called `{chrom}.csv.my_method` for example.
+    #
+    # To generate these custom imputations, we offer two ways:
+    #
+    #   - Create manually. For this, you first can run grenepipe with the special target
+    #     `all_hafpipe_snp_tables`, that is, call grenepipe as usual with your cluster and conda
+    #     settings as needed, but at the end add `all_hafpipe_snp_tables` (without the back-ticks).
+    #     This will run only the steps necessary to create all SNP tables of Task 1 of HAFpipe,
+    #     e.g., file `1.csv` for the first chromosome, stored in the dir specified by `snp-table-dir`.
+    #     Then, you can run your imputation method on these files, storing the resulting imputed
+    #     tables in the same dir, and with the suffix according to the setting here, so for example
+    #     when setting `impmethod: "my_method"`, you need to create `1.csv.my_method`.
+    #     After that, run grenepipe again as usual (without the special target), and it will now
+    #     find your new `1.csv.my_method` files, and use them.
+    #   - Alternatively, you can set the `impute-script` below to a script that expects one of
+    #     the original SNP tables as its single argument (e.g., `.../my_script.sh /path/to/1.csv`
+    #     will be called), and outputs the respective imputed table (e.g., `/path/to/1.csv.my_method`),
+    #     using again the name specified here as a suffix for the file name.
+    impmethod: ""
+
+    # Specify a custom impute script to be used when the above `impmethod` is neither "simpute" nor
+    # "npute". The script is expected to take a single argument, the SNP table file for one chromosome,
+    # and produce the imputed table in the same directory of that file, but with a suffix as given
+    # by `impmethod` above. For example, when `impmethod: my_method`, we expect the script to take
+    # an input such as `1.csv`, and produce `1.csv.my_method`. See there for details on how to use
+    # this. The script can be any type of script that can be called from a shell, and the path to it
+    # should be specified here as an absolute path. See grenepipe/packages/hafpipe_impute_example.sh
+    # for an exemplary script.
+    impute-script: ""
+
+    # Conda environment yaml file for the above `impute-script`, if the tools needed in that script
+    # need it. Can be left empty if not needed to run that script.
+    impute-conda: ""
+
+    # Extra settings for Task 2: Impute SNP table, when using "simpute" or "npute" imputing.
+    # This is in particular useful for the `--nsites` option when using the "npute" method.
+    # Not used with custom impute methods when using `impute-script`.
+    impute-extra: ""
+
+    # Extra settings for Tasks 3&4: Infer haplotype frequencies & Calculate allele frequencies.
+    # We internally already set --snptable, --bamfile, --refseq, --outdir, --logfile
+    # This can be used for example for `--encoding`, `--generations`, `--recombrate`, `--quantile`
+    frequencies-extra: "--winsize 1000"
 
   # ----------------------------------------------------------------------
   #     SeqKit

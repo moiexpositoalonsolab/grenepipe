@@ -1,0 +1,4 @@
+chromosomes: []	chromosomes: [1,2]
+founder-vcf: ""	founder-vcf: "1001genomes_snp-short-indel_only_ACGTN.vcf.gz"
+impmethod: ""	impmethod: "my_method"
+impute-script: ""	impute-script: "../../packages/hafpipe-impute-example.sh"

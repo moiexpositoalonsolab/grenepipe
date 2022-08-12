@@ -1,0 +1,39 @@
+name: hafpipe
+channels:
+  - bioconda
+  - conda-forge
+  - r
+  # - defaults
+  # - anaconda
+  # - nodefaults
+dependencies:
+  # Include git so that we can use it for the submodule init,
+  # and unzip in case it's not there on linux
+  - git ==2.37.1
+  - unzip
+
+  # We need samtools for indexing bam files.
+  # Also, tabix and bgzip are dependencies of hafpipe,
+  # which both seem to be provided via samtools as well.
+  - samtools ==1.12
+  # - htslib ==1.10
+  # - tabix ==1.10
+
+  # hafpipe needs R version >= 3.2, so we use the same that
+  # we also use in the gatk.yaml, for simplicity.
+  # See also https://github.com/petrov-lab/HAFpipe-line/issues/3
+  - r 3.5.1 #==4.1
+  - r-data.table
+
+  # We first tried to build harp on our own, which did not work,
+  # due to boost paths not being found when using conda to install it,
+  # and because the harp source does not use C++ namespaces correctly...
+  # So now we just use the precompiled harp binaries,
+  # but below keep our trials, for later reference if ever needed.
+  #
+  # harp also wants boost. Somehow, 1.73.0, which seems to be
+  # the latest on conda, does not work with mamba, but it pulls 1.77.0,
+  # which does not work. So let's try 1.67.0 instead...
+  # - boost ==1.77.0
+  # - gcc ==8.5.0
+  # - gxx_linux-64 ==7.3.0

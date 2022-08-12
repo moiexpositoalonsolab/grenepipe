@@ -1,0 +1,2 @@
+chromosomes: []	chromosomes: [1,2]
+founder-vcf: ""	founder-vcf: "1001genomes_snp-short-indel_only_ACGTN.vcf.gz"
