@@ -233,11 +233,47 @@ def collect_all_hafpipe_allele_frequencies(wildcards):
         chrom=get_hafpipe_chromosomes( fai )
     )
 
+# Merge all afSite files produced above, for all samples and all chromsomes.
+# The script assumes the exact naming scheme that we use above, so it is not terribly portable...
+rule hafpipe_merge_allele_frequencies:
+    input:
+        # We only request the input files here so that snakemake knows that we need them.
+        # The script that we are running does not access the input list at all, as it is just a
+        # big mess of files. We instead want the structured way of finding our files using the
+        # lists of samples and chromosomes that we hand over via the params below.
+        # This is unfortunately necessary, as HAFpipe afSite files do not contain any information
+        # on their origins (samples and chromosomes) other than their file names, so we have to
+        # work with that... See the script for details.
+        collect_all_hafpipe_allele_frequencies
+    output:
+        # This is the file name produced by the script. For now we do not allow to change this.
+        table="hafpipe/all.csv"
+    params:
+        # We are potentially dealing with tons of files, and cannot open all of them at the same
+        # time, due to OS limitations, check `ulimit -n` for example. When this param is set to 0,
+        # we try to use that upper limit (minus some tolerance). However, if that fails, this value
+        # can be manually set to a value below the limit, to make it work, e.g., 500
+        concurrent_files=0,
+
+        # The rule needs access to lists of samples and chromosomes,
+        # and we give it the base path of the afSite files as well, for a little bit of flexibility.
+        samples=config["global"]["sample-names"],
+        chroms=get_hafpipe_chromosomes_list,
+
+        # We provide the paths to the input directory here. The output will be written to the
+        # parent directory of that (so, to "hafpipe").
+        # Ugly, but we are dealing with HAFpipe uglines here, and that seems to be easiest for now.
+        base_path="hafpipe/frequencies"
+    log:
+        "logs/hafpipe/merge-all.log"
+    script:
+        "../scripts/hafpipe-merge.py"
+
 # Simple rule that requests all hafpipe af files, so that they get computed.
 # Will probably extend this in the future to a rule that combines all of them into one file.
 rule all_hafpipe:
     input:
-        # "hafpipe/all.csv"
-        collect_all_hafpipe_allele_frequencies
+        "hafpipe/all.csv"
+        # collect_all_hafpipe_allele_frequencies
 
 localrules: all_hafpipe

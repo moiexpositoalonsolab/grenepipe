@@ -243,6 +243,15 @@ settings:
     # Make a pileup file with one column only, by merging all samples with all units into one pile.
     # - "all-merged-samples"
 
+  # Set to true in order to run HAFpipe to estimate haplotype-inferred allele frequencies
+  # from pool-seq data and founder SNP profiles.
+  # See params: hafpipe below for details and for the settings that need to be provided.
+  # Alternatively, if you just want to run HAFpipe (and all necessary steps before that, such as
+  # mapping the reads), instead of the whole pipeline, you can also call snakemake directly with
+  # the special target "all_hafpipe" (just append that to the end of your usual snakemake call),
+  # which will just run the steps necessary to create the "hafpipe/all.csv" table.
+  hafpipe: false
+
   # Set to true to compute a table of allele frequencies from the filtered vcf,
   # using the `AD` (allelic depth) field of the vcf for each sample to compute the total count
   # (coverage), frequency of REF/(REF+ALT) counts, and REF and ALT counts, for biallelic SNP sites.
@@ -853,6 +862,13 @@ params:
     # HAFpipe is a bit tricky to use, as it runs separately on each chromosome. We here execute
     # it for each chromosome (that is specified) and one merged bam file per sample, containing
     # all its sequences (from paired ends and/or multiple units).
+
+    # The HAFpipe output format is pretty unfriendly, as it produces one file per sample and per
+    # chromosome, with no information on either the sample name or chromosome name within the file.
+    # Thus, only the file names themselves can be used to distinguish that, leaving the burding of
+    # bookkeeping with the user. Our implementation however offers a way out: We create a table
+    # that combines all these per-sample per-chromosome files into one file.
+    # That file will be located in "hafpipe/all.csv"
 
     # List of chromosomes of the reference genome for which we want to run HAFpipe.
     # If left empty, all chromosomes are used. We however recommend to exclude chromosomes

@@ -40,6 +40,9 @@ rule all:
         "mpileup/all-merged-units.mpileup.gz" if "all-merged-units" in config["settings"]["pileups"] else [],
         "mpileup/all-merged-samples.mpileup.gz" if "all-merged-samples" in config["settings"]["pileups"] else [],
 
+        # HAFpipe
+        "hafpipe/all.csv" if config["settings"]["hafpipe"] else [],
+
         # Stats. Some deactivated for now.
         "tables/frequencies.tsv" if config["settings"]["frequency-table"] else []
         # "plots/depths.svg",
