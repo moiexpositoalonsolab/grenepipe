@@ -964,6 +964,9 @@ params:
     # affected by this; we always keep them, as they might need to be re-used for other runs as well.
     keep-intermediates: False
 
+    # If set to true, the final "hafpipe/all.csv" table is compressed with gzip to save disk space.
+    compress-merged-table: False
+
   # ----------------------------------------------------------------------
   #     SeqKit
   # ----------------------------------------------------------------------

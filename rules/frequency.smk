@@ -259,7 +259,9 @@ rule hafpipe_merge_allele_frequencies:
         collect_all_hafpipe_allele_frequencies
     output:
         # This is the file name produced by the script. For now we do not allow to change this.
-        table="hafpipe/all.csv"
+        table="hafpipe/all.csv" + (
+            ".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""
+        )
     params:
         # We are potentially dealing with tons of files, and cannot open all of them at the same
         # time, due to OS limitations, check `ulimit -n` for example. When this param is set to 0,
@@ -275,7 +277,10 @@ rule hafpipe_merge_allele_frequencies:
         # We provide the paths to the input directory here. The output will be written to the
         # parent directory of that (so, to "hafpipe").
         # Ugly, but we are dealing with HAFpipe uglines here, and that seems to be easiest for now.
-        base_path="hafpipe/frequencies"
+        base_path="hafpipe/frequencies",
+
+        # We might want to compress the final output.
+        compress=config["params"]["hafpipe"].get("compress-merged-table", False)
     log:
         "logs/hafpipe/merge-all.log"
     script:
@@ -285,7 +290,9 @@ rule hafpipe_merge_allele_frequencies:
 # Will probably extend this in the future to a rule that combines all of them into one file.
 rule all_hafpipe:
     input:
-        "hafpipe/all.csv"
+        "hafpipe/all.csv" + (
+            ".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""
+        )
         # collect_all_hafpipe_allele_frequencies
 
 localrules: all_hafpipe

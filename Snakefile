@@ -41,7 +41,9 @@ rule all:
         "mpileup/all-merged-samples.mpileup.gz" if "all-merged-samples" in config["settings"]["pileups"] else [],
 
         # HAFpipe
-        "hafpipe/all.csv" if config["settings"]["hafpipe"] else [],
+        "hafpipe/all.csv" + (
+            ".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""
+        ) if config["settings"]["hafpipe"] else [],
 
         # Stats. Some deactivated for now.
         "tables/frequencies.tsv" if config["settings"]["frequency-table"] else []

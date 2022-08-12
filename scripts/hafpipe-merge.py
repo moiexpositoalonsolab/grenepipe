@@ -209,15 +209,24 @@ for chrom in snakemake.params.chroms:
 # We now build the header, using our sample names, and then merge the final table.
 # We name the columsn after the sample names, and append `.af` to it to mark it as a frequency.
 
+# If we want to compress the table, just add a pipe here. Luckily, appending gzip files to each
+# other is a valid thing to do with the format, so we can just build the file chrom by chrom.
+if snakemake.params.get("compress", False):
+    gzip=" | gzip "
+else:
+    gzip=""
+
+# Make a header line with all sample names.
 header="chrom,pos"
 for sample in snakemake.params.samples:
     header += "," + sample + ".af"
 
-all_file = "../all.csv"
+# Write the table by pasting all chromsome tables.
+all_file = "../all.csv" + (".gz" if gzip else "")
 shell(
     "echo \"Merging final table\" {log} ; "
-    "echo {header} > {all_file} ; "
-    "cat {chrom_files} >> {all_file} ; "
+    "echo {header} {gzip} > {all_file} ; "
+    "cat {chrom_files} {gzip} >> {all_file} ; "
     "rm {chrom_files} ; "
     "echo -e \"\\nFinished `date`\" {log} ; "
 )
