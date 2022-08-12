@@ -156,12 +156,16 @@ rule hafpipe_merge_bams:
     input:
         get_sample_bams_wildcards # provided in mapping.smk
     output:
-        # We do not make these files temporary, as an error in the calling of Task 4 after it has
-        # already written the header of the output file will lead to snakemake thinking that the
-        # output is valid, hence deleting the bam files... Then, for re-running Task 4 we need to
-        # first create the bam files again, which will then update Task 3, which takes ages...
-        "hafpipe/bam/{sample}.merged.bam"
-        # temp("hafpipe/bam/{sample}.merged.bam")
+        # Making the bam files temporary is a bit dangerous, as an error in the calling of Task 4
+        # after it has already written the header of the output file will lead to snakemake thinking
+        # that the output is valid, hence deleting the bam files... Then, for re-running Task 4 we
+        # need to first create the bam files again, which will then update Task 3, which takes ages...
+        # But let's assume that all steps work ;-)
+        (
+            "hafpipe/bam/{sample}.merged.bam"
+            if config["params"]["hafpipe"].get("keep-intermediates", True)
+            else temp("hafpipe/bam/{sample}.merged.bam")
+        )
     params:
         config["params"]["samtools"]["merge"]
     threads:
@@ -184,7 +188,11 @@ rule hafpipe_haplotype_frequencies:
         # We currently just specify the output file names here as HAFpipe produces them.
         # Might want to refactor in the future to be able to provide our own names,
         # and have the script rename the files automatically.
-        freqs="hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs"
+        freqs=(
+            "hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs"
+            if config["params"]["hafpipe"].get("keep-intermediates", True)
+            else temp("hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs")
+        )
     params:
         tasks="3",
         outdir="hafpipe/frequencies",
@@ -204,7 +212,11 @@ rule hafpipe_allele_frequencies:
         freqs="hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs" # from Task 3 above
     output:
         # Same as above: just expect the file name as produced by HAFpipe.
-        afSite="hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite"
+        afSite=(
+            "hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite"
+            if config["params"]["hafpipe"].get("keep-intermediates", True)
+            else temp("hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite")
+        )
     params:
         tasks="4",
         outdir="hafpipe/frequencies",

@@ -197,6 +197,7 @@ for chrom in snakemake.params.chroms:
     shell(
         "echo \" - Merging {batch_num} batch(es)\" {log} ; "
         "paste -d, {chr_file} {pos_file} {batch_files} > {chrom_file} ; "
+        "rm {chr_file} {pos_file} {batch_files} ; "
     )
     chrom_files += " " + chrom_file
 
@@ -217,5 +218,6 @@ shell(
     "echo \"Merging final table\" {log} ; "
     "echo {header} > {all_file} ; "
     "cat {chrom_files} >> {all_file} ; "
+    "rm {chrom_files} ; "
     "echo -e \"\\nFinished `date`\" {log} ; "
 )

@@ -956,6 +956,14 @@ params:
     # It seems there are no extra arguments that could be provided for Task 4, but we offer it anyway.
     allele-frequencies-extra: ""
 
+    # By default, we remove the frequency data of Tasks 3 and 4 after they have been used to create
+    # our final merged "all.csv" table, as they are redundant and hard to work with. However, if
+    # your workflow relies on the outputs as produced by HAFpipe, set this to true to keep those files.
+    # This affects the merged bam files per sample (which are kind of temporary anyway), as well as
+    # the `freqs` and `afSite` files of Tasks 3 and 4. The SNP tables of Tasks 1 and 2 are not
+    # affected by this; we always keep them, as they might need to be re-used for other runs as well.
+    keep-intermediates: False
+
   # ----------------------------------------------------------------------
   #     SeqKit
   # ----------------------------------------------------------------------
