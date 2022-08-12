@@ -930,10 +930,15 @@ params:
     # Not used with custom impute methods when using `impute-script`.
     impute-extra: ""
 
-    # Extra settings for Tasks 3&4: Infer haplotype frequencies & Calculate allele frequencies.
+    # Extra settings for Task 3: Infer haplotype frequencies.
     # We internally already set --snptable, --bamfile, --refseq, --outdir, --logfile
     # This can be used for example for `--encoding`, `--generations`, `--recombrate`, `--quantile`
-    frequencies-extra: "--winsize 1000"
+    haplotype-frequencies-extra: "--winsize 1000"
+
+    # Extra settings for Task 4: Calculate allele frequencies.
+    # We internally already set --snptable, --bamfile, --outdir, --logfile.
+    # It seems there are no extra arguments that could be provided for Task 4, but we offer it anyway.
+    allele-frequencies-extra: ""
 
   # ----------------------------------------------------------------------
   #     SeqKit
