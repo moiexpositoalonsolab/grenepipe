@@ -58,6 +58,8 @@ Pipeline Overview
     - [GATK SelectVariants](https://gatk.broadinstitute.org/hc/en-us/articles/360037055952-SelectVariants)
     - [GATK VariantFiltration](https://gatk.broadinstitute.org/hc/en-us/articles/360036834871-VariantFiltration)
     - [GATK VariantRecalibrator](https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator) (VQSR)
+  - Frequency calling (for pool sequencing data, as an alternative to variant calling):
+    - [HAF-pipe](https://github.com/petrov-lab/HAFpipe-line)
   - Quality control, statistics, SNP annotation, reporting
     - [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
     - [samtool stats](http://www.htslib.org/doc/samtools-stats.html)
@@ -69,7 +71,7 @@ Pipeline Overview
     - [VEP](https://uswest.ensembl.org/info/docs/tools/vep/index.html) (Ensembl Variant Effect Predictor)
     - [MultiQC](https://multiqc.info/)
 
-**Output:**
+**Typical output:**
 
   - Variant calls `vcf`, potentially with annotations
   - MultiQC report (includes summaries of most other tools, and of the final `vcf`)
