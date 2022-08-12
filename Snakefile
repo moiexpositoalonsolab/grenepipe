@@ -54,6 +54,9 @@ localrules: all
 #     Rule Modules
 # =================================================================================================
 
+# These rules need to come after the `all` rule above, as Snakemake takes the first rule it finds
+# as the implicit target when no other target is specified, and we want that to be the `all` rule.
+
 include: "rules/prep.smk"
 include: "rules/trimming.smk"
 include: "rules/mapping.smk"
@@ -64,62 +67,3 @@ include: "rules/qc.smk"
 include: "rules/stats.smk"
 include: "rules/damage.smk"
 include: "rules/pileup.smk"
-
-# =================================================================================================
-#     All QC, but not SNP calling
-# =================================================================================================
-
-# This alternative target rule executes all quality control (QC) steps of read trimming and mapping,
-# but does not call SNPs, and does not call snpeff. The result is mainly the MultiQC report (without
-# the snpeff part however), as well as the fastqc reports.
-rule all_qc:
-    input:
-        # Quality control
-        "qc/multiqc.html",
-
-        # Reference genome statistics
-        config["data"]["reference"]["genome"] + ".seqkit"
-
-# The `all_qc` rule is local. It does not do anything anyway,
-# except requesting the other rules to run.
-localrules: all_qc
-
-# =================================================================================================
-#     All bams, but not SNP calling
-# =================================================================================================
-
-# This alternative target rule executes all steps up to th mapping, and yields the final bam
-# files that would otherwise be used for variant calling in the downstream process.
-# That is, depending on the config, these are the sorted, filtered, remove duplicates, or
-# recalibrated base qualities bam files.
-rule all_bams:
-    input:
-        get_all_bams()
-
-# The `all_bams` rule is local. It does not do anything anyway,
-# except requesting the other rules to run.
-localrules: all_bams
-
-# =================================================================================================
-#     All pileups, but not SNP calling
-# =================================================================================================
-
-# This alternative target rule executes all steps up to th mapping and mpileup creation.
-# This is the same as the above all_bams rule, but additionally also requests the pileups.
-rule all_pileups:
-    input:
-        expand(
-            "mpileup/{sample}-individual-units.mpileup.gz",
-            sample=config["global"]["sample-names"]
-        ) if "samples-individual-units" in config["settings"]["pileups"] else [],
-        expand(
-            "mpileup/{sample}-merged-units.mpileup.gz",
-            sample=config["global"]["sample-names"]
-        ) if "samples-merged-units" in config["settings"]["pileups"] else [],
-        "mpileup/all-individual-units.mpileup.gz" if "all-individual-units" in config["settings"]["pileups"] else [],
-        "mpileup/all-merged-units.mpileup.gz" if "all-merged-units" in config["settings"]["pileups"] else [],
-        "mpileup/all-merged-samples.mpileup.gz" if "all-merged-samples" in config["settings"]["pileups"] else [],
-
-# The `all_pileups` rule is local. It does not do anything anyway,
-# except requesting the other rules to run.
-localrules: all_pileups

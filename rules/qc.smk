@@ -405,3 +405,22 @@ rule multiqc:
 # Rule is not submitted as a job to the cluster.
 # Edit: It is now, as it turns out to be quite the process for large datasets...
 # localrules: multiqc
+
+# =================================================================================================
+#     All QC, but not SNP calling
+# =================================================================================================
+
+# This alternative target rule executes all quality control (QC) steps of read trimming and mapping,
+# but does not call SNPs, and does not call snpeff. The result is mainly the MultiQC report (without
+# the snpeff part however), as well as the fastqc reports.
+rule all_qc:
+    input:
+        # Quality control
+        "qc/multiqc.html",
+
+        # Reference genome statistics
+        config["data"]["reference"]["genome"] + ".seqkit"
+
+# The `all_qc` rule is local. It does not do anything anyway,
+# except requesting the other rules to run.
+localrules: all_qc

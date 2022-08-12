@@ -2,13 +2,9 @@
 #     Merge bams
 # =================================================================================================
 
-# Simple wildcard resolution.
-def get_sample_bams_wildcards(wildcards):
-    return get_sample_bams(wildcards.sample)
-
-rule samtools_merge_units:
+rule mpileup_merge_units:
     input:
-        get_sample_bams_wildcards
+        get_sample_bams_wildcards # provided in mapping.smk
     output:
         temp("mpileup/{sample}.merged.bam")
     params:
@@ -24,7 +20,7 @@ rule samtools_merge_units:
     wrapper:
         "0.74.0/bio/samtools/merge"
 
-rule samtools_merge_all:
+rule mpileup_merge_all:
     input:
         get_all_bams()
     output:
@@ -81,7 +77,7 @@ rule mpileup_all_merged_units_names:
 
 rule mpileup_samples_individual_units:
     input:
-        bam=get_sample_bams_wildcards,
+        bam=get_sample_bams_wildcards, # provided in mapping.smk
         reference_genome=config["data"]["reference"]["genome"]
     output:
         "mpileup/{sample}-individual-units.mpileup.gz"
@@ -148,3 +144,27 @@ rule mpileup_all_merged_samples:
         "logs/samtools/mpileup/all-merged-samples.log"
     wrapper:
         "0.74.0/bio/samtools/mpileup"
+
+# =================================================================================================
+#     All pileups, but not SNP calling
+# =================================================================================================
+
+# This alternative target rule executes all steps up to th mapping and mpileup creation.
+# This is the same as the above all_bams rule, but additionally also requests the pileups.
+rule all_pileups:
+    input:
+        expand(
+            "mpileup/{sample}-individual-units.mpileup.gz",
+            sample=config["global"]["sample-names"]
+        ) if "samples-individual-units" in config["settings"]["pileups"] else [],
+        expand(
+            "mpileup/{sample}-merged-units.mpileup.gz",
+            sample=config["global"]["sample-names"]
+        ) if "samples-merged-units" in config["settings"]["pileups"] else [],
+        "mpileup/all-individual-units.mpileup.gz" if "all-individual-units" in config["settings"]["pileups"] else [],
+        "mpileup/all-merged-units.mpileup.gz" if "all-merged-units" in config["settings"]["pileups"] else [],
+        "mpileup/all-merged-samples.mpileup.gz" if "all-merged-samples" in config["settings"]["pileups"] else [],
+
+# The `all_pileups` rule is local. It does not do anything anyway,
+# except requesting the other rules to run.
+localrules: all_pileups

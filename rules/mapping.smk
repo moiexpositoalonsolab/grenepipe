@@ -332,7 +332,7 @@ def get_mapping_result(bai=False):
 # Return the bam file(s) for a given sample.
 # Get all aligned reads of given sample, with all its units.
 # This is where all units are merged together. The function also automatically gets
-# which of the mapping resutls to use, depending on the config setting (whether to remove
+# which of the mapping results to use, depending on the config setting (whether to remove
 # duplicates, and whether to recalibrate the base qualities), by using the get_mapping_result
 # function, that gives the respective files depending on the config.
 def get_sample_bams(sample):
@@ -383,3 +383,23 @@ def get_all_bais():
     # return list(chain.from_iterable( [
     #     get_sample_bais(sample) for sample in config["global"]["sample-names"]
     # ] ))
+
+# Simple wildcard resolution.
+def get_sample_bams_wildcards(wildcards):
+    return get_sample_bams(wildcards.sample)
+
+# =================================================================================================
+#     All bams, but not SNP calling
+# =================================================================================================
+
+# This alternative target rule executes all steps up to th mapping, and yields the final bam
+# files that would otherwise be used for variant calling in the downstream process.
+# That is, depending on the config, these are the sorted, filtered, remove duplicates, or
+# recalibrated base qualities bam files.
+rule all_bams:
+    input:
+        get_all_bams()
+
+# The `all_bams` rule is local. It does not do anything anyway,
+# except requesting the other rules to run.
+localrules: all_bams

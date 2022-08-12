@@ -148,9 +148,19 @@ if config["settings"].get("contig-group-size", 0) > 0:
 if "contigs" in config["global"]:
     raise Exception("Config key 'global:contigs' already defined. Someone messed with our setup.")
 
-# Contigs in reference genome.
+# Get the list of chromosome names that are present in the fai file.
+# This is just the first column of the file.
+def get_chromosomes( fai ):
+    return list( pd.read_csv(
+        fai, sep='\t', header=None, usecols=[0], squeeze=True, dtype=str
+    ))
+
+# Contigs in reference genome. This function gives the list of contig names that we want to
+# use for calling, that is, either all contigs of the reference genome, or, if contig grouping
+# is activated, the names for the contig groups that are sent as one job combining multiple contigs.
 def get_contigs( fai ):
-    # If we have already computed contigs, just return them.
+    # This function might be called multiple times in different invocations of rules.
+    # To avoid re-computing the contigs, we cache them in the global config dict.
     global config
     if "contigs" in config["global"]:
         return config["global"]["contigs"]
@@ -173,9 +183,7 @@ def get_contigs( fai ):
     # Without contig groups, just read the fai and return its first column,
     # which contains the ref sequence names (our contigs). Store it in the global variable
     # first to not have to do the reading each time.
-    config["global"]["contigs"] = pd.read_csv(
-        fai, sep='\t', header=None, usecols=[0], squeeze=True, dtype=str
-    )
+    config["global"]["contigs"] = get_chromosomes( fai )
     return config["global"]["contigs"]
 
 # =================================================================================================
