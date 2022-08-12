@@ -2,15 +2,21 @@
 #      Custom Ignores
 # ==================================================================================================
 
+packages/hafpipe/
+packages/harp/
 test/.snakemake/
 test/conda-envs
 test/mamba-envs
 test/config.yaml
-test/out-*
+test/vep-cache.zip
 test/prep.log
 test/reference
+test/reference.tar.gz
 test/samples.tsv
 test/samples-pe.tsv
+test/out-*
+test/1001genomes_snp-short-indel_only_ACGTN.vcf.gz
+test/1001genomes_snp-short-indel_only_ACGTN.vcf.gz.tbi
 
 # ==================================================================================================
 #      Default Python Ignores
