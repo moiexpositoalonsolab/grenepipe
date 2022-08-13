@@ -1,4 +1,5 @@
-chromosomes: []	chromosomes: [1,2]
+chromosomes: \[\]	chromosomes: [ "1", "2" ]
 founder-vcf: ""	founder-vcf: "1001genomes_snp-short-indel_only_ACGTN.vcf.gz"
+snp-table-dir: ""	snp-table-dir: "../snp-tables"
 impmethod: ""	impmethod: "my_method"
 impute-script: ""	impute-script: "../../packages/hafpipe-impute-example.sh"
