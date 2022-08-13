@@ -27,9 +27,9 @@ outfile = "samples.tsv"
 #     Functions
 # =================================================================================================
 
-# We want nicer names than just addressing matches by tuple indices.
-# We store the file names of the two matches, as well as the position where the '1'/'2' match
-# occurrs. While finding match candidates, we also need the indices in the input list.
+# We want nicer data access than just addressing matches by tuple indices.
+# We store the file names of the two matches, as well as the position where the match of the '1'/'2'
+# char match occurrs. While finding match candidates, we also need the indices in the input list.
 Match = namedtuple("Match", ['seq1', 'seq2', 'pos', 'idx1', 'idx2'])
 
 def get_fastq_files(indir):
@@ -147,7 +147,13 @@ def get_sample_name(match):
     # Expects one element of the get_mates function output list,
     # and cleans up the beginning and end of the file names to get a clean sample name.
     if match.pos >= 0:
-        return re.split( '/', match.seq1[:match.pos] )[-1].rstrip( '-_R' )
+        # If the char immediately before the 1/2 is an R, we clean this.
+        # Then, we also clean trailing dashes, dots, and underscores.
+        # We do not do this in one step, as that might truncate sample names ending in 'r'.
+        name = re.split( '/', match.seq1[:match.pos] )[-1]
+        if name[-1:] == 'R' or name[-1:] == 'r':
+            name = name[:-1]
+        return name.rstrip( '-_.' )
     else:
         # Remove directory, and try to find the extension to remove
         # (which should always succeed, as we only picked those files in the first place).

@@ -97,22 +97,23 @@ config["global"]["unit-names"] = list(set(
 # Helper to check that a string contains no invalid chars for file names.
 # This is just the file, not its path! Slashes are considered invalid by this function.
 def valid_filename(fn):
-    # Only accept alnum, underscore, and dash.
-    return fn.replace('_', '').replace('-', '').isalnum() and fn.isascii()
+    # Only accept alnum, underscore, dash, and dot.
+    return fn.replace('_', '').replace('-', '').replace('.', '').isalnum() and fn.isascii()
     # Bit more loose: allow all except Windows forbidden chars.
     # return not( True in [c in fn for c in "<>:\"/\\|?*"])
 
 # Helper to check if a file path contains weird characters.
 # We just want to warn about this for input fastq files, but still try to continue.
 def valid_filepath(fn):
-    # Only accept alnum, underscore, and dash, and slashes.
-    clean = fn.replace('_', '').replace('-', '').replace('/', '').replace('\\', '').replace('.', '')
+    # Only accept alnum, underscore, dash, dot, and slashes.
+    clean = fn.replace('_', '').replace('-', '').replace('.', '').replace('/', '').replace('\\', '')
     return clean.isalnum() and clean.isascii()
 
 # List that contains tuples for all samples with their units.
 # In other words, a list of tuples of the sample and unit column of the sample table,
 # in the same order.
 config["global"]["sample-units"] = list()
+problematic_filenames = False
 for index, row in config["global"]["samples"].iterrows():
     if ( row["sample"], row["unit"] ) in config["global"]["sample-units"]:
         raise Exception(
@@ -142,12 +143,15 @@ for index, row in config["global"]["samples"].iterrows():
     if not valid_filepath(row["fq1"]) or (
         not pd.isnull(row["fq2"]) and not valid_filepath(row["fq2"])
     ):
-        logger.warning(
-            "Input fastq files listed in the input files table " + config["data"]["samples"] +
-            " contain problematic characters: " + str(row["fq1"]) + "; " + str(row["fq2"]) +
-            ". We generally advise to only use alpha-numeric characters, dashes, and underscores. " +
-            "We will try to continue running with these files, but it might lead to errors."
-        )
+        problematic_filenames = True
+
+if problematic_filenames:
+    logger.warning(
+        "Input fastq files listed in the input files table " + config["data"]["samples"] +
+        " contain problematic characters: " + str(row["fq1"]) + "; " + str(row["fq2"]) +
+        ". We generally advise to only use alpha-numeric characters, dashes, and underscores. " +
+        "We will try to continue running with these files, but it might lead to errors."
+    )
 
 # Helper function to get a list of all units of a given sample name.
 def get_sample_units( sample ):
