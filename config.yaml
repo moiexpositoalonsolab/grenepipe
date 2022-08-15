@@ -871,8 +871,8 @@ params:
     # That file will be located in "hafpipe/all.csv"
 
     # List of chromosomes of the reference genome for which we want to run HAFpipe.
-    # If left empty, all chromosomes are used. We however recommend to exclude chromosomes
-    # such as chloroplast or mitochondria, and to exclude small unassembled contigs.
+    # If left empty (default), all chromosomes are used. We however recommend to exclude
+    # chromosomes such as chloroplast or mitochondria, and to exclude small unassembled contigs.
     # Can be provided as a yaml list `[ "1", "2" ]`, or as separate lines following
     # the `chromosomes:` line, indented and with dashes in front.
     chromosomes: []

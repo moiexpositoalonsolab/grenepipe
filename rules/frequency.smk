@@ -12,6 +12,8 @@ import os
 def get_hafpipe_chromosomes( fai ):
     ref_chrs = get_chromosomes( fai )
     haf_chrs = list( config["params"]["hafpipe"]["chromosomes"] )
+    if len(haf_chrs) == 0:
+        haf_chrs = ref_chrs
     haf_chrs = [ str(v) for v in haf_chrs ]
     for chr in haf_chrs:
         if not chr in ref_chrs:
