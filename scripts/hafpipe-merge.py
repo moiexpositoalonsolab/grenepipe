@@ -158,6 +158,7 @@ for chrom in snakemake.params.chroms:
     # so that we can paste it in front of the chromosome table.
     chr_file = "../all-" + chrom + ".chrom"
     shell(
+        "touch {chr_file} ; "
         "for l in `seq 1 {lines}` ; do echo {chrom} >> {chr_file}; done"
     )
 
