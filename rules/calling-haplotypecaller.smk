@@ -120,8 +120,8 @@ rule combine_calls:
         "logs/gatk/combine-gvcfs/{contig}.log"
     benchmark:
         "benchmarks/gatk/combine-gvcfs/{contig}.bench.log"
-    group:
-        "gatk_calls_combine"
+    # group:
+    #     "gatk_calls_combine"
     conda:
         "../envs/gatk.yaml"
     wrapper:
@@ -150,8 +150,8 @@ rule genotype_variants:
         "logs/gatk/genotype-gvcfs/{contig}.log"
     benchmark:
         "benchmarks/gatk/genotype-gvcfs/{contig}.bench.log"
-    group:
-        "gatk_calls_combine"
+    # group:
+    #     "gatk_calls_combine"
     conda:
         "../envs/gatk.yaml"
     wrapper:
