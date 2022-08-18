@@ -163,10 +163,18 @@ def get_sample_name(match):
                 return n[:-len(s)]
         return n
 
+# Helper to check if a file path contains weird characters.
+def valid_filepath( fn ):
+    # Only accept alnum, underscore, dash, dot, and slashes.
+    clean = fn.replace('_', '').replace('-', '').replace('.', '').replace('/', '').replace('\\', '')
+    return clean.isalnum() and clean.isascii()
+
 def write_table(mates, outfile):
     # If the same sample name occurs, make this different units (1..n) of that sample name.
     samplenames = {}
     mate_cnt = 0
+    invalid_samples = 0
+    invalid_files = 0
     with open( outfile, 'w' ) as out:
         # Write the table header. We currently also write the `platform` column, but as do not know
         # what the platform is, we just provide a dummy '-' here. Users can then edit this as needed.
@@ -211,11 +219,35 @@ def write_table(mates, outfile):
             if match.pos >= 0:
                 mate_cnt += 1
 
+            # Count the still invalid names. Can only happen without --clean
+            if not valid_filepath( name ):
+                invalid_samples += 1
+            if not valid_filepath( match.seq1 ):
+                invalid_files += 1
+            if len(match.seq2) > 0 and not valid_filepath( match.seq2 ):
+                invalid_files += 1
+
     # Summary for the user
     print()
     print("Summary:")
     print(colored("Found " + str(mate_cnt) + " mates.", "green"))
     print(colored("Found " + str(len(mates) - mate_cnt) + " singles.", "yellow"))
+
+    # Warn about invalid file names
+    if invalid_samples > 0:
+        print(colored(
+            "Out of these, " + str(invalid_samples) + " sample names contain invalid characters.",
+            "This might cause trouble when using grenepipe with these files. "
+            "Please consider to use the `copy-samples.py` script with the `--clean` option "
+            "to fix these sample names.", "red"
+        ))
+    if invalid_files > 0:
+        print(colored(
+            "Out of these, " + str(invalid_files) + " fastq files contain invalid characters.",
+            "This might cause trouble when using grenepipe with these files. "
+            "Please consider to use the `copy-samples.py` script with the `--clean` option "
+            "to fix these file names.", "red"
+        ))
 
 def yes_or_no(question):
     while True:

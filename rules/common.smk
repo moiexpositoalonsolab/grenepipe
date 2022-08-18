@@ -113,7 +113,7 @@ def valid_filepath(fn):
 # In other words, a list of tuples of the sample and unit column of the sample table,
 # in the same order.
 config["global"]["sample-units"] = list()
-problematic_filenames = False
+problematic_filenames = 0
 for index, row in config["global"]["samples"].iterrows():
     if ( row["sample"], row["unit"] ) in config["global"]["sample-units"]:
         raise Exception(
@@ -129,7 +129,9 @@ for index, row in config["global"]["samples"].iterrows():
             "Invalid sample name or unit name found in samples table that contains characters " +
             "which cannot be used as sample/unit names for naming output files: " +
             str(row["sample"]) + " " + str(row["unit"]) +
-            " - for maximum robustness, we only allow alpha-numerical, dash, and underscore."
+            "; for maximum robustness, we only allow alpha-numerical, dots, dashes, and underscores. " +
+            "Use for example the script `tools/copy-samples.py --mode link [...] --clean` " +
+            "to create a new samples table and symlinks to the existing fastq files to solve this."
         )
 
     # Do a check of the fastq file names.
@@ -143,15 +145,7 @@ for index, row in config["global"]["samples"].iterrows():
     if not valid_filepath(row["fq1"]) or (
         not pd.isnull(row["fq2"]) and not valid_filepath(row["fq2"])
     ):
-        problematic_filenames = True
-
-if problematic_filenames:
-    logger.warning(
-        "Input fastq files listed in the input files table " + config["data"]["samples"] +
-        " contain problematic characters: " + str(row["fq1"]) + "; " + str(row["fq2"]) +
-        ". We generally advise to only use alpha-numeric characters, dashes, and underscores. " +
-        "We will try to continue running with these files, but it might lead to errors."
-    )
+        problematic_filenames += 1
 
 # Helper function to get a list of all units of a given sample name.
 def get_sample_units( sample ):
@@ -249,7 +243,20 @@ logger.info("")
 logger.info("=====================================================================================")
 logger.info("")
 
+# Warning about input names.
+if problematic_filenames > 0:
+    logger.warning(
+        "In " + str(problematic_filenames) + " of the " + str(len(config["global"]["sample-names"])) +
+        " input fastq files listed in the input files table " + config["data"]["samples"] +
+        " contain problematic characters. We generally advise to only use alpha-numeric " +
+        "characters, dots, dashes, and underscores. " +
+        "Use for example the script `tools/copy-samples.py --mode link [...] --clean` " +
+        "to create a new samples table and symlinks to the existing fastq files to solve this."
+        "We will try to continue running with these files, but it might lead to errors."
+    )
+
 # No need to have these output vars available in the rest of the snakefiles
+del problematic_filenames
 del username
 del hostname
 del conda_ver
