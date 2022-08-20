@@ -30,7 +30,7 @@ parser.add_argument(
          "The samples in this table are the ones copied/linked."
 )
 parser.add_argument(
-    '--out-dir', '--output-directory',
+    '--out-dir',
     required=True,
     help="The target directory where to copy/link the samples to."
 )
@@ -203,6 +203,8 @@ def process_samples_table_names( table, args ):
     return table
 
 def i_like_to_move_it( table, args ):
+    """Do the actual work of copying (or linking) the files."""
+
     # Find sum of file sizes that we are above to process. Could be done in the loop of the name
     # processing already, but let's keep the functionality separate here.
     # We use file sizes instead of just count of files, as it's nicer and more precise.
@@ -220,7 +222,7 @@ def i_like_to_move_it( table, args ):
         "About to " + args.mode + " " + str(files) + " fastq files with a total of " +
         file_size_human_readable( bytes ) + " to " + args.out_dir
     )
-    if args.mode == "copy" and bytes > pow(10, 10) and not yes_or_no("Continue?"):
+    if args.mode == "copy" and bytes > pow(10, 9) and not yes_or_no("Continue?"):
         sys.exit()
 
     # We are potentially doing a lot of work here, when copying. Let's keep users informed.
