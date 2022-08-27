@@ -37,7 +37,10 @@ rule select_calls:
 # =================================================================================================
 
 def get_filter(wildcards):
-    return { "snv-hard-filter": config["params"]["variantfiltration-hard"][wildcards.vartype] }
+    return {
+        wildcards.vartype + "-hard-filter":
+        config["params"]["variantfiltration-hard"][wildcards.vartype]
+    }
 
 # Simple hard filter, used by default
 rule hard_filter_calls:
