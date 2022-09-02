@@ -9,7 +9,7 @@ channels:
 dependencies:
   # Basics
   - mamba
-  - git ==2.37.1
+  - git
 
   # Snakemake
   # - snakemake ==5.32.1
