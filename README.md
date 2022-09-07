@@ -51,14 +51,14 @@ Pipeline Overview
   - Damage profiling (optional; e.g., for ancient DNA)
     - [mapDamage](https://github.com/ginolhac/mapDamage)
     - [DamageProfiler](https://github.com/Integrative-Transcriptomics/DamageProfiler)
-  - Variant calling, genotyping, and filtering
+  - Variant calling and genotyping
     - [bcftools call](http://samtools.github.io/bcftools/bcftools.html#call)
     - [freebayes](https://github.com/freebayes/freebayes)
     - [GATK HaplotypeCaller](https://gatk.broadinstitute.org/hc/en-us/articles/360037225632-HaplotypeCaller) / [GATK GenotypeGVCFs](https://gatk.broadinstitute.org/hc/en-us/articles/360037057852-GenotypeGVCFs)
-    - [GATK SelectVariants](https://gatk.broadinstitute.org/hc/en-us/articles/360037055952-SelectVariants)
+  - Variant filtering
     - [GATK VariantFiltration](https://gatk.broadinstitute.org/hc/en-us/articles/360036834871-VariantFiltration)
     - [GATK VariantRecalibrator](https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator) (VQSR)
-  - Frequency calling (for pool sequencing data, as an alternative to variant calling):
+  - Frequency calling (for pool sequencing data, as an alternative to variant calling)
     - [HAF-pipe](https://github.com/petrov-lab/HAFpipe-line)
   - Quality control, statistics, SNP annotation, reporting
     - [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
@@ -87,8 +87,8 @@ Citation
 
 When using grenepipe, please cite:
 
-> **grenepipe: A flexible, scalable, and reproducible pipeline to automate variant and frequency calling from sequence reads.**<br/>
-> Lucas Czech and Moises Exposito-Alonso. *arXiv*. 2021.<br/>
-> [doi:10.48550/arXiv.2103.15167](https://doi.org/10.48550/arXiv.2103.15167), [arXiv:2103.15167](https://arxiv.org/abs/2103.15167)
+> **grenepipe: A flexible, scalable, and reproducible pipeline <br/>to automate variant calling from sequence reads.**<br/>
+> Lucas Czech and Moises Exposito-Alonso. *Bioinformatics*. 2022.<br/>
+> [doi:10.1093/bioinformatics/btac600](https://doi.org/10.1093/bioinformatics/btac600)
 
 Furthermore, please do not forget to cite all tools that you selected to be run for your analysis. See [our Wiki](https://github.com/moiexpositoalonsolab/grenepipe/wiki/Citation-and-References) for their references.
