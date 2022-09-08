@@ -35,8 +35,7 @@ Known Variants and Regions
 ==============
 
 For testing purposes, we here also include a `known-variants.vcf.gz` file that can be used
-to constrain the variant calling process. This file is simply the resulting vcf from running
-the pipeline without known variants. It hence is of no actual use, and just for testing.
+to constrain the variant calling process. This file is based on the [1001 Genomes](https://www.1001genomes.org/) dataset, and imputed and subset to serve for exemplary and test purposes.
 
 Furthermore, for testing, we provide a simple `regions.bed` file that restricts the calling process
 to just some of the regions in the chromosomes. Note that this is mostly an experimental feature

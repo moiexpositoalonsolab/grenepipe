@@ -24,9 +24,10 @@ BASEPATH=`pwd -P`
 # so that we can run here without cluttering the example directory.
 if [[ ! -d ./test/reference ]]; then
     mkdir -p ./test/reference/
-    cp ./example/TAIR10_chr_all.fa.gz  ./test/reference/TAIR10_chr_all.fa.gz
-    cp ./example/known-variants.vcf.gz ./test/reference/known-variants.vcf.gz
-    cp ./example/regions.bed           ./test/reference/regions.bed
+    cp ./example/TAIR10_chr_all.fa.gz      ./test/reference/TAIR10_chr_all.fa.gz
+    cp ./example/known-variants.vcf.gz     ./test/reference/known-variants.vcf.gz
+    cp ./example/known-variants.vcf.gz.tbi ./test/reference/known-variants.vcf.gz.tbi
+    cp ./example/regions.bed               ./test/reference/regions.bed
 fi
 
 # Copy the samples table, so that we can change the paths without changing the original,
@@ -44,6 +45,7 @@ make_config() {
     local TARGET=$1
 
     cp ./config.yaml ${TARGET}
+    # cat ./config.yaml | sed "s?#BASEPATH#?${BASEPATH}?g" > ${TARGET}
     sed -i "s?/path/to/data/samples.tsv?${BASEPATH}/test/samples.tsv?g" ${TARGET}
     sed -i "s?/path/to/data/genome.fa?${BASEPATH}/test/reference/TAIR10_chr_all.fa?g" ${TARGET}
     # cat ./test/config_template.yaml | sed "s?#BASEPATH#?${BASEPATH}?g" > ./test/config.yaml
@@ -51,16 +53,6 @@ make_config() {
     # Need an extra replacement step for threads. Might change in the future - this is a bit
     # volatile. But works for now.
     sed -i "s/threads: 12/threads: 6/g" ${TARGET}
-
-    # We also copy over the VQSR training data. It's only needed for few test cases,
-    # but doesn't hurt to have it in the other directories as well. As this might not be available
-    # for every user that wants to run our tests, we might skip - VSQR tests fail in that case!
-    if test -f "test/1001genomes_snp-short-indel_only_ACGTN.vcf.gz"; then
-        cd "$(dirname "${TARGET}")"
-        ln -s ../1001genomes_snp-short-indel_only_ACGTN.vcf.gz .
-        ln -s ../1001genomes_snp-short-indel_only_ACGTN.vcf.gz.tbi .
-        cd - > /dev/null
-    fi
 }
 
 # Helper to list _all_ decendant processes of this script, so that when killing the script,

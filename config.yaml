@@ -690,9 +690,9 @@ params:
       #   - truth: false
       #   - prior: 2.0
     resource-files:
-      # Example resource using a 1001G Arabidopsis thaliana VCF.
-      # (Not delivered with grenepipe - only here for illustration purposes for the above resource.)
-      - 1001G: "1001genomes_snp-short-indel_only_ACGTN.vcf.gz"
+      # Example resource using a 1001G Arabidopsis thaliana VCF subset.
+      # We just re-use the known variants file here, for illustration and test purposes only.
+      - 1001G: "#BASEPATH#/test/reference/known-variants.vcf.gz"
 
       # Other examples, from the GATK documentation, for the human genome.
       # - hapmap: "hapmap_3.3.hg38.sites.vcf.gz"
@@ -714,7 +714,10 @@ params:
     # Extra command line params, and optional Java runtime options to provide
     # to GATK VariantRecalibrator. We already set the --rscript-file internally for some plots
     # of the recalibration (only gives plots for the SNPs though, according to GATK).
-    extra-variantrecalibrator-SNP: "--max-gaussians 2"
+    # We here set the gaussians to a very low value, simply for our test case to work, see
+    # https://gatk.broadinstitute.org/hc/en-us/community/posts/4408833794587-Insufficient-variance-error-for-VariantRecalibrator
+    # for details. We recommend to change this according to your actual needs.
+    extra-variantrecalibrator-SNP: "--max-gaussians 1"
     extra-variantrecalibrator-INDEL: "--max-gaussians 1"
     java-variantrecalibrator: ""
 

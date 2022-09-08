@@ -1,3 +1,3 @@
-chromosomes: \[\]	chromosomes: [ "1", "2" ]
-founder-vcf: ""	founder-vcf: "1001genomes_snp-short-indel_only_ACGTN.vcf.gz"
-snp-table-dir: ""	snp-table-dir: "../snp-tables"
+chromosomes: \[\]	chromosomes: [ "1", "2", "3", "4", "5" ]
+founder-vcf: ""	founder-vcf: "#BASEPATH#/test/reference/known-variants.vcf.gz"
+snp-table-dir: ""	snp-table-dir: "#BASEPATH#/test/snp-tables"

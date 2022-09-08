@@ -15,8 +15,7 @@ test/reference.tar.gz
 test/samples.tsv
 test/samples-pe.tsv
 test/out-*
-test/1001genomes_snp-short-indel_only_ACGTN.vcf.gz
-test/1001genomes_snp-short-indel_only_ACGTN.vcf.gz.tbi
+test/snp-tables
 
 # ==================================================================================================
 #      Default Python Ignores
