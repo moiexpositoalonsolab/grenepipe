@@ -18,7 +18,7 @@ basedir = workflow.basedir
 
 # We want to report the grenepipe version for the user, for reproducibility.
 # The following line is automatically replaced by the deploy scripts. Do not change manually.
-grenepipe_version = "0.10.0-beta" #GRENEPIPE_VERSION#
+grenepipe_version = "0.10.0" #GRENEPIPE_VERSION#
 
 # Add a description of the workflow to the final report
 report: os.path.join(workflow.basedir, "reports/workflow.rst")
