@@ -747,7 +747,7 @@ params:
   qualimap:
 
     # Additional parameters for qualimap, see http://qualimap.conesalab.org/
-    extra: ""
+    extra: "--java-mem-size=10G"
     threads: 2
 
   # ----------------------------------------------------------------------
