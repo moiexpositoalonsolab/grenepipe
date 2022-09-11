@@ -66,6 +66,10 @@ rule map_reads:
 #     Convert to bam
 # =================================================================================================
 
+# Apprently, samtools does not create the tmp dir correclty, so we need to take care of this...
+if len(config["params"]["samtools"]["temp-dir"]) > 0:
+    os.makedirs(config["params"]["samtools"]["temp-dir"], exist_ok=True)
+
 # We use the BWA SAM(SE/PE) wrapper, which can handle both se and pe files at the same time.
 # This is really convenient, as this means we don't have to deal with this ourselves. Nice!
 # Apparently, it uses the input fastq files to determine if we have se or pe data. Smart.

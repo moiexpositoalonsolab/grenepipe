@@ -2,6 +2,10 @@
 #     Mark Duplicates
 # =================================================================================================
 
+# Apprently, samtools does not create the tmp dir correclty, so we need to take care of this...
+if len(config["params"]["samtools"]["temp-dir"]) > 0:
+    os.makedirs(config["params"]["samtools"]["temp-dir"], exist_ok=True)
+
 # Used in `mapping.smk`
 
 # The dedup documentation says that -o is an output file, but the program then complains

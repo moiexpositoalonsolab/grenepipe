@@ -2,6 +2,10 @@
 #     Read Mapping
 # =================================================================================================
 
+# Apprently, samtools does not create the tmp dir correclty, so we need to take care of this...
+if len(config["params"]["samtools"]["temp-dir"]) > 0:
+    os.makedirs(config["params"]["samtools"]["temp-dir"], exist_ok=True)
+
 def get_bwa_mem2_extra( wildcards ):
     rg_tags = "\\t".join( get_read_group_tags(wildcards) )
     extra = "-R '@RG\\t" + rg_tags + "' " + config["params"]["bwamem2"]["extra"]

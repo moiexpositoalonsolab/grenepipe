@@ -35,6 +35,10 @@ localrules: bowtie2_index
 #     Read Mapping
 # =================================================================================================
 
+# Apprently, samtools does not create the tmp dir correclty, so we need to take care of this...
+if len(config["params"]["samtools"]["temp-dir"]) > 0:
+    os.makedirs(config["params"]["samtools"]["temp-dir"], exist_ok=True)
+
 def get_bowtie2_extra( wildcards ):
     extra = r"--rg-id \"" + wildcards.sample + r"\""
     rg_tags = get_read_group_tags(wildcards)
