@@ -2,3 +2,4 @@ founder-vcf: ""	founder-vcf: "#BASEPATH#/test/reference/known-variants.vcf.gz"
 snp-table-dir: ""	snp-table-dir: "#BASEPATH#/test/snp-tables"
 impmethod: ""	impmethod: "my_method"
 impute-script: ""	impute-script: "../../packages/hafpipe-impute-example.sh"
+keep-intermediates: False	keep-intermediates: True

@@ -1,6 +1,39 @@
 import os
 
 # =================================================================================================
+#     Setup
+# =================================================================================================
+
+# We use a rule for the setup in order to ensure that this is only called once,
+# even if there are multiple instances of the downstream roles.
+
+def get_packages_dir():
+    # Hard coded paths, within our structure. Needs to be adjusted in scripts/hafpipe.py as well.
+    # Snakemake suggests to use `get_source()`, which is a bug and actually called `source_path()`:
+    # https://snakemake.readthedocs.io/en/stable/project_info/faq.html#how-does-snakemake-interpret-relative-paths
+    # However, neither of them is working... So we use a different way of getting the path
+    # to our Snakemake base directory: https://stackoverflow.com/a/73202976/4184258
+    return os.path.join( snakemake.workflow.basedir, "packages" )
+
+def get_hafpipe_bins():
+    harp_bin    = os.path.join( get_packages_dir(), "harp/bin/harp" )
+    hafpipe_bin = os.path.join( get_packages_dir(), "hafpipe/HAFpipe_wrapper.sh" )
+    return [ harp_bin, hafpipe_bin ]
+
+rule hafpipe_setup:
+    output:
+        get_hafpipe_bins()
+    params:
+        packages_path = get_packages_dir()
+    log:
+        "logs/hafpipe/setup.log"
+    shell:
+        "{params.packages_path}/setup-hafpipe.sh >> {log} 2>&1"
+
+localrules:
+    hafpipe_setup
+
+# =================================================================================================
 #     HAFpipe Task 1:  Make SNP Table
 # =================================================================================================
 
@@ -37,7 +70,8 @@ def get_hafpipe_snp_table_dir():
 
 rule hafpipe_snp_table:
     input:
-        vcf=config["params"]["hafpipe"]["founder-vcf"]
+        vcf=config["params"]["hafpipe"]["founder-vcf"],
+        bins=get_hafpipe_bins()
     output:
         snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv"
     params:
@@ -89,7 +123,8 @@ if impmethod in ["simpute", "npute"]:
     # Call the HAFpipe script with one of the two existing methods.
     rule hafpipe_impute_snp_table:
         input:
-            snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv"
+            snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
+            bins=get_hafpipe_bins()
         output:
             # Unnamed output, as this is implicit in HAFpipe Task 2
             get_hafpipe_snp_table_dir() + "/{chrom}.csv" + "." + impmethod
@@ -185,7 +220,8 @@ rule hafpipe_haplotype_frequencies:
         bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
         baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
-        refseq=config["data"]["reference"]["genome"]
+        refseq=config["data"]["reference"]["genome"],
+        bins=get_hafpipe_bins()
     output:
         # We currently just specify the output file names here as HAFpipe produces them.
         # Might want to refactor in the future to be able to provide our own names,
@@ -211,7 +247,8 @@ rule hafpipe_allele_frequencies:
         bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
         baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
-        freqs="hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs" # from Task 3 above
+        freqs="hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs", # from Task 3 above
+        bins=get_hafpipe_bins()
     output:
         # Same as above: just expect the file name as produced by HAFpipe.
         afSite=(

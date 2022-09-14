@@ -1,3 +1,4 @@
 chromosomes: \[\]	chromosomes: [ "1", "2", "3", "4", "5" ]
 founder-vcf: ""	founder-vcf: "#BASEPATH#/test/reference/known-variants.vcf.gz"
 snp-table-dir: ""	snp-table-dir: "#BASEPATH#/test/snp-tables"
+keep-intermediates: False	keep-intermediates: True
