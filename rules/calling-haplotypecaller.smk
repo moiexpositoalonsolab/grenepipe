@@ -44,8 +44,13 @@ rule call_variants:
             "called/{sample}.{contig}.g.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("called/{sample}.{contig}.g.vcf.gz")
-        )
+        ),
         # gvcf=protected("called/{sample}.{contig}.g.vcf.gz")
+        gtbi=(
+            "called/{sample}.{contig}.g.vcf.gz.tbi"
+            if config["settings"]["keep-intermediate"]["calling"]
+            else temp("called/{sample}.{contig}.g.vcf.gz.tbi")
+        )
     log:
         "logs/gatk/haplotypecaller/{sample}.{contig}.log"
     benchmark:
@@ -69,23 +74,32 @@ rule call_variants:
     wrapper:
         "0.51.3/bio/gatk/haplotypecaller"
 
-# Stupid GATK sometimes writes out index files, and sometimes not, and it is not clear at all
-# when that is happening and when not. Let's try with a rule, and see if it works even if the file
-# is present sometimes... hopefully snakemake is smart enough for that.
-rule vcf_index_gatk:
-    input:
-        "called/{file}.g.vcf.gz"
-    output:
-        "called/{file}.g.vcf.gz.tbi"
-    params:
-        # pass arguments to tabix (e.g. index a vcf)
-        "-p vcf"
-    log:
-        "logs/tabix/{file}.log"
-    group:
-        "call_variants"
-    wrapper:
-        "0.55.1/bio/tabix"
+# Deactivated the below, as this was causing trouble. Got the warning
+#     Warning: the following output files of rule vcf_index_gatk were not present when the DAG was created:
+#     {'called/S3.chloroplast.g.vcf.gz.tbi'}
+# for all files, indicating that the above rule indeed does produce them.
+# However, having an extra rule for that caused that rule to _sometimes_ be executed, so that
+# the tbi file would have a later time stamp, and it seems likely that this then caused other
+# rules to want to update as well, meaning that the snp calling was repeated?!
+# I hope that this fix this problem...
+
+# # Stupid GATK sometimes writes out index files, and sometimes not, and it is not clear at all
+# # when that is happening and when not. Let's try with a rule, and see if it works even if the file
+# # is present sometimes... hopefully snakemake is smart enough for that.
+# rule vcf_index_gatk:
+#     input:
+#         "called/{file}.g.vcf.gz"
+#     output:
+#         "called/{file}.g.vcf.gz.tbi"
+#     params:
+#         # pass arguments to tabix (e.g. index a vcf)
+#         "-p vcf"
+#     log:
+#         "logs/tabix/{file}.log"
+#     group:
+#         "call_variants"
+#     wrapper:
+#         "0.55.1/bio/tabix"
 
 # =================================================================================================
 #     Combining Calls
