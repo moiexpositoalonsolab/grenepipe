@@ -11,3 +11,4 @@ dependencies:
   # and solve it here as described in https://unix.stackexchange.com/a/283609
   - libssl-libcryptso6
   # - mapdamage2=2.2.1
+  - r-rcppgsl
