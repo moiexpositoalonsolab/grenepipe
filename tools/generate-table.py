@@ -5,6 +5,7 @@ import re
 from glob import glob
 from termcolor import colored
 from collections import namedtuple
+import gzip
 
 # =================================================================================================
 #     Usage and Description
@@ -44,6 +45,26 @@ def get_fastq_files(indir):
                 seqfiles.append(path)
     seqfiles.sort()
     return seqfiles
+
+def is_interleaved_fastq(fq):
+    with open(fq, 'rb') as test_f:
+        is_gzipped = ( test_f.read(2) == b'\x1f\x8b' )
+
+    # We check line 1 and 5 (names of the first and second sequence),
+    # and see if they contain " 1:" and " 2:" respectively, which is a strong indicator.
+    with ( gzip.open(fq,'r') if is_gzipped else open(fq) ) as f:
+        cnt = 1
+        for line in f:
+            if cnt == 1:
+                line1 = str(line)
+            if cnt == 5:
+                line5 = str(line)
+            if cnt > 8:
+                break
+            cnt += 1
+    if cnt <= 8:
+        return False
+    return " 1:" in line1 and " 2:" in line5
 
 def match_pe_files(s1, s2):
     # Split into dir and file name. If the dirs already differ, we are done.
@@ -175,6 +196,7 @@ def write_table(mates, outfile):
     mate_cnt = 0
     invalid_samples = 0
     invalid_files = 0
+    interleaved_files = 0
     with open( outfile, 'w' ) as out:
         # Write the table header. We currently also write the `platform` column, but as do not know
         # what the platform is, we just provide a dummy '-' here. Users can then edit this as needed.
@@ -208,10 +230,19 @@ def write_table(mates, outfile):
                     colored(match.seq2[match_pos], "red") +
                     match.seq2[match_pos+1:]
                 )
+                if is_interleaved_fastq(match.seq1):
+                    print(colored( "The file is likely an interleaved fastq file.", "red"))
+                    interleaved_files += 1
+                if is_interleaved_fastq(match.seq2):
+                    print(colored("The file is likely an interleaved fastq file.", "red"))
+                    interleaved_files += 1
             else:
                 print()
                 print(colored("No match (single end):", "yellow"))
                 print(match.seq1)
+                if is_interleaved_fastq(match.seq1):
+                    print(colored("The file is likely an interleaved fastq file.", "red"))
+                    interleaved_files += 1
             print(colored("Name: " + name + ", unit: " + str(unit), "blue"))
 
             # Now print the result table.
@@ -236,17 +267,24 @@ def write_table(mates, outfile):
     # Warn about invalid file names
     if invalid_samples > 0:
         print(colored(
-            "Out of these, " + str(invalid_samples) + " sample names contain invalid characters.",
+            "Out of these, " + str(invalid_samples) + " sample names contain invalid characters. "
             "This might cause trouble when using grenepipe with these files. "
             "Please consider to use the `copy-samples.py` script with the `--clean` option "
             "to fix these sample names.", "red"
         ))
     if invalid_files > 0:
         print(colored(
-            "Out of these, " + str(invalid_files) + " fastq files contain invalid characters.",
+            "Out of these, " + str(invalid_files) + " fastq files contain invalid characters. "
             "This might cause trouble when using grenepipe with these files. "
             "Please consider to use the `copy-samples.py` script with the `--clean` option "
             "to fix these file names.", "red"
+        ))
+    if interleaved_files > 0:
+        print(colored(
+            "Out of these, " + str(interleaved_files) + " fastq files are likely interleaved "
+            "and should not be used with grenepipe, unless you know what you are doing and set "
+            "the appropriate params for all tools. Use for example https://github.com/lh3/seqtk "
+            "to de-interleave them, and then run this script again.", "red"
         ))
 
 def yes_or_no(question):
