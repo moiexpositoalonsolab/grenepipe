@@ -195,6 +195,12 @@ try:
 except:
     conda_ver = "n/a"
 
+# Get the conda env name, if available.
+# See https://stackoverflow.com/a/42660674/4184258
+conda_env = os.environ['CONDA_DEFAULT_ENV'] + " (" + os.environ["CONDA_PREFIX"] + ")"
+if conda_env == " ()":
+    conda_env = "n/a"
+
 # Get nicely wrapped command line
 cmdline = sys.argv[0]
 for i in range( 1, len(sys.argv)):
@@ -233,6 +239,7 @@ logger.info("    Conda:              " + str(conda_ver))
 logger.info("    Python:             " + str(sys.version.split(' ')[0]))
 logger.info("    Snakemake:          " + str(snakemake.__version__))
 logger.info("    Grenepipe:          " + str(grenepipe_version))
+logger.info("    Conda env:          " + str(conda_env))
 logger.info("    Command:            " + cmdline)
 logger.info("")
 logger.info("    Base directory:     " + workflow.basedir)
@@ -260,6 +267,7 @@ del problematic_filenames
 del username
 del hostname
 del conda_ver
+del conda_env
 del cmdline
 del cfgfiles
 del unitcnt
