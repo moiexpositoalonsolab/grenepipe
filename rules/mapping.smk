@@ -177,7 +177,7 @@ else:
 # The platform information is provided for GATK BaseRecalibrator via the bam RG tags,
 # meaning that the mapping tool needs to know them and add them to the bam files.
 if config["settings"]["recalibrate-base-qualities"]:
-    if not config["data"]["reference"].get("known-variants"):
+    if not config["data"]["known-variants"]:
         raise Exception(
             "Setting recalibrate-base-qualities can only be activated if a known-variants "
             "file is also provided, as GATK BaseRecalibrator needs this."
@@ -250,12 +250,12 @@ rule recalibrate_base_qualities:
     input:
         bam=get_recal_input(),
         bai=get_recal_input(bai=True),
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
-        known=config["data"]["reference"]["known-variants"]
+        known=config["data"]["known-variants"]
     output:
         bam=(
             "recal/{sample}-{unit}.bam"

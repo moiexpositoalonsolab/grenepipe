@@ -10,19 +10,14 @@ properties:
     properties:
       samples:
         type: string
-      reference:
-        type: object
-        properties:
-          genome:
-            type: string
-          known-variants:
-            type: string
-        required:
-          - genome
-          - known-variants
+      reference-genome:
+        type: string
+      known-variants:
+        type: string
     required:
       - samples
-      - reference
+      - reference-genome
+      - known-variants
 
   settings:
     type: object

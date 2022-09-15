@@ -12,7 +12,7 @@ def get_snpeff_db_download_path():
     else:
         # Use the ref genome path, with trailing slash
         return os.path.join(
-            os.path.dirname( config["data"]["reference"]["genome"] ), "snpeff-db"
+            os.path.dirname( config["data"]["reference-genome"] ), "snpeff-db"
         ) + "/"
 
 # We separate download from usage, so that we can better see progress and errors,
@@ -97,7 +97,7 @@ def get_vep_cache_dir():
         result = os.path.dirname( config["params"]["vep"]["cache-dir"] )
     else:
         result = os.path.join(
-            os.path.dirname( config["data"]["reference"]["genome"] ), "vep-cache"
+            os.path.dirname( config["data"]["reference-genome"] ), "vep-cache"
         )
     return result
 
@@ -107,7 +107,7 @@ def get_vep_plugins_dir():
         result = os.path.dirname( config["params"]["vep"]["plugins-dir"] )
     else:
         result = os.path.join(
-            os.path.dirname( config["data"]["reference"]["genome"] ), "vep-plugins"
+            os.path.dirname( config["data"]["reference-genome"] ), "vep-plugins"
         )
     return result
 

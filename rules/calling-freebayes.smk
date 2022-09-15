@@ -3,8 +3,8 @@
 # =================================================================================================
 
 def know_variants_extra():
-    if config["data"]["reference"].get("known-variants"):
-        return " --haplotype-basis-alleles " + config["data"]["reference"].get("known-variants")
+    if config["data"]["known-variants"]:
+        return " --haplotype-basis-alleles " + config["data"]["known-variants"]
     else:
         return ""
 
@@ -13,9 +13,9 @@ rule call_variants:
         # Our custom script needs the genome, with index files, and its fai file.
         # The fai is integrated per checkpoint, which for this step here is not needed,
         # but is needed for the parallelization over configs, see the rule merge_variants.
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
         fai=get_fai,
@@ -29,8 +29,12 @@ rule call_variants:
         # If known variants are set, use this as input to ensure the file exists.
         # We use the file via the know_variants_extra() function call below,
         # but request it here as well to ensure that it and its index are present.
-        known=config["data"]["reference"].get("known-variants"),
-        knownidx=config["data"]["reference"]["known-variants"] + ".tbi" if config["data"]["reference"]["known-variants"] else [],
+        known=config["data"]["known-variants"],
+        knownidx=(
+            config["data"]["known-variants"] + ".tbi"
+            if config["data"]["known-variants"]
+            else []
+        ),
 
         # If we restict the calling to some regions, use this file here.
         # regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []

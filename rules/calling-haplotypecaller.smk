@@ -19,16 +19,20 @@ rule call_variants:
         bai=get_sample_bais_wildcard,
 
         # Get the reference genome, as well as its indices.
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
         refdict=genome_dict(),
 
         # If known variants are set in the config, use then, and require the index file as well.
-        known=config["data"]["reference"].get("known-variants"), # empty if key not present
-        knownidx=config["data"]["reference"]["known-variants"] + ".tbi" if config["data"]["reference"]["known-variants"] else [],
+        known=config["data"]["known-variants"],
+        knownidx=(
+            config["data"]["known-variants"] + ".tbi"
+            if config["data"]["known-variants"]
+            else []
+        ),
 
         # Further settings for region constraint filter.
         # regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
@@ -109,9 +113,9 @@ rule combine_calls:
     input:
         # Get the reference genome and its indices. Not sure if the indices are needed
         # for this particular rule, but doesn't hurt to include them as an input anyway.
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
 
@@ -145,9 +149,9 @@ rule genotype_variants:
     input:
         # Get the reference genome and its indices. Not sure if the indices are needed
         # for this particular rule, but doesn't hurt to include them as an input anyway.
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
 

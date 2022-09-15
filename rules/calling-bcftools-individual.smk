@@ -5,9 +5,9 @@
 rule call_variants:
     input:
         # Need the ref genome, as well as its indices.
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
 
@@ -73,9 +73,9 @@ rule call_variants:
 rule combine_contig:
     input:
         # Need the ref genome, as well as its indices.
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
 

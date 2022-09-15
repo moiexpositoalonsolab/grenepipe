@@ -11,15 +11,15 @@ rule mapdamage:
 
         # Get the reference genome and its indices. Not sure if the indices are needed
         # for this particular rule, but doesn't hurt to include them as an input anyway.
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
     output:
         "mapdamage/{sample}-{unit}/Runtime_log.txt"
     params:
-        index=config["data"]["reference"]["genome"],
+        index=config["data"]["reference-genome"],
         extra=config["params"]["mapdamage"]["extra"],
         outdir="mapdamage/{sample}-{unit}"
     log:
@@ -42,15 +42,15 @@ rule damageprofiler:
 
         # Get the reference genome and its indices. Not sure if the indices are needed
         # for this particular rule, but doesn't hurt to include them as an input anyway.
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
     output:
         "damageprofiler/{sample}-{unit}/DamageProfiler.log"
     params:
-        index=config["data"]["reference"]["genome"],
+        index=config["data"]["reference-genome"],
         extra=config["params"]["damageprofiler"]["extra"],
         outdir="damageprofiler/{sample}-{unit}"
     log:

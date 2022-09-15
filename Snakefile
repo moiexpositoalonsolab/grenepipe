@@ -25,7 +25,7 @@ rule all:
         "qc/multiqc.html",
 
         # Reference genome statistics
-        config["data"]["reference"]["genome"] + ".seqkit",
+        config["data"]["reference-genome"] + ".seqkit",
 
         # Pileup
         expand(

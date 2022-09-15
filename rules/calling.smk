@@ -7,7 +7,7 @@ import json
 def get_fai(wildcards):
     # Stop at the snakemake checkpoint first to ensure that the fai file is available.
     return checkpoints.samtools_faidx.get().output[0]
-    # return config["data"]["reference"]["genome"] + ".fai"
+    # return config["data"]["reference-genome"] + ".fai"
 
 # =================================================================================================
 #     Grouping of (Small) Contigs

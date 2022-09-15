@@ -6,7 +6,7 @@ import json
 
 rule select_calls:
     input:
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         vcf="genotyped/all.vcf.gz",
         refdict=genome_dict(),
 
@@ -45,7 +45,7 @@ def get_filter(wildcards):
 # Simple hard filter, used by default
 rule hard_filter_calls:
     input:
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         vcf="filtered/all.select-{vartype}.vcf.gz"
     output:
         vcf=(
@@ -130,7 +130,7 @@ def get_apply_vqsr_extra(wildcards):
 # This is a two step process: first, we estimate parameters, second (below) we filter the data.
 rule variant_recalibrator:
     input:
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         vcf="filtered/all.select-{vartype}.vcf.gz",
 
         # Resources have to be given as named input files, we unpack the dict to get them.
@@ -183,7 +183,7 @@ rule variant_recalibrator:
 
 rule apply_vqsr:
     input:
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         vcf="filtered/all.select-{vartype}.vcf.gz",
         recal="filtered/all.{vartype}.vqsr-recal.vcf.gz",
         tranches="filtered/all.{vartype}.vqsr-recal.tranches"

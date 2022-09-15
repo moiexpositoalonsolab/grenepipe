@@ -31,15 +31,15 @@ snakemake.utils.validate(config, schema="../schemas/config.schema.yaml")
 # Some settings in the config file need to be converted from empty string to empty list, it seems,
 # so that rules that use the files specified in these settings are working properly.
 # Maybe there is some better way, but for now, this is working.
-if "known-variants" not in config["data"]["reference"] or not config["data"]["reference"]["known-variants"]:
-    config["data"]["reference"]["known-variants"]=[]
+if "known-variants" not in config["data"] or not config["data"]["known-variants"]:
+    config["data"]["known-variants"]=[]
 if "restrict-regions" not in config["settings"] or not config["settings"]["restrict-regions"]:
     config["settings"]["restrict-regions"]=[]
 
 # We need to clean up the file name for the reference genome.
 # The prep rule decompress_genome provides the unzipped genome as needed.
-if config["data"]["reference"]["genome"].endswith(".gz"):
-    config["data"]["reference"]["genome"] = os.path.splitext(config["data"]["reference"]["genome"])[0]
+if config["data"]["reference-genome"].endswith(".gz"):
+    config["data"]["reference-genome"] = os.path.splitext(config["data"]["reference-genome"])[0]
 
 # GATK only accepts reference genomes if their file ending is `fa` or `fasta`, at least in the
 # version that we are using. This has been updated later to also include `fas`, see here:
@@ -49,7 +49,7 @@ if config["data"]["reference"]["genome"].endswith(".gz"):
 # instead of having them run into cryptic log messages "File is not a supported reference file type".
 # Add `".fas", ".fas.gz"` later if we upgrade GATK.
 fastaexts = ( ".fasta", ".fasta.gz", ".fa", ".fa.gz", ".fna" )
-if not config["data"]["reference"]["genome"].endswith( fastaexts ):
+if not config["data"]["reference-genome"].endswith( fastaexts ):
     raise Exception(
         "Reference genome file path does not end in " + str(fastaexts) + ", which unfortunately " +
         "is needed by GATK. Please rename the file and change the path in the config.yaml"

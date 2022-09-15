@@ -14,9 +14,9 @@ def get_bwa_mem_extra( wildcards ):
 rule map_reads:
     input:
         reads=get_trimmed_reads,
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         idx=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         )
     output:
@@ -26,7 +26,7 @@ rule map_reads:
             else temp("mapped/{sample}-{unit}.sorted.bam")
         )
     params:
-        index=config["data"]["reference"]["genome"],
+        index=config["data"]["reference-genome"],
         extra=get_bwa_mem_extra,
 
         # Sort as we need it. Samtools provided via the two params for new and old wrapper versions.

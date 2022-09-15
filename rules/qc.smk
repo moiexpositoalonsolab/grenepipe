@@ -190,7 +190,7 @@ def picard_collectmultiplemetrics_exts():
 rule picard_collectmultiplemetrics:
     input:
         bam=get_mapping_result(),
-        ref=config["data"]["reference"]["genome"]
+        ref=config["data"]["reference-genome"]
     output:
         expand( "qc/picard/{{sample}}-{{unit}}{ext}", ext=picard_collectmultiplemetrics_exts())
     log:
@@ -419,7 +419,7 @@ rule all_qc:
         "qc/multiqc.html",
 
         # Reference genome statistics
-        config["data"]["reference"]["genome"] + ".seqkit"
+        config["data"]["reference-genome"] + ".seqkit"
 
 # The `all_qc` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.

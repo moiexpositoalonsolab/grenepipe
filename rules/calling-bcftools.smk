@@ -2,7 +2,7 @@
 #     Common Functions used for bcftools calling
 # =================================================================================================
 
-if config["data"]["reference"].get("known-variants"):
+if config["data"]["known-variants"]:
     raise Exception(
         "Calling tool 'bcftools' cannot be used with the option 'known-variants', "
         "as it does not support to call based on known variants."

@@ -14,14 +14,14 @@ def get_bwa_mem2_extra( wildcards ):
 rule map_reads:
     input:
         reads=get_trimmed_reads,
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
 
         # Somehow, the wrapper expects the index extensions to be given,
         # instead of the underlying fasta file... Well, so let's do that.
         # We provide the fasta above as well; it's not used,
         # but might be important as a rule dependency so that it is present.
         idx=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "0123", "amb", "ann", "bwt.2bit.64", "pac" ]
         )
     output:

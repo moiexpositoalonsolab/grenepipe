@@ -78,7 +78,7 @@ rule mpileup_all_merged_units_names:
 rule mpileup_samples_individual_units:
     input:
         bam=get_sample_bams_wildcards, # provided in mapping.smk
-        reference_genome=config["data"]["reference"]["genome"]
+        reference_genome=config["data"]["reference-genome"]
     output:
         "mpileup/{sample}-individual-units.mpileup.gz"
     params:
@@ -91,7 +91,7 @@ rule mpileup_samples_individual_units:
 rule mpileup_samples_merged_units:
     input:
         bam="mpileup/{sample}.merged.bam",
-        reference_genome=config["data"]["reference"]["genome"]
+        reference_genome=config["data"]["reference-genome"]
     output:
         "mpileup/{sample}-merged-units.mpileup.gz"
     params:
@@ -104,7 +104,7 @@ rule mpileup_samples_merged_units:
 rule mpileup_all_individual_units:
     input:
         bam=get_all_bams(),
-        reference_genome=config["data"]["reference"]["genome"],
+        reference_genome=config["data"]["reference-genome"],
         list="mpileup/all-individual-units.names.txt"
     output:
         "mpileup/all-individual-units.mpileup.gz"
@@ -121,7 +121,7 @@ rule mpileup_all_merged_units:
             "mpileup/{sample}.merged.bam",
             sample=config["global"]["sample-names"]
         ),
-        reference_genome=config["data"]["reference"]["genome"],
+        reference_genome=config["data"]["reference-genome"],
         list="mpileup/all-merged-units.names.txt"
     output:
         "mpileup/all-merged-units.mpileup.gz"
@@ -135,7 +135,7 @@ rule mpileup_all_merged_units:
 rule mpileup_all_merged_samples:
     input:
         bam="mpileup/all.merged.bam",
-        reference_genome=config["data"]["reference"]["genome"]
+        reference_genome=config["data"]["reference-genome"]
     output:
         "mpileup/all-merged-samples.mpileup.gz"
     params:

@@ -27,9 +27,9 @@ def get_single_trimmed_read(wildcards):
 rule map_reads:
     input:
         reads=get_single_trimmed_read,
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
         refidcs=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         )
     output:
@@ -44,7 +44,7 @@ rule map_reads:
         # Snakemake... no idea what you are doing there again.
         # pipe( "sai/{sample}-{unit}-{pair}.sai" )
     params:
-        index=config["data"]["reference"]["genome"],
+        index=config["data"]["reference-genome"],
         extra=config["params"]["bwaaln"]["extra"]
     group:
         "mapping"
@@ -106,14 +106,14 @@ rule bwa_sai_to_bam:
     input:
         fastq=get_trimmed_reads,
         sai=get_sai,
-        ref=config["data"]["reference"]["genome"],
+        ref=config["data"]["reference-genome"],
 
         # Somehow, the wrapper expects the index extensions to be given,
         # instead of the underlying fasta file... Well, so let's do that.
         # We provide the fasta above as well; it's not used,
         # but might be important as a rule dependency so that it is present.
         idx=expand(
-            config["data"]["reference"]["genome"] + ".{ext}",
+            config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         )
     output:

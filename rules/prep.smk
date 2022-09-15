@@ -4,18 +4,18 @@
 
 # Helper function to get the name of the genome dictorary file as expected by GATK
 def genome_dict():
-    return os.path.splitext(config["data"]["reference"]["genome"])[0] + ".dict"
+    return os.path.splitext(config["data"]["reference-genome"])[0] + ".dict"
 
 # We define some local variables for simplicity, and delete them later
 # in order to not spam the global scope by accident.
 
 # Get file names from config file. The reference genome file has already been stripped of the
 # `.gz` extension if present in common.
-genome=config["data"]["reference"]["genome"]
+genome=config["data"]["reference-genome"]
 
 # We need to remove absolute paths here, otherwise the log files will contain broken paths.
-genomename = os.path.basename( config["data"]["reference"]["genome"] )
-genomedir  = os.path.dirname(  config["data"]["reference"]["genome"] )
+genomename = os.path.basename( config["data"]["reference-genome"] )
+genomedir  = os.path.dirname(  config["data"]["reference-genome"] )
 
 # In all rules below, we use hard coded file names (no wildcards), as snakemake cannot handle
 # absolute file paths properly and gives us no reasonable way to use lambdas in the `log` part
@@ -158,7 +158,7 @@ rule reference_seqkit:
 # here, because those rules will never be invoked in that case, and so, snakemake does not seem to
 # fail then. Still, we make it even more fail safe by setting it to a dummy string then that
 # will just lead to rules that are never executed (in the case of no known variants file).
-variants=config["data"]["reference"]["known-variants"]
+variants=config["data"]["known-variants"]
 has_known_variants = True
 if isinstance(variants, list) or not variants:
     if len(variants) > 0:
@@ -172,7 +172,7 @@ else:
     # compress the file and build an index for it.
     if os.path.splitext(variants)[1] == ".vcf":
         # Set the config, so that the rules that actually use this file request the correct one.
-        config["data"]["reference"]["known-variants"] += ".gz"
+        config["data"]["known-variants"] += ".gz"
     elif variants.endswith(".vcf.gz"):
         # Set the local one to without the extension, to keep our rules below simple.
         variants = os.path.splitext(variants)[0]

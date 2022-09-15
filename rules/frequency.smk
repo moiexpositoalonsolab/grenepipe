@@ -220,7 +220,7 @@ rule hafpipe_haplotype_frequencies:
         bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
         baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
-        refseq=config["data"]["reference"]["genome"],
+        refseq=config["data"]["reference-genome"],
         bins=get_hafpipe_bins()
     output:
         # We currently just specify the output file names here as HAFpipe produces them.
