@@ -7,5 +7,6 @@ cd `dirname ${0}`/..
 # Clean all files produced by the run script.
 rm -rf ./test/out-*
 rm -rf ./test/reference
+rm -rf ./test/snp-tables
 rm -f  ./test/samples.tsv
 rm -f  ./test/samples-pe.tsv
