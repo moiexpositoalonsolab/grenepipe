@@ -51,7 +51,8 @@ def is_interleaved_fastq(fq):
         is_gzipped = ( test_f.read(2) == b'\x1f\x8b' )
 
     # We check line 1 and 5 (names of the first and second sequence),
-    # and see if they contain " 1:" and " 2:" respectively, which is a strong indicator.
+    # and see if they contain " 1:" and " 2:" respectively, which is a strong indicator
+    # for interleaved fastq files (at least the ones we have seen so far).
     with ( gzip.open(fq,'r') if is_gzipped else open(fq) ) as f:
         cnt = 1
         for line in f:
@@ -225,14 +226,14 @@ def write_table(mates, outfile):
                     colored(match.seq1[match_pos], "red") +
                     match.seq1[match_pos+1:]
                 )
+                if is_interleaved_fastq(match.seq1):
+                    print(colored( "The file is likely an interleaved fastq file.", "red"))
+                    interleaved_files += 1
                 print(
                     match.seq2[0:match_pos] +
                     colored(match.seq2[match_pos], "red") +
                     match.seq2[match_pos+1:]
                 )
-                if is_interleaved_fastq(match.seq1):
-                    print(colored( "The file is likely an interleaved fastq file.", "red"))
-                    interleaved_files += 1
                 if is_interleaved_fastq(match.seq2):
                     print(colored("The file is likely an interleaved fastq file.", "red"))
                     interleaved_files += 1
