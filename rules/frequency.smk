@@ -73,7 +73,9 @@ rule hafpipe_snp_table:
         vcf=config["params"]["hafpipe"]["founder-vcf"],
         bins=get_hafpipe_bins()
     output:
-        snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv"
+        snptable  = get_hafpipe_snp_table_dir() + "/{chrom}.csv",
+        alleleCts = get_hafpipe_snp_table_dir() + "/{chrom}.csv.alleleCts",
+        numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz"
     params:
         tasks="1",
         chrom="{chrom}",
@@ -129,6 +131,8 @@ if impmethod in ["simpute", "npute"]:
             "and get error messages here, please submit an issue to "
             "https://github.com/moiexpositoalonsolab/grenepipe/issues, "
             "so that we know about this and can try to find a solution.\n"
+            "Alternatively, you can use the custom impmethod capability of grenepipe "
+            "to run npute yourself, by providing your own script that runs it.\n"
         )
 
     # Call the HAFpipe script with one of the two existing methods.
@@ -195,7 +199,9 @@ if impmethod == "":
     # just create our indicator trigger file.
     rule hafpipe_snp_table_indices:
         input:
-            snptable = get_hafpipe_snp_table_dir() + "/{chrom}.csv"
+            snptable  = get_hafpipe_snp_table_dir() + "/{chrom}.csv",
+            alleleCts = get_hafpipe_snp_table_dir() + "/{chrom}.csv.alleleCts",
+            numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz"
         output:
             good     = get_hafpipe_snp_table_dir() + "/{chrom}.csv.good"
         shell:
