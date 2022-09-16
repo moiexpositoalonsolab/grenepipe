@@ -614,8 +614,14 @@ params:
     # Used only if settings:calling-tool == haplotypecaller
     # Extra parameters for HaplotypeCaller and surrounding steps,
     # see https://gatk.broadinstitute.org/hc/en-us/articles/360036803991-HaplotypeCaller
-    HaplotypeCaller: ""
-    GenotypeGVCFs: ""
+    HaplotypeCaller-extra: ""
+    CombineGVCFs-extra: ""
+    GenotypeGVCFs-extra: ""
+
+    # For some specific error cases, it might be necessary to adjust java settings for the tools.
+    HaplotypeCaller-java-opts: ""
+    CombineGVCFs-java-opts: ""
+    GenotypeGVCFs-java-opts: ""
 
     # Number of threads to use for the HaplotypeCaller. We recommend to keep this at 2,
     # as GATK does not seem to do a great job of parallelizing anyway.

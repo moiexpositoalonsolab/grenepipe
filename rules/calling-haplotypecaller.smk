@@ -9,7 +9,7 @@ def get_gatk_call_variants_params(wildcards, input):
     return (
         get_gatk_regions_param(regions=input.regions, default="--intervals '{}'".format(wildcards.contig))
         + " --native-pair-hmm-threads " + str(config["params"]["gatk"]["HaplotypeCaller-threads"]) + " "
-        + config["params"]["gatk"]["HaplotypeCaller"]
+        + config["params"]["gatk"]["HaplotypeCaller-extra"]
     )
 
 rule call_variants:
@@ -69,7 +69,8 @@ rule call_variants:
         # The function here is where the contig variable is propagated to haplotypecaller.
         # Took me a while to figure this one out...
         # Contigs are used as long as no restrict-regions are given in the config file.
-        extra=get_gatk_call_variants_params
+        extra=get_gatk_call_variants_params,
+        java_opts=config["params"]["gatk"]["HaplotypeCaller-java-opts"]
     group:
         "call_variants"
     conda:
@@ -134,6 +135,13 @@ rule combine_calls:
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("called/all.{contig}.g.vcf.gz")
         )
+    params:
+        extra=config["params"]["gatk"]["CombineGVCFs-extra"] + (
+            " --dbsnp " + config["data"]["known-variants"] + " "
+            if config["data"]["known-variants"]
+            else ""
+        ),
+        java_opts=config["params"]["gatk"]["CombineGVCFs-java-opts"]
     log:
         "logs/gatk/combine-gvcfs/{contig}.log"
     benchmark:
@@ -163,7 +171,12 @@ rule genotype_variants:
             else temp("genotyped/all.{contig}.vcf.gz")
         )
     params:
-        extra=config["params"]["gatk"]["GenotypeGVCFs"]
+        extra=config["params"]["gatk"]["GenotypeGVCFs-extra"] + (
+            " --dbsnp " + config["data"]["known-variants"] + " "
+            if config["data"]["known-variants"]
+            else ""
+        ),
+        java_opts=config["params"]["gatk"]["GenotypeGVCFs-java-opts"]
     log:
         "logs/gatk/genotype-gvcfs/{contig}.log"
     benchmark:

@@ -268,16 +268,25 @@ properties:
       gatk:
         type: object
         properties:
-          HaplotypeCaller:
+          BaseRecalibrator:
+            type: string
+          HaplotypeCaller-extra:
+            type: string
+          CombineGVCFs-extra:
+            type: string
+          GenotypeGVCFs-extra:
+            type: string
+          HaplotypeCaller-java-opts:
+            type: string
+          CombineGVCFs-java-opts:
+            type: string
+          GenotypeGVCFs-java-opts:
             type: string
           HaplotypeCaller-threads:
             type: integer
-          BaseRecalibrator:
-            type: string
-          GenotypeGVCFs:
-            type: string
         required:
-          - GenotypeGVCFs
+          - CombineGVCFs-extra
+          - GenotypeGVCFs-extra
       variantfiltration-hard:
         type: object
         properties:
