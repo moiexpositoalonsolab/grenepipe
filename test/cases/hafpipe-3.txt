@@ -1,4 +1,4 @@
-founder-vcf: ""	founder-vcf: #BASEPATH#/test/reference/known-variants.vcf.gz"
+founder-vcf: ""	founder-vcf: "#BASEPATH#/test/reference/known-variants.vcf.gz"
 snp-table-dir: ""	snp-table-dir: "#BASEPATH#/test/snp-tables"
 impmethod: ""	impmethod: "npute"
 keep-intermediates: False	keep-intermediates: True

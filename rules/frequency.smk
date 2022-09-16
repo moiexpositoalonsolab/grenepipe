@@ -120,6 +120,17 @@ impmethod = config["params"]["hafpipe"]["impmethod"]
 
 if impmethod in ["simpute", "npute"]:
 
+    # No comment...
+    if impmethod == "npute":
+        logger.warning(
+            "Using HAF-pipe with SNP table imputation method 'npute' is likely going to fail: "
+            "We are using Python >= 3.7 in grenepipe, whereas npute requires Pyhon 2.*, "
+            "and there is unfortunately no easy way to fix this. If you require npute, "
+            "and get error messages here, please submit an issue to "
+            "https://github.com/moiexpositoalonsolab/grenepipe/issues, "
+            "so that we know about this and can try to find a solution.\n"
+        )
+
     # Call the HAFpipe script with one of the two existing methods.
     rule hafpipe_impute_snp_table:
         input:
@@ -127,7 +138,7 @@ if impmethod in ["simpute", "npute"]:
             bins=get_hafpipe_bins()
         output:
             # Unnamed output, as this is implicit in HAFpipe Task 2
-            get_hafpipe_snp_table_dir() + "/{chrom}.csv" + "." + impmethod
+            get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod
         params:
             tasks="2",
             impmethod=impmethod,
@@ -156,7 +167,7 @@ elif impmethod != "":
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv"
         output:
             # Unnamed output, as this is implicit in the user script
-            get_hafpipe_snp_table_dir() + "/{chrom}.csv" + "." + impmethod
+            get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}.log"
         conda:
@@ -170,6 +181,52 @@ elif impmethod != "":
         shell:
             config["params"]["hafpipe"]["impute-script"] + " {input.snptable}"
 
+# There is an issue with the imputed SNP table being indexed multiple times,
+# see https://github.com/petrov-lab/HAFpipe-line/issues/5
+# We here circumvent this when using imputation, by running the indexing ourselves...
+# HAF-pipe is broken, so that's what it takes for now to get this to work properly.
+# We use a dummy `good` file to trigger this step, and ensure that it's executed once per chrom.
+# We do not want to require the index files directly in downstream rules (Task 4),
+# as they are already created for the base table in the cases without imputation,
+# which would confuse snakemake if they already existed...
+if impmethod == "":
+
+    # Without imputation, the files should already be there, so we do not need to do anything,
+    # just create our indicator trigger file.
+    rule hafpipe_snp_table_indices:
+        input:
+            snptable = get_hafpipe_snp_table_dir() + "/{chrom}.csv"
+        output:
+            good     = get_hafpipe_snp_table_dir() + "/{chrom}.csv.good"
+        shell:
+            "touch {output.good}"
+
+    localrules:
+        hafpipe_snp_table_indices
+
+else:
+
+    # With imputation, we run the scripts that are run by HAF-pipe internally,
+    # and mark them as output, to have snakemake validate that they were in fact created.
+    rule hafpipe_snp_table_indices:
+        input:
+            snptable  = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
+            bins      = get_hafpipe_bins() # require that HAF-pipe scripts are there
+        output:
+            alleleCts = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".alleleCts",
+            numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".numeric.bgz",
+            good      = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".good"
+        params:
+            hp_path   = get_packages_dir() + "/hafpipe"
+        log:
+            "logs/hafpipe/impute-" + impmethod + "/{chrom}-indices.log"
+        shell:
+            "echo \"counting alleles in {input.snptable}\" >> {log} 2>&1 ; "
+            "{params.hp_path}/count_SNPtable.sh {input.snptable} >> {log} 2>&1 ; "
+            "echo \"preparing {input.snptable} for allele frequency calculation\" >> {log} 2>&1 ; "
+            "{params.hp_path}/prepare_SNPtable_for_HAFcalc.sh {input.snptable} >> {log} 2>&1 ; "
+            "touch {output.good}"
+
 # Helper to get the SNP table for a given chromosome. According to the `impmethod` config setting,
 # this is either the raw table from Task 1 above, or the imputed table from Task 2, with either one
 # of the established methods of HAFpipe, or a custom method/script provided by the user.
@@ -179,6 +236,11 @@ def get_hafpipe_snp_table(wildcards):
         return base
     else:
         return base + "." + config["params"]["hafpipe"]["impmethod"]
+
+# We need another helper to process wild cards, requesting the dummy `good` indicator file
+# that ensures that the snp table index files (alleleCt and numeric) are created above.
+def get_hafpipe_snp_table_good(wildcards):
+    return get_hafpipe_snp_table(wildcards) + ".good"
 
 # =================================================================================================
 #     HAFpipe Tasks 3 & 4:  Infer haplotype frequencies & Calculate allele frequencies
@@ -220,6 +282,7 @@ rule hafpipe_haplotype_frequencies:
         bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
         baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
+        good=get_hafpipe_snp_table_good,
         refseq=config["data"]["reference-genome"],
         bins=get_hafpipe_bins()
     output:
@@ -247,6 +310,7 @@ rule hafpipe_allele_frequencies:
         bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
         baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
+        good=get_hafpipe_snp_table_good,
         freqs="hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs", # from Task 3 above
         bins=get_hafpipe_bins()
     output:
