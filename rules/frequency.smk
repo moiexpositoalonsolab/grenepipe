@@ -185,11 +185,11 @@ elif impmethod != "":
         shell:
             config["params"]["hafpipe"]["impute-script"] + " {input.snptable}"
 
-# There is an issue with the imputed SNP table being indexed multiple times,
-# see https://github.com/petrov-lab/HAFpipe-line/issues/5
+# There is an issue with the imputed SNP table being indexed multiple times in parallel environments
+# such as clusters, see https://github.com/petrov-lab/HAFpipe-line/issues/5
 # We here circumvent this when using imputation, by running the indexing ourselves...
 # HAF-pipe is broken, so that's what it takes for now to get this to work properly.
-# We use a dummy `good` file to trigger this step, and ensure that it's executed once per chrom.
+# We use a dummy `done` file to trigger this step, and ensure that it's executed once per chrom.
 # We do not want to require the index files directly in downstream rules (Task 4),
 # as they are already created for the base table in the cases without imputation,
 # which would confuse snakemake if they already existed...
@@ -203,9 +203,9 @@ if impmethod == "":
             alleleCts = get_hafpipe_snp_table_dir() + "/{chrom}.csv.alleleCts",
             numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz"
         output:
-            good     = get_hafpipe_snp_table_dir() + "/{chrom}.csv.good"
+            done      = get_hafpipe_snp_table_dir() + "/{chrom}.csv.done"
         shell:
-            "touch {output.good}"
+            "touch {output.done}"
 
     localrules:
         hafpipe_snp_table_indices
@@ -221,17 +221,18 @@ else:
         output:
             alleleCts = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".alleleCts",
             numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".numeric.bgz",
-            good      = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".good"
+            done      = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done"
         params:
             hp_path   = get_packages_dir() + "/hafpipe"
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}-indices.log"
         shell:
+            # Calls from HAF-pipe, replicated here for our purposes
             "echo \"counting alleles in {input.snptable}\" >> {log} 2>&1 ; "
             "{params.hp_path}/count_SNPtable.sh {input.snptable} >> {log} 2>&1 ; "
             "echo \"preparing {input.snptable} for allele frequency calculation\" >> {log} 2>&1 ; "
             "{params.hp_path}/prepare_SNPtable_for_HAFcalc.sh {input.snptable} >> {log} 2>&1 ; "
-            "touch {output.good}"
+            "touch {output.done}"
 
 # Helper to get the SNP table for a given chromosome. According to the `impmethod` config setting,
 # this is either the raw table from Task 1 above, or the imputed table from Task 2, with either one
@@ -243,10 +244,10 @@ def get_hafpipe_snp_table(wildcards):
     else:
         return base + "." + config["params"]["hafpipe"]["impmethod"]
 
-# We need another helper to process wild cards, requesting the dummy `good` indicator file
+# We need another helper to process wild cards, requesting the dummy `done` indicator file
 # that ensures that the snp table index files (alleleCt and numeric) are created above.
-def get_hafpipe_snp_table_good(wildcards):
-    return get_hafpipe_snp_table(wildcards) + ".good"
+def get_hafpipe_snp_table_done(wildcards):
+    return get_hafpipe_snp_table(wildcards) + ".done"
 
 # =================================================================================================
 #     HAFpipe Tasks 3 & 4:  Infer haplotype frequencies & Calculate allele frequencies
@@ -288,7 +289,7 @@ rule hafpipe_haplotype_frequencies:
         bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
         baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
-        good=get_hafpipe_snp_table_good,
+        done=get_hafpipe_snp_table_done,
         refseq=config["data"]["reference-genome"],
         bins=get_hafpipe_bins()
     output:
@@ -316,7 +317,7 @@ rule hafpipe_allele_frequencies:
         bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
         baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
-        good=get_hafpipe_snp_table_good,
+        done=get_hafpipe_snp_table_done,
         freqs="hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs", # from Task 3 above
         bins=get_hafpipe_bins()
     output:
