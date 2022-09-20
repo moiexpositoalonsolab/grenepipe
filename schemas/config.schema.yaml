@@ -50,8 +50,8 @@ properties:
         type: integer
       # region-padding:
       #   type: integer
-      vqsr:
-        type: boolean
+      filter-variants:
+        type: string
       keep-intermediate:
         type: object
         properties:
@@ -287,17 +287,20 @@ properties:
         required:
           - CombineGVCFs-extra
           - GenotypeGVCFs-extra
-      variantfiltration-hard:
+      gatk-variantfiltration:
         type: object
         properties:
           SNP:
             type: string
           INDEL:
             type: string
+          extra:
+            type: string
         required:
           - SNP
           - INDEL
-      variantfiltration-vqsr:
+          - extra
+      gatk-vqsr:
         type: object
         properties:
           resources:
@@ -318,6 +321,19 @@ properties:
             type: string
           java-applyvqsr:
             type: string
+      bcftools-filter:
+        type: object
+        properties:
+          SNP:
+            type: string
+          INDEL:
+            type: string
+          extra:
+            type: string
+        required:
+          - SNP
+          - INDEL
+          - extra
       fastqc:
         type: object
         properties:
@@ -380,8 +396,9 @@ properties:
       - bcftools
       - freebayes
       - gatk
-      - variantfiltration-hard
-      - variantfiltration-vqsr
+      - gatk-variantfiltration
+      - gatk-vqsr
+      - bcftools-filter
       - fastqc
       - qualimap
       - snpeff

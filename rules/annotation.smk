@@ -53,7 +53,12 @@ def get_snpeff_db_path():
 rule snpeff:
     input:
         # (vcf, bcf, or vcf.gz)
-        calls="filtered/all.vcf.gz",
+        calls=(
+            # we use the filtered file if a filtering is done, or the unfiltered if not.
+            "filtered/all.vcf.gz"
+            if not config["settings"]["filter-variants"] == "none"
+            else "genotyped/all.vcf.gz"
+        ),
 
         # path to reference db downloaded with the snpeff download wrapper above
         db=get_snpeff_db_path()
@@ -159,7 +164,12 @@ localrules: vep_cache, vep_plugins
 
 rule vep:
     input:
-        calls="filtered/all.vcf.gz",
+        calls=(
+            # we use the filtered file if a filtering is done, or the unfiltered if not.
+            "filtered/all.vcf.gz"
+            if not config["settings"]["filter-variants"] == "none"
+            else "genotyped/all.vcf.gz"
+        ),
         cache=get_vep_cache_dir(),
         plugins=get_vep_plugins_dir(),
     output:

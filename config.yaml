@@ -97,7 +97,10 @@ settings:
   recalibrate-base-qualities: false
 
   # Select the tool used for SNP calling.
-  # Valid values: "haplotypecaller", "bcftools", "freebayes"
+  # Valid values: "haplotypecaller", "bcftools", "freebayes".
+  # This produces a VCF file "genotyped/all.vcf.gz" containing all samples and all positions.
+  # Note that when using bcftools here, we recommend to also use bcftools for the variant filtering
+  # below (see `filter-variants`), as it uses different VCF annotations than GATK for the filters.
   calling-tool: "haplotypecaller"
 
   # For some reference genomes, not all chromosomes/contigs have been fully assembled yet,
@@ -137,8 +140,8 @@ settings:
   contig-group-size: 0
 
   # EXPERIMENTAL.
-  # Path to a `bed` file with, e.g., captured regions, in order to restrict the whole workflow
-  # to just call variants on these regions. If empty (default), the whole reference genome is used.
+  # Path to a `bed` file with, e.g., captured regions, in order to restrict the variant calling
+  # to just these regions. If empty (default), the whole reference genome is used.
   # Excludes to use `contig-group-size` at the moment.
   #
   # Note: Currently, this only is tested with calling-tool: "haplotypecaller", and both bcftools
@@ -153,13 +156,21 @@ settings:
   # for details on the usage of regions with GATK HaplotypeCaller.
   restrict-regions: ""
 
-  # Set to true in order to apply machine learning based recalibration (GATK VQSR)
-  # of quality scores instead of hard filtering, using the GATK VariantRecalibrator tool,
-  # see https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
-  # According to their documentation, "VQSR is probably the hardest part [...] to get right",
-  # so you will likely need a few tries to get it to work properly.
-  # See settings: variantfiltration-vqsr below for detailled settings when using this step.
-  vqsr: false
+  # The variant calling step above produces an unfiltered VCF file in "genotyped/all.vcf.gz".
+  # With this additional step here, this file can be filtered, e.g., to exclude low quality SNPs,
+  # producing a second VCF file in "filtered/all.vcf.gz".
+  # Valid values to select the variant filtering tool:
+  #  - "gatk-variantfiltration", to run GATK VariantFiltration. This is the default.
+  #    See below `params: gatk-variantfiltration` for the detailled filter settings.
+  #  - "gatk-vqrs", to run GATK VariantRecalibrator/ApplyVQSR to apply machine learning base
+  #    recalibration (GATK VQSR) of quality scores instead of hard filtering.
+  #    See below `params: gatk-vqsr` for the detailled filter settings.
+  #  - "bcftools-filter", to run bcftools filter, which is recommended when using bcftools call
+  #    for variant calling (as specified above in `calling-tool`).
+  #    See below `params: bcftools-filter` for the detailled filter settings.
+  #  - "none", to not run this step at all. In that case, the unfiltered VCF will also be used
+  #    for the annotations (SnpEff and VEP), and statistics (bcftools stats).
+  filter-variants: "gatk-variantfiltration"
 
   # Keep or remove intermediate files.
   # This is a housekeeping setting to save disk storage space. By default, we keep (almost) all
@@ -547,6 +558,8 @@ params:
 
   # Used only if settings:calling-tool == bcftools
   # See http://samtools.github.io/bcftools/bcftools.html
+  # Note that the bcftools filter step (if configured above via `settings: filter-variants`)
+  # is configured below in the `bcftools-filter` setting, instead of here.
   bcftools:
     threads: 8
 
@@ -631,9 +644,11 @@ params:
   #     GATK VariantFiltration
   # ----------------------------------------------------------------------
 
-  # Used only if settings:vqsr == false,
-  # Uses the GATK VariantFiltration tool for hard filtering SNPs and INDELs.
-  variantfiltration-hard:
+  # Used only if settings: filter-variants: "gatk-variantfiltration" is used.
+  # Uses the GATK VariantFiltration tool for hard filtering SNPs and INDELs, see
+  # https://gatk.broadinstitute.org/hc/en-us/articles/360037226192-VariantFiltration
+  # for the settings that can be provided here.
+  gatk-variantfiltration:
 
     # Extra parameters for the hard filtering as outlined in GATK docs
     # https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
@@ -643,20 +658,26 @@ params:
     INDEL:
       "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0"
 
+    # We also offer extra settings that are used for both.
+    extra: ""
+    java-opts: ""
+
   # ----------------------------------------------------------------------
   #     GATK VariantRecalibrator + ApplyVQSR
   # ----------------------------------------------------------------------
 
-  # Used only if settings:vqsr == true,
+  # Used only if settings: filter-variants: "gatk-vqsr" is used,
   # Uses the GATK VariantRecalibrator and ApplyVQSR tools for filtering SNPs and INDELs,
-  # see https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
-  # and https://gatk.broadinstitute.org/hc/en-us/articles/360036431392-ApplyVQSR for the tools,
+  # see https://gatk.broadinstitute.org/hc/en-us/articles/360037594511-VariantRecalibrator
+  # and https://gatk.broadinstitute.org/hc/en-us/articles/360037226332-ApplyVQSR for the tools,
   # and see https://gatk.broadinstitute.org/hc/en-us/articles/360035531612-Variant-Quality-Score-Recalibration-VQSR-
   # for the workflow itself, including hints and tipps for the settings used here.
+  # According to their documentation, "VQSR is probably the hardest part [...] to get right",
+  # so you will likely need a few tries to get it to work properly.
   # This is a complicated step that WILL NEED YOUR EXPERIMENTATION with settings to fully leverage
   # the tool! Note that the settings here are solely used because they work for our test data,
   # so that we can keep the tests simple. REPLACE WITH YOUR SETTINGS AS NEEDED!
-  variantfiltration-vqsr:
+  gatk-vqsr:
     # Resource settings and files, according to the documentation at
     # https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator
     # Note that the names (here, e.g., "1001G") are arbitrary, but need to match between
@@ -731,28 +752,28 @@ params:
     java-applyvqsr: ""
 
   # ----------------------------------------------------------------------
-  #     fastqc
+  #     bcftools filter
   # ----------------------------------------------------------------------
 
-  fastqc:
+  # Used only if settings: filter-variants: "bcftools-filter" is used.
+  # See https://samtools.github.io/bcftools/bcftools.html#filter for the filter specifications.
+  # We recommend to use this when also using `bcftools call` for the variant calling, as these
+  # tools work better together. Combining bcftools calling with GATK filtering is difficult.
+  bcftools-filter:
 
-    # Select input files for fastqc: either "samples" for the raw sequence input files,
-    # or "trimmed" for the fastq files resulting from the trimming step.
-    input: "samples"
+    # By default, when using this, we use the `bcftools filter` command;
+    # the `bcftools view` command provides similar functionalty, and can be used here instead.
+    # Valid valued: "filter", "view"
+    tool: "filter"
 
-    # Additional parameters for fastqc
-    # See https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+    # Parameters to use for the filtering, separated for SNPs/SNVs and indels.
+    SNP:
+      "-sFilterName -e'INFO/DP<5'"
+    INDEL:
+      "-sFilterName -e'INFO/DP<5'"
+
+    # We also offer extra settings, used for both, e.g., for memory or tmp dir settings.
     extra: ""
-
-  # ----------------------------------------------------------------------
-  #     qualimap
-  # ----------------------------------------------------------------------
-
-  qualimap:
-
-    # Additional parameters for qualimap, see http://qualimap.conesalab.org/
-    extra: "--java-mem-size=10G"
-    threads: 2
 
   # ----------------------------------------------------------------------
   #     snpeff
@@ -853,6 +874,52 @@ params:
 
     # Additional parameters for damageprofiler,
     # see https://damageprofiler.readthedocs.io/en/latest/contents/generalUsage.html
+    extra: ""
+
+  # ----------------------------------------------------------------------
+  #     fastqc
+  # ----------------------------------------------------------------------
+
+  fastqc:
+
+    # Select input files for fastqc: either "samples" for the raw sequence input files,
+    # or "trimmed" for the fastq files resulting from the trimming step.
+    input: "samples"
+
+    # Additional parameters for fastqc
+    # See https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+    extra: ""
+
+  # ----------------------------------------------------------------------
+  #     qualimap
+  # ----------------------------------------------------------------------
+
+  qualimap:
+
+    # Additional parameters for qualimap, see http://qualimap.conesalab.org/
+    extra: "--java-mem-size=10G"
+    threads: 2
+
+  # ----------------------------------------------------------------------
+  #     SeqKit
+  # ----------------------------------------------------------------------
+
+  # Used to deliver statistics on the reference genome.
+  seqkit:
+
+    # Additional parameter for SeqKit stats for the reference genome,
+    # see https://bioinf.shenwei.me/seqkit/usage/#stats
+    extra: ""
+
+  # ----------------------------------------------------------------------
+  #     MultiQC
+  # ----------------------------------------------------------------------
+
+  multiqc:
+
+    # Additional parameter for multiqc, see https://multiqc.info/
+    # You can for example specify an additional MultiQC config file here, by using
+    # `--config /path/to/multiqc-config.yaml`.
     extra: ""
 
   # ----------------------------------------------------------------------
@@ -973,25 +1040,3 @@ params:
 
     # If set to true, the final "hafpipe/all.csv" table is compressed with gzip to save disk space.
     compress-merged-table: False
-
-  # ----------------------------------------------------------------------
-  #     SeqKit
-  # ----------------------------------------------------------------------
-
-  # Used to deliver statistics on the reference genome.
-  seqkit:
-
-    # Additional parameter for SeqKit stats for the reference genome,
-    # see https://bioinf.shenwei.me/seqkit/usage/#stats
-    extra: ""
-
-  # ----------------------------------------------------------------------
-  #     MultiQC
-  # ----------------------------------------------------------------------
-
-  multiqc:
-
-    # Additional parameter for multiqc, see https://multiqc.info/
-    # You can for example specify an additional MultiQC config file here, by using
-    # `--config /path/to/multiqc-config.yaml`.
-    extra: ""

@@ -212,7 +212,12 @@ rule picard_collectmultiplemetrics:
 
 rule bcftools_stats:
     input:
-        "filtered/all.vcf.gz"
+        calls=(
+            # we use the filtered file if a filtering is done, or the unfiltered if not.
+            "filtered/all.vcf.gz"
+            if not config["settings"]["filter-variants"] == "none"
+            else "genotyped/all.vcf.gz"
+        )
     output:
         "qc/bcftools-stats/stats.vchk"
     log:

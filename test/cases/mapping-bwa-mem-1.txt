@@ -2,6 +2,7 @@ known-variants: ""	known-variants: "#BASEPATH#/test/reference/known-variants.vcf
 mapping-tool: "bwamem"	mapping-tool: "bwamem"
 duplicates-tool: "picard"	duplicates-tool: "dedup"
 recalibrate-base-qualities: false	recalibrate-base-qualities: true
+filter-variants: "gatk-variantfiltration"	filter-variants: "none"
 snpeff: false	snpeff: true
 vep: false	vep: true
 mapdamage: false	mapdamage: true

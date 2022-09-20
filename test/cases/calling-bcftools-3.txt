@@ -1,4 +1,5 @@
 calling-tool: "haplotypecaller"	calling-tool: "bcftools"
+filter-variants: "gatk-variantfiltration"	filter-variants: "bcftools-filter"
 snpeff: false	snpeff: true
 vep: false	vep: true
 frequency-table: false	frequency-table: true

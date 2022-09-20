@@ -17,7 +17,7 @@ rule all:
     input:
         # Basic steps
         "genotyped/all.vcf.gz",
-        "filtered/all.vcf.gz",
+        "filtered/all.vcf.gz" if not config["settings"]["filter-variants"] == "none" else [],
         "annotated/snpeff.vcf.gz" if config["settings"]["snpeff"] else [],
         "annotated/vep.vcf.gz" if config["settings"]["vep"] else [],
 

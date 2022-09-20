@@ -52,12 +52,13 @@ Pipeline Overview
     - [mapDamage](https://github.com/ginolhac/mapDamage)
     - [DamageProfiler](https://github.com/Integrative-Transcriptomics/DamageProfiler)
   - Variant calling and genotyping
-    - [bcftools call](http://samtools.github.io/bcftools/bcftools.html#call)
-    - [freebayes](https://github.com/freebayes/freebayes)
     - [GATK HaplotypeCaller](https://gatk.broadinstitute.org/hc/en-us/articles/360037225632-HaplotypeCaller) / [GATK GenotypeGVCFs](https://gatk.broadinstitute.org/hc/en-us/articles/360037057852-GenotypeGVCFs)
+    - [freebayes](https://github.com/freebayes/freebayes)
+    - [bcftools call](http://samtools.github.io/bcftools/bcftools.html#call)
   - Variant filtering
     - [GATK VariantFiltration](https://gatk.broadinstitute.org/hc/en-us/articles/360036834871-VariantFiltration)
     - [GATK VariantRecalibrator](https://gatk.broadinstitute.org/hc/en-us/articles/360036510892-VariantRecalibrator) (VQSR)
+    - [bcftools filter](https://samtools.github.io/bcftools/bcftools.html#filter)
   - Frequency calling (for pool sequencing data, as an alternative to variant calling)
     - [HAF-pipe](https://github.com/petrov-lab/HAFpipe-line)
   - Quality control, statistics, SNP annotation, reporting
@@ -73,7 +74,7 @@ Pipeline Overview
 
 **Typical output:**
 
-  - Variant calls `vcf`, potentially with annotations
+  - Variant calls `vcf`, raw and filtered, and potentially with annotations
   - MultiQC report (includes summaries of most other tools, and of the final `vcf`)
   - Snakemake report (optional)
 
