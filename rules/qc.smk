@@ -91,8 +91,23 @@ rule fastqc:
     # wrapper:
     #     "0.27.1/bio/fastqc"
 
+rule fastqc_collect:
+    input:
+        expand(
+            "qc/fastqc/{u.sample}-{u.unit}-{u.id}_fastqc.html",
+            u=config["global"]["fastqc"].itertuples()
+        ),
+        expand(
+            "qc/fastqc/{u.sample}-{u.unit}-{u.id}_fastqc.zip",
+            u=config["global"]["fastqc"].itertuples()
+        )
+    output:
+        touch("qc/fastqc/fastqc.done")
+
+localrules: fastqc_collect
+
 # =================================================================================================
-#     Basic Mapping QC Stats
+#     samtools_stats
 # =================================================================================================
 
 rule samtools_stats:
@@ -109,6 +124,21 @@ rule samtools_stats:
     wrapper:
         "0.27.1/bio/samtools/stats"
 
+rule samtools_stats_collect:
+    input:
+        expand(
+            "qc/samtools-stats/{u.sample}-{u.unit}.txt",
+            u=config["global"]["samples"].itertuples()
+        )
+    output:
+        touch("qc/samtools-stats/samtools-stats.done")
+
+localrules: samtools_stats_collect
+
+# =================================================================================================
+#     samtools_flagstat
+# =================================================================================================
+
 rule samtools_flagstat:
     input:
         get_mapping_result()
@@ -123,11 +153,32 @@ rule samtools_flagstat:
     wrapper:
         "0.64.0/bio/samtools/flagstat"
 
+rule samtools_flagstat_collect:
+    input:
+        expand(
+            "qc/samtools-flagstats/{u.sample}-{u.unit}.txt",
+            u=config["global"]["samples"].itertuples()
+        )
+    output:
+        touch("qc/samtools-flagstats/samtools-flagstats.done")
+
+localrules: samtools_flagstat_collect
+
+# =================================================================================================
+#     qualimap
+# =================================================================================================
+
 rule qualimap:
     input:
         get_mapping_result()
     output:
-        outdir=directory("qc/qualimap/{sample}-{unit}")
+        # The output of this rule (for now) is a directory, so we have no way of telling whether
+        # the rule succeeded by that. We hence add the `done` file here as well, which (according
+        # to the snakemake docs) will only be created after the successful execution of the rule.
+        # We had instances in the past where cluster jobs of this rule failed, and left a
+        # half-finished directory behind; let's hope that this avoids that.
+        outdir=directory("qc/qualimap/{sample}-{unit}"),
+        done=touch("qc/qualimap/{sample}-{unit}.done")
 
         # Alternatively, specify all individual files, which gives more control,
         # but also more spammed output
@@ -152,6 +203,37 @@ rule qualimap:
         "unset DISPLAY; qualimap bamqc -bam {input} -nt {threads} "
         "-outdir {params.outdir} -outformat HTML "
         "{params.extra} > {log.stdout} 2> {log.stderr}"
+
+rule qualimap_collect:
+    input:
+        expand(
+            "qc/qualimap/{u.sample}-{u.unit}.done",
+            u=config["global"]["samples"].itertuples()
+        ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/genome_results.txt",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/qualimapReport.html",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/coverage_histogram.txt",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/genome_fraction_coverage.txt",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
+        # expand(
+        #     "qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt",
+        #     u=config["global"]["samples"].itertuples()
+        # ),
+    output:
+        touch("qc/qualimap/qualimap.done")
+
+localrules: qualimap_collect
 
 # =================================================================================================
 #     Picard CollectMultipleMetrics
@@ -205,6 +287,18 @@ rule picard_collectmultiplemetrics:
         "../scripts/picard-collectmultiplemetrics.py"
     # wrapper:
     #     "0.72.0/bio/picard/collectmultiplemetrics"
+
+rule picard_collectmultiplemetrics_collect:
+    input:
+        expand(
+            "qc/picard/{u.sample}-{u.unit}{ext}",
+            u=config["global"]["samples"].itertuples(),
+            ext=picard_collectmultiplemetrics_exts()
+        )
+    output:
+        touch("qc/picard/collectmultiplemetrics.done")
+
+localrules: picard_collectmultiplemetrics_collect
 
 # =================================================================================================
 #     bcftools stats
@@ -266,7 +360,7 @@ rule bcftools_stats_plot:
         "fi"
 
 # =================================================================================================
-#     MultiQC
+#     Trimming
 # =================================================================================================
 
 # Different trimming tools produce different summary files. We here expand ourselves,
@@ -294,6 +388,18 @@ def get_trimming_reports():
         #     raise Exception("Unknown trimming-tool: " + config["settings"]["trimming-tool"])
     return result
 
+rule trimming_reports_collect:
+    input:
+        get_trimming_reports()
+    output:
+        touch("trimmed/trimming-reports.done")
+
+localrules: trimming_reports_collect
+
+# =================================================================================================
+#     Deduplication
+# =================================================================================================
+
 # Different dedup tools produce different summary files. See above for details.
 # This function simply returns these file names as strings, without replacing the wildcards.
 # Then, when the function is called below, these are expanded.
@@ -306,71 +412,78 @@ def get_dedup_report():
     else:
         raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
 
-# Unfortunately, in some cluster environments, multiqc does not work due to char encoding issues, see
-# https://github.com/ewels/MultiQC/issues/484 ... If you run into this issue, try running it locally.
-rule multiqc:
+def get_dedup_done():
+    # Switch to the chosen duplicate marker tool
+    if config["settings"]["duplicates-tool"] == "picard":
+        return "qc/dedup/picard.done"
+    elif config["settings"]["duplicates-tool"] == "dedup":
+        return "dedup/dedup.done"
+    else:
+        raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
+
+rule dedup_reports_collect:
     input:
-        # FastQC
-        expand(
-            "qc/fastqc/{u.sample}-{u.unit}-{u.id}_fastqc.html",
-            u=config["global"]["fastqc"].itertuples()
-        ),
-        expand(
-            "qc/fastqc/{u.sample}-{u.unit}-{u.id}_fastqc.zip",
-            u=config["global"]["fastqc"].itertuples()
-        ),
-
-        # Trimming
-        get_trimming_reports(),
-
-        # Dedup
         expand(
             get_dedup_report(),
             u=config["global"]["samples"].itertuples()
-        ),
+        )
+    output:
+        touch( get_dedup_done() )
+
+localrules: dedup_reports_collect
+
+# =================================================================================================
+#     Damage
+# =================================================================================================
+
+rule mapdamage_collect:
+    input:
+        expand(
+            "mapdamage/{u.sample}-{u.unit}/Runtime_log.txt",
+            u=config["global"]["samples"].itertuples()
+        )
+    output:
+        touch("mapdamage/mapdamage.done")
+
+localrules: mapdamage_collect
+
+rule damageprofiler_collect:
+    input:
+        expand(
+            "damageprofiler/{u.sample}-{u.unit}/DamageProfiler.log",
+            u=config["global"]["samples"].itertuples()
+        )
+    output:
+        touch("damageprofiler/damageprofiler.done")
+
+localrules: damageprofiler_collect
+
+# =================================================================================================
+#     MultiQC
+# =================================================================================================
+
+# Unfortunately, in some cluster environments, multiqc does not work due to char encoding issues, see
+# https://github.com/ewels/MultiQC/issues/484 ... If you run into this issue, try running it locally.
+#
+# We use the output touch files here only, in order to keep the snakemake log a bit cleaner.
+# In the past, we used _all_ files of all QC tools directly as input here, which lead to the multiqc
+# rule in the snakemake log be incredibly long. However, the multiqc wrapper that we are using uses
+# the directories of these files anyway, so we can just start with these in the first place.
+# That is, our `done` files are in the same dir as the actual QC files, so multiqc still finds them.
+rule multiqc:
+    input:
+        # FastQC
+        "qc/fastqc/fastqc.done",
 
         # Mapping QC tools
-        expand(
-            "qc/samtools-stats/{u.sample}-{u.unit}.txt",
-            u=config["global"]["samples"].itertuples()
-        ),
-        expand(
-            "qc/samtools-flagstats/{u.sample}-{u.unit}.txt",
-            u=config["global"]["samples"].itertuples()
-        ),
+        "qc/samtools-stats/samtools-stats.done",
+        "qc/samtools-flagstats/samtools-flagstats.done",
 
         # Qualimap
-        expand(
-            "qc/qualimap/{u.sample}-{u.unit}",
-            u=config["global"]["samples"].itertuples()
-        ),
-        # expand(
-        #     "qc/qualimap/{u.sample}-{u.unit}/genome_results.txt",
-        #     u=config["global"]["samples"].itertuples()
-        # ),
-        # expand(
-        #     "qc/qualimap/{u.sample}-{u.unit}/qualimapReport.html",
-        #     u=config["global"]["samples"].itertuples()
-        # ),
-        # expand(
-        #     "qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/coverage_histogram.txt",
-        #     u=config["global"]["samples"].itertuples()
-        # ),
-        # expand(
-        #     "qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/genome_fraction_coverage.txt",
-        #     u=config["global"]["samples"].itertuples()
-        # ),
-        # expand(
-        #     "qc/qualimap/{u.sample}-{u.unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt",
-        #     u=config["global"]["samples"].itertuples()
-        # ),
+        "qc/qualimap/qualimap.done",
 
         # Picard CollectMultipleMetrics
-        expand(
-            "qc/picard/{u.sample}-{u.unit}{ext}",
-            u=config["global"]["samples"].itertuples(),
-            ext=picard_collectmultiplemetrics_exts()
-        ),
+        "qc/picard/collectmultiplemetrics.done",
 
         # bcftools stats
         # We only require the stats.vchk file, but request the pdf here as well,
@@ -378,19 +491,19 @@ rule multiqc:
         "qc/bcftools-stats/stats.vchk",
         "qc/bcftools-stats/summary.pdf",
 
+        # Trimming
+        "trimmed/trimming-reports.done",
+
+        # Dedup
+        get_dedup_done(),
+
         # Annotation
         "annotated/snpeff.csv" if config["settings"]["snpeff"] else [],
         "annotated/vep_summary.html" if config["settings"]["vep"] else [],
 
         # Damage
-        expand(
-            "mapdamage/{u.sample}-{u.unit}/Runtime_log.txt",
-            u=config["global"]["samples"].itertuples()
-        ) if config["settings"]["mapdamage"] else [],
-        expand(
-            "damageprofiler/{u.sample}-{u.unit}/DamageProfiler.log",
-            u=config["global"]["samples"].itertuples()
-        ) if config["settings"]["damageprofiler"] else []
+        "mapdamage/mapdamage.done" if config["settings"]["mapdamage"] else [],
+        "damageprofiler/damageprofiler.done" if config["settings"]["damageprofiler"] else []
     output:
         report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
     params:
