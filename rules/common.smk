@@ -164,10 +164,40 @@ wildcard_constraints:
 #     Pipeline User Output
 # =================================================================================================
 
+# The final output is tabular, we might need to indent subsequent lines correctly.
+indent = 24
+
 # Get a nicely formatted username and hostname
 username = pwd.getpwuid( os.getuid() )[ 0 ]
 hostname = socket.gethostname()
 hostname = hostname + ("; " + platform.node() if platform.node() != socket.gethostname() else "")
+
+# Get some info on the platform and OS
+pltfrm = platform.platform() + "\n" + ( " " * indent ) + platform.version()
+try:
+    # Not available in all versions, so we need to catch this
+    ld = platform.linux_distribution()
+    if len(ld):
+        pltfrm += "\n" + ( " " * indent ) + ld
+    del ld
+except:
+    pass
+try:
+    # Mac OS version comes back as a nested tuple?!
+    # Need to merge the tuples...
+    def merge_tuple(x, bases = (tuple, list)):
+        for e in x:
+            if type(e) in bases:
+                for e in merge_tuple(e, bases):
+                    yield e
+            else:
+                yield e
+    mv = " ".join( merge_tuple( platform.mac_ver() ))
+    if not mv.isspace():
+        pltfrm += "\n" + ( " " * indent ) + mv
+    del mv, merge_tuple
+except:
+    pass
 
 # Get the git commit hash of grenepipe, if available.
 try:
@@ -205,7 +235,7 @@ if conda_env == " ()":
 cmdline = sys.argv[0]
 for i in range( 1, len(sys.argv)):
     if sys.argv[i].startswith("--"):
-        cmdline += "\n                        " + sys.argv[i]
+        cmdline += "\n" + ( " " * indent ) + sys.argv[i]
     else:
         cmdline += " " + sys.argv[i]
 
@@ -222,9 +252,8 @@ if unitcnt == len(config["global"]["sample-names"]):
 else:
     smpcnt = str(len(config["global"]["sample-names"])) + ", with " + str(unitcnt) + " total units"
 
-# Some helpful messages
+# Main grenepipe header, helping with debugging etc for user issues
 logger.info("=====================================================================================")
-# logger.info("    GRENEPIPE")
 logger.info("       _____         _______ __   __   _______ ______  ___   ______   _______ ")
 logger.info("      /  ___\ ____  /  ____//  \ /  / /  ____/|   _  \ \  \ |   _  \ /  ____/ ")
 logger.info("     /  /____|  _ \|  |___  |   \|  ||  |___  |  |_]  ||  | |  |_]  |  |___   ")
@@ -233,8 +262,9 @@ logger.info("    \  \__|  |  _ <|  |____ |  |\   ||  |____ |  |     |  | |  |   
 logger.info("     \______/|_| \_\_______\/__| \__|\_______\|__|     \___\|__|    \_______\ ")
 logger.info("")
 logger.info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-logger.info("    User:               " + username)
+logger.info("    Platform:           " + pltfrm)
 logger.info("    Host:               " + hostname)
+logger.info("    User:               " + username)
 logger.info("    Conda:              " + str(conda_ver))
 logger.info("    Python:             " + str(sys.version.split(' ')[0]))
 logger.info("    Snakemake:          " + str(snakemake.__version__))
@@ -263,15 +293,11 @@ if problematic_filenames > 0:
     )
 
 # No need to have these output vars available in the rest of the snakefiles
-del problematic_filenames
-del username
-del hostname
-del conda_ver
-del conda_env
-del cmdline
-del cfgfiles
-del unitcnt
-del smpcnt
+del problematic_filenames, indent
+del pltfrm, hostname, username
+del conda_ver, conda_env
+del cmdline, cfgfiles
+del unitcnt, smpcnt
 
 # =================================================================================================
 #     Common File Access Functions
