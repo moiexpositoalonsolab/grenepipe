@@ -5,3 +5,4 @@ recalibrate-base-qualities: false	recalibrate-base-qualities: true
 mapping: True	mapping: False
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
+merge-units: True	merge-units: False

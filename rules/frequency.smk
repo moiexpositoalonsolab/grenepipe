@@ -255,11 +255,12 @@ def get_hafpipe_snp_table_done(wildcards):
 # =================================================================================================
 
 # We use the merged bam files of all bams per sample.
-# The below rule is the same as the mpileup_merge_units rule in pileup.smk, but we do want this
-# separate implemenation here, to have a bit more control of where the files go, and to stay
-# independent of the mpileup rules. Bit of code duplication, might refactor in the future though.
+# The below rule is the same as the mpileup_merge_unit_bams rule in pileup.smk, and in the qualimap
+# merging in qc.smk, but we do want this separate implemenation here, to have a bit more control
+# of where the files go, and to stay independent of the mpileup rules. Bit of code duplication,
+# might refactor in the future though.
 
-rule hafpipe_merge_bams:
+rule hafpipe_merge_unit_bams:
     input:
         get_sample_bams_wildcards # provided in mapping.smk
     output:

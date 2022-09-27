@@ -168,7 +168,32 @@ localrules: samtools_flagstat_collect
 #     qualimap
 # =================================================================================================
 
-rule qualimap:
+# We might want to run qualimap on either each bam file per sample-unit individually,
+# or on a merged bam file for a whole sample, merging all its units.
+# The merging rule here is duplicated from pileup.smk and from HAF-pipe in frequency.smk,
+# but for now, we keep it that way, in order to be more flexible with the specifics.
+rule qualimap_merge_unit_bams:
+    input:
+        get_sample_bams_wildcards # provided in mapping.smk
+    output:
+        # Need to pick a different directory than the future output directory
+        # of the main qualimap rule here, so as not to confuse snakemake...
+        temp("qc/qualimap-bams/{sample}.merged.bam")
+    params:
+        config["params"]["samtools"]["merge"]
+    threads:
+        config["params"]["samtools"]["merge-threads"]
+    log:
+        "logs/samtools/qualimap/merge-{sample}.log"
+    group:
+        "qualimap"
+    wrapper:
+        "0.74.0/bio/samtools/merge"
+
+# Rule for running qualimap on each bam file of a sample and its units separately.
+# If things of how qualimap is run need to be adjusted here, they will probably also need to be
+# adjusted below in the rule that runs per sample with merged units.
+rule qualimap_sample_unit:
     input:
         get_mapping_result()
     output:
@@ -193,23 +218,53 @@ rule qualimap:
     threads:
         config["params"]["qualimap"]["threads"]
     log:
-        stderr="logs/qualimap/{sample}-{unit}_qualimap.stderr",
-        stdout="logs/qualimap/{sample}-{unit}_qualimap.stdout"
+        "logs/qualimap/{sample}-{unit}_qualimap.log"
     group:
-        "qc"
+        "qualimap"
     conda:
         "../envs/qualimap.yaml"
     shell:
         "unset DISPLAY; qualimap bamqc -bam {input} -nt {threads} "
         "-outdir {params.outdir} -outformat HTML "
-        "{params.extra} > {log.stdout} 2> {log.stderr}"
+        "{params.extra} > {log} 2>&1"
+
+# Rule for running qualimap for each bam file of a sample, merging its units.
+# This is basically the same as above, but using the merged one instead.
+# We are not repeating all comments of above here, to keep it simple. See above for details.
+rule qualimap_sample_merged:
+    input:
+        "qc/qualimap-bams/{sample}.merged.bam"
+    output:
+        outdir=directory("qc/qualimap/{sample}"),
+        done=touch("qc/qualimap/{sample}.done")
+    params:
+        extra=config["params"]["qualimap"]["extra"],
+        outdir="qc/qualimap/{sample}"
+    threads:
+        config["params"]["qualimap"]["threads"]
+    log:
+        "logs/qualimap/{sample}_qualimap.log"
+    group:
+        "qualimap"
+    conda:
+        "../envs/qualimap.yaml"
+    shell:
+        "unset DISPLAY; qualimap bamqc -bam {input} -nt {threads} "
+        "-outdir {params.outdir} -outformat HTML "
+        "{params.extra} > {log} 2>&1"
 
 rule qualimap_collect:
     input:
+        # Get either the merged per-sample qualimap files, or the per-sample and per-unit ones.
+        expand(
+            "qc/qualimap/{sample}.done",
+            sample=config["global"]["sample-names"]
+        ) if config["params"]["qualimap"].get("merge-units", True) else
         expand(
             "qc/qualimap/{u.sample}-{u.unit}.done",
             u=config["global"]["samples"].itertuples()
-        ),
+        )
+
         # expand(
         #     "qc/qualimap/{u.sample}-{u.unit}/genome_results.txt",
         #     u=config["global"]["samples"].itertuples()

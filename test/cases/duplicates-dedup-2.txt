@@ -1,0 +1,3 @@
+duplicates-tool: "picard"	duplicates-tool: "dedup"
+mapping: True	mapping: False
+merge-units: True	merge-units: False

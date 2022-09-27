@@ -2,7 +2,12 @@
 #     Merge bams
 # =================================================================================================
 
-rule mpileup_merge_units:
+# This per-sample merging is also present in the HAF-pipe rules in frequency.smk,
+# and in the qualimap rule in qc.smk; meaning that this step is potentially executed
+# multiple times independently, for different purposes. For now, we keep it this way,
+# to have more control over the specifics, but we might change that in the future.
+
+rule mpileup_merge_unit_bams:
     input:
         get_sample_bams_wildcards # provided in mapping.smk
     output:

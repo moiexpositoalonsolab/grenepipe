@@ -1,3 +1,4 @@
 snpeff: false	snpeff: true
 vep: false	vep: true
 known-variants: ""	known-variants: "#BASEPATH#/test/reference/known-variants.vcf.gz"
+merge-units: True	merge-units: False

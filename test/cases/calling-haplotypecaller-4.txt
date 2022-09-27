@@ -1,3 +1,4 @@
 calling: True	calling: False
 filtering: True	filtering: False
 filter-variants: "gatk-variantfiltration"	filter-variants: "gatk-vqrs"
+merge-units: True	merge-units: False

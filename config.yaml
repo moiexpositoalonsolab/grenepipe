@@ -896,6 +896,12 @@ params:
 
   qualimap:
 
+    # By default, we run qualimap on the merged bam file of each sample, combining all its units
+    # (e.g., its biological replicates, or resequenced libraries) into one file. This usually is
+    # more desirable, as it gives information on coverage per sample instead of per fastq or bam
+    # file. However, this can be changed here.
+    merge-units: True
+
     # Additional parameters for qualimap, see http://qualimap.conesalab.org/
     extra: "--java-mem-size=10G"
     threads: 2
