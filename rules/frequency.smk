@@ -8,8 +8,9 @@ import os
 # even if there are multiple instances of the downstream roles.
 
 def get_packages_dir():
-    # Hard coded paths, within our structure. Needs to be adjusted in scripts/hafpipe.py as well.
-    # Snakemake suggests to use `get_source()`, which is a bug and actually called `source_path()`:
+    # Hard coded paths, within our structure. If we ever want to change the paths where these
+    # dependencies are stored, they need to be adjusted in scripts/hafpipe.py as well.
+    # Snakemake suggests to use `get_source()`, but it is actually called `source_path()`:
     # https://snakemake.readthedocs.io/en/stable/project_info/faq.html#how-does-snakemake-interpret-relative-paths
     # However, neither of them is working... So we use a different way of getting the path
     # to our Snakemake base directory: https://stackoverflow.com/a/73202976/4184258

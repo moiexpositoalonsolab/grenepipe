@@ -49,12 +49,22 @@ if [ ! -f "${HARP_BIN}" ] ; then
 
     # We use curl instead of wget here, as this seems to be available on both Mac and Linux.
     # We need to tell curl to follow redictions... see https://askubuntu.com/a/1036492/561263
-    curl -LO "https://bitbucket.org/dkessner/harp/downloads/${HARP_ZIP}" -o "${HARP_ZIP}"
-    unzip "${HARP_ZIP}"
+    if [ ! -f "${HARP_ZIP}" ] ; then
+        curl -LO "https://bitbucket.org/dkessner/harp/downloads/${HARP_ZIP}" -o "${HARP_ZIP}"
+    fi
+    if [ ! -d "${HARP_ZIP%.zip}" ] ; then
+        unzip "${HARP_ZIP}"
+    fi
 
     # Unfortunately, the zip files already contain a directory called after the filename itself...
     # so either "harp_linux_140925_103521" or "harp_osx_140925_100959"; let's rename this,
     # so that we always end up having harp in the "harp" dir.
+    # Also, when this script is called from the snakemake rule, snakemake is so nice as to create
+    # all directories for us already, so that the below intended renaming via mv instead moves
+    # the directory into the snakemake-create one... So we need to delete that one first.
+    if [ -d "harp" ] ; then
+        rm -r "harp"
+    fi
     mv "${HARP_ZIP%.zip}" "harp"
 
     # If curl breaks down in the future because of Atlassion (bitbucked) changing their API,
@@ -69,6 +79,7 @@ if [ ! -f "${HARP_BIN}" ] ; then
         echo "Please visit https://bitbucket.org/dkessner/harp to download manually, "
         echo "using the OSX or Linux binary from 2014-09-25."
         echo "Then, store the binary in `pwd`/harp/bin for grenepipe to be able to find it."
+        return 1
     fi
     echo
 fi
@@ -94,16 +105,24 @@ if [ ! -f "${HAFPIPE_BIN}" ] ; then
     # so for now, we don't. If this does not work for some users, we'll have to revisit this.
     # See also https://gist.github.com/jwebcat/5122366 for the `J` speficier.
     HAFPIPE_HASH="0b773910ee625aacc5c7a43f9cf1a7f0eb6c5da2"
-    curl -LJO "https://github.com/petrov-lab/HAFpipe-line/archive/${HAFPIPE_HASH}.zip"
+    HAFPIPE_ZIP="HAFpipe-line-${HAFPIPE_HASH}.zip"
+    if [ ! -f "${HAFPIPE_ZIP}" ] ; then
+        curl -LJO "https://github.com/petrov-lab/HAFpipe-line/archive/${HAFPIPE_HASH}.zip"
+    fi
     # curl -LO "https://github.com/petrov-lab/HAFpipe-line/archive/${HAFPIPE_HASH}.zip" -o "${HAFPIPE_HASH}.zip" -
 
     # We use curl with -J, which uses the server-side name for the downloaded file,
     # which differs from the filename as given in the URL above, but is the actual name of the file.
     # This ensures that the unzip command does not complain about mismatching file names
     # between the zip file name and the directory contained in it.
-    unzip "HAFpipe-line-${HAFPIPE_HASH}.zip"
+    if [ ! -d "${HAFPIPE_ZIP%.zip}" ] ; then
+        unzip "${HAFPIPE_ZIP}"
+    fi
 
     # We want to rename this to a path that we can use in grenepipe.
+    if [ -d "hafpipe" ] ; then
+        rm -r "hafpipe"
+    fi
     mv "HAFpipe-line-${HAFPIPE_HASH}" "hafpipe"
 
     if [ ! -f "${HAFPIPE_BIN}" ] ; then
@@ -111,6 +130,7 @@ if [ ! -f "${HAFPIPE_BIN}" ] ; then
         echo "Please visit https://github.com/petrov-lab/HAFpipe-line to download manually, "
         echo "using the version at commit hash 0b773910ee625aacc5c7a43f9cf1a7f0eb6c5da2."
         echo "Then, store the files in `pwd`/hafpipe for grenepipe to be able to find it."
+        return 1
     fi
     echo
 fi

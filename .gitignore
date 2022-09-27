@@ -4,6 +4,8 @@
 
 packages/hafpipe/
 packages/harp/
+packages/HAFpipe-line-0b773910ee625aacc5c7a43f9cf1a7f0eb6c5da2.zip
+packages/harp_linux_140925_103521.zip
 test/.snakemake/
 test/conda-envs
 test/mamba-envs
