@@ -70,6 +70,9 @@ rule mpileup_all_merged_units_names:
             for sample in config["global"]["sample-names"]:
                 out.write(sample + "\n")
 
+localrules: mpileup_all_individual_units_names
+localrules: mpileup_all_merged_units_names
+
 # =================================================================================================
 #     Pileup
 # =================================================================================================
