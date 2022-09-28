@@ -17,6 +17,10 @@ genome=config["data"]["reference-genome"]
 genomename = os.path.basename( config["data"]["reference-genome"] )
 genomedir  = os.path.dirname(  config["data"]["reference-genome"] )
 
+# We write the log file to where the known variants file is, so that this is independent
+# of the particular run, making the log files easier to find for users.
+genome_logdir = os.path.join( genomedir, "logs" )
+
 # In all rules below, we use hard coded file names (no wildcards), as snakemake cannot handle
 # absolute file paths properly and gives us no reasonable way to use lambdas in the `log` part
 # of the rule, which hence would lead to log file paths containing the absolute file path
@@ -33,7 +37,7 @@ checkpoint samtools_faidx:
     output:
         genome + ".fai"
     log:
-        "logs/" + genomename + ".samtools_faidx.log"
+        os.path.join( genome_logdir, genomename + ".samtools_faidx.log" )
     params:
         "" # optional params string
     wrapper:
@@ -48,7 +52,7 @@ rule decompress_genome:
     output:
         genome
     log:
-        "logs/" + genomename + ".decompress.log"
+        os.path.join( genome_logdir, genomename + ".decompress.log" )
     shell:
         "zcat {input} > {output}"
         # Cannot use gunzip here, as CentOS does not support the --keep option...
@@ -68,7 +72,7 @@ rule bwa_index:
         genome + ".pac",
         genome + ".sa"
     log:
-        "logs/" + genomename + ".bwa_index.log"
+        os.path.join( genome_logdir, genomename + ".bwa_index.log" )
     params:
         prefix=genome,
         algorithm="bwtsw"
@@ -101,7 +105,7 @@ if config["settings"]["mapping-tool"] == "bwamem2":
             tempdir  = genomedir + "/bwa-mem2-index-temp/",
             basename = genomedir + "/bwa-mem2-index-temp/" + genomename
         log:
-            "logs/" + genomename + ".bwa-mem2_index.log"
+            os.path.join( genome_logdir, genomename + ".bwa-mem2_index.log" )
         conda:
             "../envs/bwa-mem2.yaml"
         shell:
@@ -125,7 +129,7 @@ rule sequence_dictionary:
     # params:
     #     base= lambda wc: os.path.splitext(genome)[0],
     log:
-        "logs/" + genomename + ".sequence_dictionary.log"
+        os.path.join( genome_logdir, genomename + ".sequence_dictionary.log" )
     conda:
         "../envs/prep.yaml"
     shell:
@@ -140,7 +144,7 @@ rule reference_seqkit:
     params:
         extra = config["params"]["seqkit"]["extra"]
     log:
-        "logs/" + genomename + ".seqkit.log"
+        os.path.join( genome_logdir, genomename + ".seqkit.log" )
     conda:
         "../envs/seqkit.yaml"
     shell:
@@ -182,6 +186,10 @@ else:
             "'. Needs to be either .vcf or .vcf.gz for some of the tools to work."
         )
 
+# We write the log file to where the known variants file is, so that this is independent
+# of the particular run, making the log files easier to find for users.
+variant_logdir = os.path.join( os.path.dirname(variants), "logs" )
+
 # Compress the known variants vcf file using gzip, as this seems needed for GATK.
 rule variants_vcf_compress:
     input:
@@ -191,7 +199,7 @@ rule variants_vcf_compress:
     group:
         "known_variants"
     log:
-        os.path.dirname(variants) + "/logs/" + os.path.basename(variants) + ".vcf_compress.log"
+        os.path.join( variant_logdir, os.path.basename(variants) + ".vcf_compress.log" )
     wrapper:
         "0.27.1/bio/vcf/compress"
 
@@ -207,7 +215,7 @@ rule variants_vcf_index:
     group:
         "known_variants"
     log:
-        os.path.dirname(variants) + "/logs/" + os.path.basename(variants) + ".vcf_index.log"
+        os.path.join( variant_logdir, os.path.basename(variants) + ".vcf_index.log" )
     wrapper:
         "0.55.1/bio/tabix"
 

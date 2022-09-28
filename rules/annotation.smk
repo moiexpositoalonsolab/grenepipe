@@ -20,9 +20,13 @@ def get_snpeff_db_download_path():
 rule snpeff_db:
     output:
         # wildcard {reference} may be anything listed in the first column of `snpeff databases`
-        directory(get_snpeff_db_download_path() + "{reference}")
+        directory( os.path.join( get_snpeff_db_download_path(), "{reference}" )),
+        touch( os.path.join( get_snpeff_db_download_path(), "{reference}.done" ))
     log:
-        "logs/snpeff-download-{reference}.log"
+        # Log file where the download is made to, so that this is independent of the run itself.
+        os.path.abspath(
+            os.path.join( get_snpeff_db_download_path(), "../snpeff-download-{reference}.log" )
+        )
     group:
         "snpeff"
     params:
@@ -44,7 +48,7 @@ def get_snpeff_db_path():
     if config["params"]["snpeff"]["custom-db-dir"]:
         return config["params"]["snpeff"]["custom-db-dir"]
     else:
-        return get_snpeff_db_download_path() + config["params"]["snpeff"]["name"]
+        return os.path.join( get_snpeff_db_download_path(), config["params"]["snpeff"]["name"] )
 
 # =================================================================================================
 #     SnpEff
@@ -118,7 +122,8 @@ def get_vep_plugins_dir():
 
 rule vep_cache:
     output:
-        directory(get_vep_cache_dir()),
+        directory( get_vep_cache_dir() ),
+        touch( get_vep_cache_dir().rstrip('/') + ".done" )
     params:
         species  = config["params"]["vep"]["species"],
         release  = config["params"]["vep"]["release"],
@@ -127,7 +132,10 @@ rule vep_cache:
         # fastaurl = config["params"]["vep"]["fasta-url"],
         # fasta-url: "ftp://ftp.ebi.ac.uk/ensemblgenomes/pub/plants/current/fasta"
     log:
-        "logs/vep-cache.log",
+        # Log file where the download is made to, so that this is independent of the run itself.
+        os.path.abspath(
+            os.path.join( get_vep_cache_dir(), "../vep-cache.log" )
+        )
     conda:
         # We use a conda environment on top of the wrapper, as the wrapper always causes
         # issues with missing python modules and mismatching program versions and stuff...
@@ -143,17 +151,25 @@ rule vep_cache:
 
 rule vep_plugins:
     output:
-        directory(get_vep_plugins_dir()),
+        directory( get_vep_plugins_dir() ),
+        touch( get_vep_plugins_dir().rstrip('/') + ".done" )
     params:
         release = config["params"]["vep"]["release"],
     log:
-        "logs/vep-plugins.log",
+        # Log file where the download is made to, so that this is independent of the run itself.
+        os.path.abspath(
+            os.path.join( get_vep_plugins_dir(), "../vep-plugins.log" )
+        )
     conda:
         # Use our own env definition here, to ensure that we are working with the same vep
         # versions across the different rules here. This is not the case in the original wrapper...
         "../envs/vep.yaml"
-    wrapper:
-        "0.74.0/bio/vep/plugins"
+    script:
+        # We use our own script here, which solves a weird issue with the wrapper where
+        # the output directory was already created and hence the python mkdir failed...
+        "../scripts/vep-plugins.py"
+    # wrapper:
+    #     "0.74.0/bio/vep/plugins"
 
 # Rules are not submitted as a job to the cluster.
 localrules: vep_cache, vep_plugins
