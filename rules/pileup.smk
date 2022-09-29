@@ -11,7 +11,8 @@ rule mpileup_merge_unit_bams:
     input:
         get_sample_bams_wildcards # provided in mapping.smk
     output:
-        temp("mpileup/{sample}.merged.bam")
+        temp("mpileup/{sample}.merged.bam"),
+        touch("mpileup/{sample}.merged.done")
     params:
         # Need to set the file overwrite flag for pipes to work here,
         # see https://github.com/samtools/samtools/issues/1437
@@ -29,7 +30,8 @@ rule mpileup_merge_all:
     input:
         get_all_bams()
     output:
-        pipe("mpileup/all.merged.bam")
+        pipe("mpileup/all.merged.bam"),
+        touch("mpileup/all.merged.done")
     params:
         # Need file overwrite flag, see above.
         config["params"]["samtools"]["merge"] + " -f"

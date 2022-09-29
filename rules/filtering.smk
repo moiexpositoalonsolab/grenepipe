@@ -18,7 +18,8 @@ rule select_calls:
             "filtered/all.{vartype}.selected.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
             else temp("filtered/all.{vartype}.selected.vcf.gz")
-        )
+        ),
+        done=touch("filtered/all.{vartype}.selected.done")
     params:
         extra="--select-type-to-include {vartype}"
     log:
@@ -77,8 +78,9 @@ rule merge_calls:
             else "filtered"
         )
     output:
-        vcf="filtered/all.vcf.gz"
+        vcf="filtered/all.vcf.gz",
         # vcf=protected("filtered/all.vcf.gz")
+        done=touch("filtered/all.done")
     log:
         "logs/picard/merge-filtered.log"
     benchmark:

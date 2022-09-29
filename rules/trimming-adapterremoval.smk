@@ -11,7 +11,8 @@ rule trim_reads_se:
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}.fastq.gz")
         ),
-        settings="trimmed/{sample}-{unit}.se.settings"
+        settings="trimmed/{sample}-{unit}.se.settings",
+        done=touch("trimmed/{sample}-{unit}.se.done")
     params:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["se"],
@@ -42,7 +43,8 @@ rule trim_reads_pe:
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}.pair2.fastq.gz")
         ),
-        settings="trimmed/{sample}-{unit}.pe.settings"
+        settings="trimmed/{sample}-{unit}.pe.settings",
+        done=touch("trimmed/{sample}-{unit}.pe.done")
     params:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["pe"],
@@ -97,7 +99,8 @@ rule trim_reads_pe_merged:
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}.discarded.gz")
         ),
-        settings = "trimmed/{sample}-{unit}.pe-merged.settings"
+        settings = "trimmed/{sample}-{unit}.pe-merged.settings",
+        done = touch("trimmed/{sample}-{unit}.pe-merged.done")
     params:
         extra="--gzip --collapse",
         params=config["params"]["adapterremoval"]["pe"],

@@ -46,7 +46,8 @@ rule call_variants:
             ) else []
         )
     output:
-        pipe("called/{contig}.vcf")
+        pipe("called/{contig}.vcf"),
+        touch("called/{contig}.vcf.done")
     log:
         "logs/freebayes/{contig}.log"
     benchmark:
@@ -84,8 +85,9 @@ rule compress_vcf:
             "called/{contig}.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("called/{contig}.vcf.gz")
-        )
+        ),
         # protected("called/{contig}.vcf.gz")
+        touch("called/{contig}.vcf.gz.done")
     log:
         "logs/compress_vcf/{contig}.log"
     threads:
@@ -120,7 +122,8 @@ rule merge_variants:
         # vcfs=lambda w: expand("called/{contig}.vcf.gz", contig=get_contigs())
         vcfs=merge_variants_vcfs_input
     output:
-        vcf="genotyped/all.vcf.gz"
+        vcf="genotyped/all.vcf.gz",
+        done=touch("genotyped/all.done")
     log:
         "logs/picard/merge-genotyped.log"
     benchmark:

@@ -178,7 +178,8 @@ rule qualimap_merge_unit_bams:
     output:
         # Need to pick a different directory than the future output directory
         # of the main qualimap rule here, so as not to confuse snakemake...
-        temp("qc/qualimap-bams/{sample}.merged.bam")
+        temp("qc/qualimap-bams/{sample}.merged.bam"),
+        touch("qc/qualimap-bams/{sample}.merged.done")
     params:
         config["params"]["samtools"]["merge"]
     threads:

@@ -29,7 +29,8 @@ rule map_reads:
             "mapped/{sample}-{unit}.sorted.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapped/{sample}-{unit}.sorted.bam")
-        )
+        ),
+        touch("mapped/{sample}-{unit}.sorted.done")
     params:
         extra=get_bwa_mem2_extra,
 

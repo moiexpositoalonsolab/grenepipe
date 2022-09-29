@@ -16,7 +16,8 @@ rule mark_duplicates:
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("dedup/{sample}-{unit}.bam")
         ),
-        metrics="qc/dedup/{sample}-{unit}.metrics.txt"
+        metrics="qc/dedup/{sample}-{unit}.metrics.txt",
+        done=touch("dedup/{sample}-{unit}.done")
     log:
         "logs/picard/dedup/{sample}-{unit}.log"
     benchmark:

@@ -31,8 +31,9 @@ rule call_variants:
             "called/{contig}.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("called/{contig}.vcf.gz")
-        )
+        ),
         # vcf=protected("called/{contig}.vcf.gz")
+        done=touch("called/{contig}.done")
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
         mpileup=get_mpileup_params,
@@ -54,7 +55,7 @@ rule call_variants:
         "("
         "bcftools mpileup {params.mpileup} --fasta-ref {input.ref} --output-type u {input.samples} | "
         "bcftools call --threads {threads} {params.call} --variants-only --output-type u - | "
-        "bcftools norm --check-ref ws --fasta-ref {input.ref} --output-type z --output {output[0]} - "
+        "bcftools norm --check-ref ws --fasta-ref {input.ref} --output-type z --output {output.vcf} - "
         ") 2> {log}"
 
     # Cannot use the wrapper, as we need `bcftools mpileup` instead of `samtools mpileup` (as used
@@ -156,7 +157,10 @@ rule merge_variants:
         # If we do not use small contigs, we directly output the final file.
         vcf = temp("genotyped/merged-all.vcf.gz") if (
             config["settings"].get("contig-group-size")
-        ) else "genotyped/all.vcf.gz"
+        ) else "genotyped/all.vcf.gz",
+        done = touch("genotyped/merged-all.done") if (
+            config["settings"].get("contig-group-size")
+        ) else touch("genotyped/all.done")
     log:
         "logs/vcflib/merge-genotyped.log"
     benchmark:

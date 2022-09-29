@@ -31,6 +31,7 @@ rule trim_reads_pe:
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}.2.discarded.fastq.gz")
         ),
+        done=touch("trimmed/{sample}-{unit}.done")
     params:
         extra = config["params"]["seqprep"]["extra"]
     log:

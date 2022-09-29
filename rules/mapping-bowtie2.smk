@@ -55,7 +55,8 @@ rule map_reads:
             ext=[ "1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2" ]
         )
     output:
-        pipe("mapped/{sample}-{unit}.bam")
+        pipe("mapped/{sample}-{unit}.bam"),
+        touch("mapped/{sample}-{unit}.done")
     params:
         # Prefix of reference genome index (built with bowtie2-build above)
         index=config["data"]["reference-genome"],
@@ -90,7 +91,8 @@ rule sort_reads:
             "mapped/{sample}-{unit}.sorted.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapped/{sample}-{unit}.sorted.bam")
-        )
+        ),
+        touch("mapped/{sample}-{unit}.sorted.done")
     params:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"]

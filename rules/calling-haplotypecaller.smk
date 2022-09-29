@@ -54,7 +54,8 @@ rule call_variants:
             "called/{sample}.{contig}.g.vcf.gz.tbi"
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("called/{sample}.{contig}.g.vcf.gz.tbi")
-        )
+        ),
+        done=touch("called/{sample}.{contig}.g.done")
     log:
         "logs/gatk/haplotypecaller/{sample}.{contig}.log"
     benchmark:
@@ -134,7 +135,8 @@ rule combine_calls:
             "called/all.{contig}.g.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("called/all.{contig}.g.vcf.gz")
-        )
+        ),
+        done=touch("called/all.{contig}.g.done")
     params:
         extra=config["params"]["gatk"]["CombineGVCFs-extra"] + (
             " --dbsnp " + config["data"]["known-variants"] + " "
@@ -169,7 +171,8 @@ rule genotype_variants:
             "genotyped/all.{contig}.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("genotyped/all.{contig}.vcf.gz")
-        )
+        ),
+        done=touch("genotyped/all.{contig}.done")
     params:
         extra=config["params"]["gatk"]["GenotypeGVCFs-extra"] + (
             " --dbsnp " + config["data"]["known-variants"] + " "
@@ -208,7 +211,8 @@ rule merge_variants:
         # vcfs=lambda w: expand("genotyped/all.{contig}.vcf.gz", contig=get_contigs())
         vcfs=merge_variants_vcfs_input
     output:
-        vcf="genotyped/all.vcf.gz"
+        vcf="genotyped/all.vcf.gz",
+        done=touch("genotyped/all.done")
     log:
         "logs/picard/merge-genotyped.log"
     benchmark:

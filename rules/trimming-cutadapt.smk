@@ -11,7 +11,8 @@ rule trim_reads_se:
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}.fastq.gz")
         ),
-        qc="trimmed/{sample}-{unit}.qc-se.txt"
+        qc="trimmed/{sample}-{unit}.qc-se.txt",
+        done=touch("trimmed/{sample}-{unit}.se.done")
     params:
         adapters = config["params"]["cutadapt"]["se"]["adapters"],
         extra    = config["params"]["cutadapt"]["se"]["extra"]
@@ -41,7 +42,8 @@ rule trim_reads_pe:
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}.2.fastq.gz")
         ),
-        qc="trimmed/{sample}-{unit}.qc-pe.txt"
+        qc="trimmed/{sample}-{unit}.qc-pe.txt",
+        done=touch("trimmed/{sample}-{unit}.pe.done")
     params:
         adapters = config["params"]["cutadapt"]["pe"]["adapters"],
         extra    = config["params"]["cutadapt"]["pe"]["extra"]

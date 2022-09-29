@@ -14,7 +14,8 @@ rule bcftools_filter_calls:
             "filtered/all.{vartype}.filtered.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
             else temp("filtered/all.{vartype}.filtered.vcf.gz")
-        )
+        ),
+        done=touch("filtered/all.{vartype}.filtered.done")
     params:
         tool=config["params"]["bcftools-filter"]["tool"],
         filters=get_filter,

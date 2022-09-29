@@ -12,7 +12,8 @@ rule trim_reads_se:
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}-se-trimmed.fastq.gz")
         ),
-        "trimmed/{sample}-{unit}-se-trimmed.log"
+        "trimmed/{sample}-{unit}-se-trimmed.log",
+        touch("trimmed/{sample}-{unit}-se.done")
     params:
         extra="--format sanger --compress",
         params=config["params"]["skewer"]["se"],
@@ -44,7 +45,8 @@ rule trim_reads_pe:
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}-pe-trimmed-pair2.fastq.gz")
         ),
-        log="trimmed/{sample}-{unit}-pe-trimmed.log"
+        log="trimmed/{sample}-{unit}-pe-trimmed.log",
+        done=touch("trimmed/{sample}-{unit}-pe.done")
     params:
         extra="--format sanger --compress",
         params=config["params"]["skewer"]["pe"],

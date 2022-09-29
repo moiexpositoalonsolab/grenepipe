@@ -37,7 +37,8 @@ rule map_reads:
             "sai/{sample}-{unit}-{pair}.sai"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("sai/{sample}-{unit}-{pair}.sai")
-        )
+        ),
+        touch("sai/{sample}-{unit}-{pair}.done")
         # Absolutely no idea why the following does not work. Snakemake complains that the pipe
         # is not used at all, which is simply wrong, as it is clearly used by bwa_sai_to_bam,
         # and also why would this rul here be called if its output file was not requested at all?!
@@ -117,7 +118,8 @@ rule bwa_sai_to_bam:
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         )
     output:
-        pipe( "mapped/{sample}-{unit}.sorted-unclean.bam" )
+        pipe( "mapped/{sample}-{unit}.sorted-unclean.bam" ),
+        touch( "mapped/{sample}-{unit}.sorted-unclean.done" )
     params:
         extra=get_bwa_aln_extra,
 
@@ -156,7 +158,8 @@ rule bwa_bam_clean:
             "mapped/{sample}-{unit}.sorted.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapped/{sample}-{unit}.sorted.bam")
-        )
+        ),
+        touch("mapped/{sample}-{unit}.sorted.done")
     group:
         "mapping"
     log:
@@ -164,7 +167,7 @@ rule bwa_bam_clean:
     conda:
         "../envs/picard.yaml"
     shell:
-        "picard CleanSam INPUT={input} OUTPUT={output} &> {log}"
+        "picard CleanSam INPUT={input[0]} OUTPUT={output[0]} &> {log}"
         # Somehow, Picard has several active versions with different command line interfaces.
         # Lets' hope that we picked the one that works...
         # "picard CleanSam --INPUT {input} --OUTPUT {output}"

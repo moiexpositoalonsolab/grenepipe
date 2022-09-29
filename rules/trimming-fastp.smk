@@ -18,7 +18,8 @@ rule trim_reads_se:
             else temp("trimmed/{sample}-{unit}.fastq.gz")
         ),
         html="trimmed/{sample}-{unit}-se-fastp.html",
-        json="trimmed/{sample}-{unit}-se-fastp.json"
+        json="trimmed/{sample}-{unit}-se-fastp.json",
+        done=touch("trimmed/{sample}-{unit}-se.done")
     log:
         "logs/fastp/{sample}-{unit}.log"
     benchmark:
@@ -40,7 +41,8 @@ rule trim_reads_pe:
             else temp(["trimmed/{sample}-{unit}.1.fastq.gz", "trimmed/{sample}-{unit}.2.fastq.gz"])
         ),
         html="trimmed/{sample}-{unit}-pe-fastp.html",
-        json="trimmed/{sample}-{unit}-pe-fastp.json"
+        json="trimmed/{sample}-{unit}-pe-fastp.json",
+        done=touch("trimmed/{sample}-{unit}-pe.done")
     log:
         "logs/fastp/{sample}-{unit}.log"
     benchmark:
@@ -64,7 +66,8 @@ rule trim_reads_pe_merged:
             else temp("trimmed/{sample}-{unit}-merged.fastq.gz")
         ),
         html="trimmed/{sample}-{unit}-pe-merged-fastp.html",
-        json="trimmed/{sample}-{unit}-pe-merged-fastp.json"
+        json="trimmed/{sample}-{unit}-pe-merged-fastp.json",
+        done=touch("trimmed/{sample}-{unit}-pe-merged.done")
     log:
         "logs/fastp/{sample}-{unit}.log"
     benchmark:

@@ -55,7 +55,8 @@ if config["settings"].get("contig-group-size"):
             vcf = "genotyped/merged-all.vcf.gz",
             refdict=genome_dict()
         output:
-            vcf = "genotyped/all.vcf.gz"
+            vcf = "genotyped/all.vcf.gz",
+            done = touch("genotyped/all.done")
         log:
             "logs/vcflib/sort-genotyped.log"
         benchmark:

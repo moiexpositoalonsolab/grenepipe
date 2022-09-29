@@ -31,7 +31,8 @@ rule call_variants:
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("called/{sample}.{contig}.g.vcf.gz")
         ),
-        gtbi="called/{sample}.{contig}.g.vcf.gz.tbi"
+        gtbi="called/{sample}.{contig}.g.vcf.gz.tbi",
+        done=touch("called/{sample}.{contig}.g.done")
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
         mpileup=get_mpileup_params,
@@ -98,7 +99,8 @@ rule combine_contig:
     output:
         gvcf="called/all.{contig}.g.vcf.gz",
         gtbi="called/all.{contig}.g.vcf.gz.tbi",
-        gvcflist="called/all.{contig}.g.txt"
+        gvcflist="called/all.{contig}.g.txt",
+        done=touch("called/all.{contig}.g.done")
     log:
         "logs/bcftools/combine-contig-{contig}.log"
     benchmark:
@@ -154,9 +156,22 @@ rule combine_all:
         ref=get_fai,
         gvcfs=combined_contig_gvcfs
     output:
-        vcf="genotyped/all.vcf.gz",
-        tbi="genotyped/all.vcf.gz.tbi",
-        lst="genotyped/all.txt"
+        # vcf="genotyped/all.vcf.gz",
+        # tbi="genotyped/all.vcf.gz.tbi",
+        # lst="genotyped/all.txt",
+        # done="genotyped/all.done"
+        vcf = temp("genotyped/merged-all.vcf.gz") if (
+            config["settings"].get("contig-group-size")
+        ) else "genotyped/all.vcf.gz",
+        tbi = temp("genotyped/merged-all.vcf.gz.tbi") if (
+            config["settings"].get("contig-group-size")
+        ) else "genotyped/all.vcf.gz.tbi",
+        lst = temp("genotyped/merged-all.txt") if (
+            config["settings"].get("contig-group-size")
+        ) else "genotyped/all.txt",
+        done = touch("genotyped/merged-all.done") if (
+            config["settings"].get("contig-group-size")
+        ) else touch("genotyped/all.done")
     params:
         # Use a list of the chromosomes in the same order as the fai, for bcftools to sort the output.
         regionorder=combined_contig_order
@@ -178,6 +193,6 @@ rule combine_all:
         "("
         "bcftools concat "
         "   --file-list \"{output.lst}\" --regions \"{params.regionorder}\" --allow-overlaps "
-        "   --output-type z -o {output.vcf} ;"
+        "   --output-type z -o {output.vcf} ; "
         "bcftools index --tbi {output.vcf}"
         ") &> {log}"

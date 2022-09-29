@@ -28,7 +28,8 @@ rule mark_duplicates:
         # "mapped/{sample}-{unit}.sorted.bam"
     output:
         bam=temp("dedup/{sample}-{unit}_rmdup.bam"),
-        metrics="dedup/{sample}-{unit}.dedup.json"
+        metrics="dedup/{sample}-{unit}.dedup.json",
+        done=touch("dedup/{sample}-{unit}.dedup.done")
     log:
         "logs/dedup/{sample}-{unit}.log"
     benchmark:
@@ -59,7 +60,8 @@ rule sort_reads_dedup:
             "dedup/{sample}-{unit}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("dedup/{sample}-{unit}.bam")
-        )
+        ),
+        touch("dedup/{sample}-{unit}.done")
     params:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"]

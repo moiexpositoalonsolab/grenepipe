@@ -24,7 +24,8 @@ rule map_reads:
             "mapped/{sample}-{unit}.sorted.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapped/{sample}-{unit}.sorted.bam")
-        )
+        ),
+        touch("mapped/{sample}-{unit}.sorted.done")
     params:
         index=config["data"]["reference-genome"],
         extra=get_bwa_mem_extra,

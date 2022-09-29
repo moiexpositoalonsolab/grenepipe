@@ -76,7 +76,8 @@ rule hafpipe_snp_table:
     output:
         snptable  = get_hafpipe_snp_table_dir() + "/{chrom}.csv",
         alleleCts = get_hafpipe_snp_table_dir() + "/{chrom}.csv.alleleCts",
-        numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz"
+        numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz",
+        done=touch( get_hafpipe_snp_table_dir() + "/{chrom}.done" )
     params:
         tasks="1",
         chrom="{chrom}",
@@ -143,7 +144,8 @@ if impmethod in ["simpute", "npute"]:
             bins=get_hafpipe_bins()
         output:
             # Unnamed output, as this is implicit in HAFpipe Task 2
-            get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod
+            get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
+            touch(get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done")
         params:
             tasks="2",
             impmethod=impmethod,
@@ -172,7 +174,8 @@ elif impmethod != "":
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv"
         output:
             # Unnamed output, as this is implicit in the user script
-            get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod
+            get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
+            touch(get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done")
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}.log"
         conda:
@@ -190,7 +193,7 @@ elif impmethod != "":
 # such as clusters, see https://github.com/petrov-lab/HAFpipe-line/issues/5
 # We here circumvent this when using imputation, by running the indexing ourselves...
 # HAF-pipe is broken, so that's what it takes for now to get this to work properly.
-# We use a dummy `done` file to trigger this step, and ensure that it's executed once per chrom.
+# We use a dummy `flag` file to trigger this step, and ensure that it's executed once per chrom.
 # We do not want to require the index files directly in downstream rules (Task 4),
 # as they are already created for the base table in the cases without imputation,
 # which would confuse snakemake if they already existed...
@@ -204,9 +207,9 @@ if impmethod == "":
             alleleCts = get_hafpipe_snp_table_dir() + "/{chrom}.csv.alleleCts",
             numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz"
         output:
-            done      = get_hafpipe_snp_table_dir() + "/{chrom}.csv.done"
+            flag      = get_hafpipe_snp_table_dir() + "/{chrom}.csv.flag"
         shell:
-            "touch {output.done}"
+            "touch {output.flag}"
 
     localrules:
         hafpipe_snp_table_indices
@@ -222,7 +225,7 @@ else:
         output:
             alleleCts = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".alleleCts",
             numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".numeric.bgz",
-            done      = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done"
+            flag      = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".flag"
         params:
             hp_path   = get_packages_dir() + "/hafpipe"
         log:
@@ -233,7 +236,7 @@ else:
             "{params.hp_path}/count_SNPtable.sh {input.snptable} >> {log} 2>&1 ; "
             "echo \"preparing {input.snptable} for allele frequency calculation\" >> {log} 2>&1 ; "
             "{params.hp_path}/prepare_SNPtable_for_HAFcalc.sh {input.snptable} >> {log} 2>&1 ; "
-            "touch {output.done}"
+            "touch {output.flag}"
 
 # Helper to get the SNP table for a given chromosome. According to the `impmethod` config setting,
 # this is either the raw table from Task 1 above, or the imputed table from Task 2, with either one
@@ -245,10 +248,10 @@ def get_hafpipe_snp_table(wildcards):
     else:
         return base + "." + config["params"]["hafpipe"]["impmethod"]
 
-# We need another helper to process wild cards, requesting the dummy `done` indicator file
+# We need another helper to process wild cards, requesting the dummy `flag` indicator file
 # that ensures that the snp table index files (alleleCt and numeric) are created above.
-def get_hafpipe_snp_table_done(wildcards):
-    return get_hafpipe_snp_table(wildcards) + ".done"
+def get_hafpipe_snp_table_flag(wildcards):
+    return get_hafpipe_snp_table(wildcards) + ".flag"
 
 # =================================================================================================
 #     HAFpipe Tasks 3 & 4:  Infer haplotype frequencies & Calculate allele frequencies
@@ -273,7 +276,8 @@ rule hafpipe_merge_unit_bams:
             "hafpipe/bam/{sample}.merged.bam"
             if config["params"]["hafpipe"].get("keep-intermediates", True)
             else temp("hafpipe/bam/{sample}.merged.bam")
-        )
+        ),
+        touch("hafpipe/bam/{sample}.merged.done")
     params:
         config["params"]["samtools"]["merge"]
     threads:
@@ -291,7 +295,7 @@ rule hafpipe_haplotype_frequencies:
         bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
         baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
-        done=get_hafpipe_snp_table_done,
+        flag=get_hafpipe_snp_table_flag,
         refseq=config["data"]["reference-genome"],
         bins=get_hafpipe_bins()
     output:
@@ -302,7 +306,8 @@ rule hafpipe_haplotype_frequencies:
             "hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs"
             if config["params"]["hafpipe"].get("keep-intermediates", True)
             else temp("hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs")
-        )
+        ),
+        done=touch("hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs.done")
     params:
         tasks="3",
         outdir="hafpipe/frequencies",
@@ -319,7 +324,7 @@ rule hafpipe_allele_frequencies:
         bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
         baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
-        done=get_hafpipe_snp_table_done,
+        flag=get_hafpipe_snp_table_flag,
         freqs="hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs", # from Task 3 above
         bins=get_hafpipe_bins()
     output:
@@ -328,7 +333,8 @@ rule hafpipe_allele_frequencies:
             "hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite"
             if config["params"]["hafpipe"].get("keep-intermediates", True)
             else temp("hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite")
-        )
+        ),
+        done=touch("hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite.done")
     params:
         tasks="4",
         outdir="hafpipe/frequencies",
@@ -373,7 +379,8 @@ rule hafpipe_merge_allele_frequencies:
         # This is the file name produced by the script. For now we do not allow to change this.
         table="hafpipe/all.csv" + (
             ".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""
-        )
+        ),
+        done=touch("hafpipe/all.done")
     params:
         # We are potentially dealing with tons of files, and cannot open all of them at the same
         # time, due to OS limitations, check `ulimit -n` for example. When this param is set to 0,

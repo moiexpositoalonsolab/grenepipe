@@ -76,10 +76,11 @@ rule gatk_variant_recalibrator:
         # Ouput file needs to be called vcf for the wrapper, but is in fact a fake vcf
         # that actually contains the recal information.
         vcf="filtered/all.{vartype}.vqsr-recal.vcf.gz",
-        tranches="filtered/all.{vartype}.vqsr-recal.tranches"
+        tranches="filtered/all.{vartype}.vqsr-recal.tranches",
         # We also might produce a plot PDF about the trances - but only for the SNPs,
         # not for the INDELs, so we do not specify it here for simplicity...
         # The avid user will find it in the `filtered` directory either way.
+        done=touch("filtered/all.{vartype}.vqsr-recal.done")
     params:
         # set mode, must be either SNP, INDEL or BOTH
         mode="{vartype}",
@@ -126,7 +127,8 @@ rule gatk_apply_vqsr:
             "filtered/all.{vartype}.recalibrated.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
             else temp("filtered/all.{vartype}.recalibrated.vcf.gz")
-        )
+        ),
+        done=touch("filtered/all.{vartype}.recalibrated.done")
     log:
         "logs/gatk/applyvqsr/{vartype}.log"
     benchmark:

@@ -10,8 +10,9 @@ rule trim_reads_se:
             "trimmed/{sample}-{unit}.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}.fastq.gz")
-        )
+        ),
         # trimlog="trimmed/{sample}-{unit}-se.trimlog.log"
+        touch("trimmed/{sample}-{unit}-se.done")
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         extra = config["params"]["trimmomatic"]["se"]["extra"],
@@ -51,8 +52,9 @@ rule trim_reads_pe:
             "trimmed/{sample}-{unit}.2.unpaired.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimmed/{sample}-{unit}.2.unpaired.fastq.gz")
-        )
+        ),
         # trimlog="trimmed/{sample}-{unit}-pe.trimlog.log"
+        done=touch("trimmed/{sample}-{unit}-pe.done")
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         extra = config["params"]["trimmomatic"]["se"]["extra"],

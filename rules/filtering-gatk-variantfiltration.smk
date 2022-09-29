@@ -19,7 +19,8 @@ rule gatk_hard_filter_calls:
             "filtered/all.{vartype}.filtered.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
             else temp("filtered/all.{vartype}.filtered.vcf.gz")
-        )
+        ),
+        done=touch("filtered/all.{vartype}.filtered.done")
     params:
         filters=get_filter,
         extra=config["params"]["gatk-variantfiltration"]["extra"],
