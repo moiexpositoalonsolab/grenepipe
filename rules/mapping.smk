@@ -293,13 +293,34 @@ def get_sample_bams_wildcards(wildcards):
 #     All bams, but not SNP calling
 # =================================================================================================
 
+rule mapping_merge_unit_bams:
+    input:
+        get_sample_bams_wildcards
+    output:
+        "mapping-merged/{sample}.merged.bam",
+        touch("mapping-merged/{sample}.merged.done")
+    params:
+        config["params"]["samtools"]["merge"]
+    threads:
+        config["params"]["samtools"]["merge-threads"]
+    log:
+        "logs/samtools/merge/merge-{sample}.log"
+    wrapper:
+        "0.74.0/bio/samtools/merge"
+
 # This alternative target rule executes all steps up to th mapping, and yields the final bam
 # files that would otherwise be used for variant calling in the downstream process.
 # That is, depending on the config, these are the sorted, filtered, remove duplicates, or
 # recalibrated base qualities bam files.
+# Furthermore, we also create merged bam files per sample (merging all its units),
+# as this is likely something that the user wants when using this feature.
 rule all_bams:
     input:
-        get_all_bams()
+        get_all_bams(),
+        expand(
+            "mapping-merged/{sample}.merged.bam",
+            sample=config["global"]["sample-names"]
+        )
 
 # The `all_bams` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.
