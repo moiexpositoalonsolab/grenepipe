@@ -90,6 +90,6 @@ When using grenepipe, please cite:
 
 > **grenepipe: A flexible, scalable, and reproducible pipeline <br/>to automate variant calling from sequence reads.**<br/>
 > Lucas Czech and Moises Exposito-Alonso. *Bioinformatics*. 2022.<br/>
-> [doi:10.1093/bioinformatics/btac600](https://doi.org/10.1093/bioinformatics/btac600)
+> [doi:10.1093/bioinformatics/btac600](https://doi.org/10.1093/bioinformatics/btac600) [[pdf](https://drive.google.com/file/d/125IRw_orGGxWWYr5GZ1LMCHbFDXj0C04/view?usp=sharing)]
 
 Furthermore, please do not forget to cite all tools that you selected to be run for your analysis. See [our Wiki](https://github.com/moiexpositoalonsolab/grenepipe/wiki/Citation-and-References) for their references.
