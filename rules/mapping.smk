@@ -1,7 +1,7 @@
 from itertools import chain
 
 # =================================================================================================
-#     Read Group
+#     Read Group and Helper Functions
 # =================================================================================================
 
 # We here get the read group tags list that is used per sample for the reads in the bam file.
@@ -29,6 +29,17 @@ def get_read_group_tags( wildcards ):
     #     sample=wildcards.sample,
     #     platform=units.loc[(wildcards.sample, wildcards.unit), "platform"],
     # )
+
+# Helper function needed by some of the GATK tools, here and in the calling.
+def get_gatk_regions_param(regions=config["settings"].get("restrict-regions"), default=""):
+    if regions:
+        params = "--intervals '{}' ".format(regions)
+        # Not used at the moment, as we deleted this config setting.
+        # padding = config["settings"].get("region-padding")
+        # if padding:
+        #     params += "--interval-padding {}".format(padding)
+        return params
+    return default
 
 # =================================================================================================
 #     Read Mapping
