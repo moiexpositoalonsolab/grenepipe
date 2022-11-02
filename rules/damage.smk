@@ -29,6 +29,17 @@ rule mapdamage:
     shell:
         "mapDamage -i {input[0]} -r {params.index} -d {params.outdir} {params.extra} > {log} 2>&1"
 
+rule mapdamage_collect:
+    input:
+        expand(
+            "mapdamage/{u.sample}-{u.unit}/Runtime_log.txt",
+            u=config["global"]["samples"].itertuples()
+        )
+    output:
+        touch("mapdamage/mapdamage.done")
+
+localrules: mapdamage_collect
+
 # =================================================================================================
 #     DamageProfiler
 # =================================================================================================
@@ -60,3 +71,14 @@ rule damageprofiler:
     shell:
         "damageprofiler -i {input[0]} -r {params.index} -o {params.outdir} {params.extra} > {log} 2>&1"
         # "java -jar DamageProfiler-0.5.0.jar "
+
+rule damageprofiler_collect:
+    input:
+        expand(
+            "damageprofiler/{u.sample}-{u.unit}/DamageProfiler.log",
+            u=config["global"]["samples"].itertuples()
+        )
+    output:
+        touch("damageprofiler/damageprofiler.done")
+
+localrules: damageprofiler_collect

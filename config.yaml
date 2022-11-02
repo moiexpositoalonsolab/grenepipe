@@ -209,6 +209,12 @@ settings:
   # as otherwise the whole pipeline will be run regardless.
   vep: false
 
+  # If activated, bcftools stats is run on the filtered VCF file, and its output added to the
+  # MultiQC report. Note that this requires the variant calling step - if you are working with
+  # ancient DNA, you might want to deactivate this step, so that you can get the MultiQC report
+  # for all other tools, without having to run the variant calling.
+  bcftools-stats: True
+
   # Set to true in order to run mapDamage.
   mapdamage: false
 
@@ -579,7 +585,7 @@ params:
     # Extra parameters for the bcftools call step.
     call: "--multiallelic-caller"
 
-    # Extra parameters for the bcftools stats step.
+    # Extra parameters for the bcftools stats step, if activated via `settings: bcftools-stats`.
     # The result of this is also included in the MultiQC report.
     stats: ""
 
