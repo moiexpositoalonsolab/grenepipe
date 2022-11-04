@@ -1,4 +1,5 @@
 import os
+import gzip
 
 # =================================================================================================
 #     Setup
@@ -33,6 +34,74 @@ rule hafpipe_setup:
 
 localrules:
     hafpipe_setup
+
+# =================================================================================================
+#     Input File Check
+# =================================================================================================
+
+# Task 1 of HAFpipe (Make SNP Table) expects the founder VCF to contain "PASS" in the FILTER column,
+# while the common alternative notation "." does not work. We want to warn users about this,
+# as this is just nasty to debug and track down why the SNP table remains empty...
+
+# Open a file, potentially gzipped, inspired by https://stackoverflow.com/a/16816627
+def gzip_opener(filename):
+    f = open(filename,'rb')
+    if( f.read(2) == b'\x1f\x8b' ):
+        f.seek(0)
+        return gzip.GzipFile(fileobj=f)
+    else:
+        f.seek(0)
+        return f
+
+# Check that the VCF contains PASS rather than . for the FILTER column.
+def check_hafpipe_founder_vcf( vcf ):
+    with gzip_opener(vcf) as file:
+        idx = -1
+        dot = 0
+        pss = 0
+        cnt = 0
+        for line in file:
+            line = str(line)
+
+            # Skip first header lines
+            if line.startswith( "##" ):
+                continue
+            # Only check first 1k lines. Hope that's enough.
+            if cnt > 1000:
+                break
+            spl = line.split( "\t" )
+
+            # Look at the main header line and find the column of the FILTER
+            if line.startswith( "#" ):
+                if "FILTER" in spl:
+                    idx = spl.index( "FILTER" )
+                else:
+                    raise Exception("Invalid HAF-pipe founder VCF file without FILTER column")
+                continue
+
+            # Look at the genome positions, and count the values found in the FILTER column
+            if spl[idx] == ".":
+                dot += 1
+            elif spl[idx] == "PASS":
+                pss += 1
+            cnt += 1
+
+        # Check the results
+        if dot > pss:
+            raise Exception(
+                "The FILTER column in the HAF-pipe founder VCF file marks variants with a '.' dot, "
+                "typically indicating a missing filter value, and hence likely meaning that the "
+                "variant is not filtered out. HAF-pipe however expectes the lines to contain 'PASS' "
+                "instead to mark the variants to be used for the SNP table. You hence need to "
+                "convert your VCF to use 'PASS' instead of '.' for HAF-pipe to work. "
+                "See also https://github.com/petrov-lab/HAFpipe-line/issues/6"
+            )
+
+# We run this check every time... Bit wasteful, and we could make it a rule that is only
+# exectuted once, but that would give the error message in a log file, instead of the main
+# Snakemake output. So for now, we keep it like this, so that users get the error immediately.
+if os.path.exists( config["params"]["hafpipe"]["founder-vcf"] ):
+    check_hafpipe_founder_vcf( config["params"]["hafpipe"]["founder-vcf"] )
 
 # =================================================================================================
 #     HAFpipe Task 1:  Make SNP Table
