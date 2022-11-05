@@ -143,9 +143,18 @@ rule hafpipe_snp_table:
         vcf=config["params"]["hafpipe"]["founder-vcf"],
         bins=get_hafpipe_bins()
     output:
-        snptable  = get_hafpipe_snp_table_dir() + "/{chrom}.csv",
-        alleleCts = get_hafpipe_snp_table_dir() + "/{chrom}.csv.alleleCts",
-        numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz",
+        snptable   = get_hafpipe_snp_table_dir() + "/{chrom}.csv",
+        alleleCts  = get_hafpipe_snp_table_dir() + "/{chrom}.csv.alleleCts",
+        # We request both the numeric table as produced by the `numeric_SNPtable.R` script,
+        # as well as its compressed binary form. The R script needs an _insane_ amount of memory
+        # for larger founder VCF files, but might fail silently when going out of memory.
+        # In that case, HAF-pipe just continues as if nothing happend, producing a valid, yet empty,
+        # compressed file, which will then lead to errors down the line.
+        # So here, by requiring both files, we at least get notified if the R script failed.
+        # We further raise an exception in our script when we detect this issue,
+        # in order to better inform the user about the situation and how to fix this.
+        numeric    = get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric",
+        numericbgz = get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz",
         done=touch( get_hafpipe_snp_table_dir() + "/{chrom}.done" )
     params:
         tasks="1",

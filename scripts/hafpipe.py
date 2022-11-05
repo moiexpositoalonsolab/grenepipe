@@ -119,3 +119,28 @@ if snakemake.params.get("tasks") == "2" and impmethod == "simpute":
     shell(
         "mv {snakemake.input.snptable:q}.imputed {snakemake.input.snptable:q}.simpute"
     )
+
+# The `numeric_SNPtable.R` script is being run from within Task 1 and produces the `.numeric` file
+# of the SNP table. It can require an _insane_ amount of memory for larger founder VCF files,
+# but might fail silently when going out of memory.
+# In that case, HAF-pipe just continues as if nothing happend, producing a valid, yet empty,
+# compressed `.numeric.bgz` file, which will then lead to errors down the line.
+# Here, we check this, and issue a proper error for the user, so that they don't have to debug
+# this issue, and can just increase their memory.
+if snakemake.params.get("tasks") == "1":
+    # We check that both files exist and that the bgzipped one is not so small that it's likely
+    # just a zipped empty file. Reading bgzip in python is tricky, so we don't do that as of now...
+    numeric = snakemake.output.get("snptable") + ".numeric"
+    numbgz  = numeric + ".bgz"
+    if (
+        not os.path.exists( numeric ) or
+        not os.path.exists( numbgz ) or
+        os.path.getsize( numbgz ) < 100
+    ):
+        raise Exception(
+            "The HAF-pipe Task 1 step to convert the SNP table file to a numeric format failed. "
+            "It is likely that this is caused by an out-of-memory (OOM) error, as the HAF-pipe "
+            "R script `numeric_SNPtable.R` reads in the whole SNP table at once. This can be quite "
+            "big if your founder VCF has many samples. Please check all log files for errors, "
+            "and try to increase the amount of memory for our grenepipe rule `hafpipe_snp_table`."
+        )
