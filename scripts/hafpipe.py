@@ -116,9 +116,10 @@ shell(
 # as expected, see https://github.com/petrov-lab/HAFpipe-line/issues/4, so here we catch this
 # and manually rename to the expected file for that particular case, so that our rule finds it.
 if snakemake.params.get("tasks") == "2" and impmethod == "simpute":
-    shell(
-        "mv {snakemake.input.snptable:q}.imputed {snakemake.input.snptable:q}.simpute"
-    )
+    if os.path.exists( snakemake.input.snptable + ".imputed" ):
+        shell(
+            "mv {snakemake.input.snptable:q}.imputed {snakemake.input.snptable:q}.simpute"
+        )
 
 # The `numeric_SNPtable.R` script is being run from within Task 1 and produces the `.numeric` file
 # of the SNP table. It can require an _insane_ amount of memory for larger founder VCF files,

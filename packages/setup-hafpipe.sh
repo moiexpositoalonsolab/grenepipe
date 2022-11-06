@@ -100,16 +100,25 @@ if [ ! -f "${HAFPIPE_BIN}" ] ; then
     # We use the (as of now) latest commit of HAFpipe, but still want to use a fixed commit,
     # to ensure future compatibility. We can manually update if needed.
 
+    # Original
+    # HAFPIPE_USER="petrov-lab"
+    # HAFPIPE_REPO="HAFpipe-line"
+    # HAFPIPE_HASH="0b773910ee625aacc5c7a43f9cf1a7f0eb6c5da2"
+
+    # Our improved version
+    HAFPIPE_USER="lczech"
+    HAFPIPE_REPO="HAF-pipe"
+    HAFPIPE_HASH="2152748a28a1b6eb570cdec8f985a2c765dd1ca1"
+
     # Somehow, curl from GitHub works differently - the output is already put into a file,
     # and we get a warning "Warning: Got more output options than URLs" when specifying `-o`,
     # so for now, we don't. If this does not work for some users, we'll have to revisit this.
     # See also https://gist.github.com/jwebcat/5122366 for the `J` speficier.
-    HAFPIPE_HASH="0b773910ee625aacc5c7a43f9cf1a7f0eb6c5da2"
-    HAFPIPE_ZIP="HAFpipe-line-${HAFPIPE_HASH}.zip"
+    HAFPIPE_ZIP="${HAFPIPE_REPO}-${HAFPIPE_HASH}.zip"
     if [ ! -f "${HAFPIPE_ZIP}" ] ; then
-        curl -LJO "https://github.com/petrov-lab/HAFpipe-line/archive/${HAFPIPE_HASH}.zip"
+        curl -LJO "https://github.com/${HAFPIPE_USER}/${HAFPIPE_REPO}/archive/${HAFPIPE_HASH}.zip"
     fi
-    # curl -LO "https://github.com/petrov-lab/HAFpipe-line/archive/${HAFPIPE_HASH}.zip" -o "${HAFPIPE_HASH}.zip" -
+    # curl -LO "https://github.com/${HAFPIPE_USER}/${HAFPIPE_REPO}/archive/${HAFPIPE_HASH}.zip" -o "${HAFPIPE_HASH}.zip" -
 
     # We use curl with -J, which uses the server-side name for the downloaded file,
     # which differs from the filename as given in the URL above, but is the actual name of the file.
@@ -123,12 +132,12 @@ if [ ! -f "${HAFPIPE_BIN}" ] ; then
     if [ -d "hafpipe" ] ; then
         rm -r "hafpipe"
     fi
-    mv "HAFpipe-line-${HAFPIPE_HASH}" "hafpipe"
+    mv "${HAFPIPE_REPO}-${HAFPIPE_HASH}" "hafpipe"
 
     if [ ! -f "${HAFPIPE_BIN}" ] ; then
-        echo "Could not download HAFpipe."
-        echo "Please visit https://github.com/petrov-lab/HAFpipe-line to download manually, "
-        echo "using the version at commit hash 0b773910ee625aacc5c7a43f9cf1a7f0eb6c5da2."
+        echo "Could not download HAF-pipe."
+        echo "Please visit https://github.com/${HAFPIPE_USER}/${HAFPIPE_REPO} to download manually, "
+        echo "using the version at commit hash ${HAFPIPE_HASH}."
         echo "Then, store the files in `pwd`/hafpipe for grenepipe to be able to find it."
         return 1
     fi

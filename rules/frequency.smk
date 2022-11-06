@@ -305,15 +305,23 @@ else:
             numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".numeric.bgz",
             flag      = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".flag"
         params:
-            hp_path   = get_packages_dir() + "/hafpipe"
+            hp_scripts = (
+                get_packages_dir() + "/hafpipe/scripts"
+                if os.path.exists( get_packages_dir() + "/hafpipe/scripts" )
+                else get_packages_dir() + "/hafpipe"
+            )
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}-indices.log"
         shell:
             # Calls from HAF-pipe, replicated here for our purposes
-            "echo \"counting alleles in {input.snptable}\" >> {log} 2>&1 ; "
-            "{params.hp_path}/count_SNPtable.sh {input.snptable} >> {log} 2>&1 ; "
-            "echo \"preparing {input.snptable} for allele frequency calculation\" >> {log} 2>&1 ; "
-            "{params.hp_path}/prepare_SNPtable_for_HAFcalc.sh {input.snptable} >> {log} 2>&1 ; "
+            "if [ ! -e {input.snptable}{impmethod}.alleleCts ]; then "
+            "    echo \"counting alleles in {input.snptable}\" >> {log} 2>&1 ; "
+            "    {params.hp_scripts}/count_SNPtable.sh {input.snptable} >> {log} 2>&1 ; "
+            "fi ; "
+            "if [ ! -e {input.snptable}{impmethod}.numeric.bgz ]; then "
+            "    echo \"preparing {input.snptable} for allele frequency calculation\" >> {log} 2>&1 ; "
+            "    {params.hp_scripts}/prepare_SNPtable_for_HAFcalc.sh {input.snptable} >> {log} 2>&1 ; "
+            "fi ; "
             "touch {output.flag}"
 
 # Helper to get the SNP table for a given chromosome. According to the `impmethod` config setting,

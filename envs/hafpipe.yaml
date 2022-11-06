@@ -22,8 +22,14 @@ dependencies:
   # hafpipe needs R version >= 3.2, so we use the same that
   # we also use in the gatk.yaml, for simplicity.
   # See also https://github.com/petrov-lab/HAFpipe-line/issues/3
-  - r 3.5.1 #==4.1
-  - r-data.table
+  # Update: this is currently not longer needed with our updated version.
+  # - r 3.5.1 #==4.1
+  # - r-data.table
+
+  # We use our new python script for making the numeric snp table,
+  # and need numpy for the npute scripts.
+  - python ==3.7.10
+  - numpy ==1.21.2
 
   # We first tried to build harp on our own, which did not work,
   # due to boost paths not being found when using conda to install it,
