@@ -1050,5 +1050,22 @@ params:
     # affected by this; we always keep them, as they might need to be re-used for other runs as well.
     keep-intermediates: False
 
+    # HAF-pipe by default produces individual files per sample and per chromosome, which can be a
+    # bit hard to work with, in particular as the only way to determine the chromosome is from
+    # the file name. So here we offer to concatenate the per-sample files for all chromsomes,
+    # making it easier to work with downstream. The files will be stored in `hafpipe/samples`.
+    # See also below for an option to compress these files to save disk space.
+    make-sample-tables: True
+
+    # Furthermore, we offer to merge all samples (and chromosomes) into one big table.
+    # Note that this can be quite huge, and take a while to create for large datasets.
+    # See again below for an option to compress this file to save disk space.
+    make-merged-table: False
+
+    # If set to true, the final "hafpipe/samples/*.csv" tables are compressed with gzip to save
+    # disk space. Only relevant if the above `make-sample-tables` is set to True.
+    compress-sample-tables: False
+
     # If set to true, the final "hafpipe/all.csv" table is compressed with gzip to save disk space.
+    # Only relevant if the above `make-merged-table` is set to True.
     compress-merged-table: False

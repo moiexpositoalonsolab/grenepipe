@@ -433,10 +433,62 @@ rule hafpipe_allele_frequencies:
         "../scripts/hafpipe.py"
 
 # =================================================================================================
-#     HAFpipe Collect All
+#     HAFpipe Concat Sample
 # =================================================================================================
 
-# Get the afSite file list. As this is task 4, task 3 will also be executed,
+# Get the afSite file list for a given sample. As this is the result of task 4,
+# task 3 will also be executed, but we keep it simple here and only request the final files.
+def collect_sample_hafpipe_allele_frequencies(wildcards):
+    # We use the fai file of the ref genome to cross-check the list of chromosomes in the config.
+    # We use a checkpoint to create the fai file from our ref genome, which gives us the chrom names.
+    # Snakemake then needs an input function to work with the fai checkpoint here.
+    fai = checkpoints.samtools_faidx.get().output[0]
+    return expand(
+        "hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite",
+        sample=wildcards.sample,
+        chrom=get_hafpipe_chromosomes( fai )
+    )
+
+# Concat all afSite files for a given sample.
+# The script assumes the exact naming scheme that we use above, so it is not terribly portable...
+rule hafpipe_concat_sample_allele_frequencies:
+    input:
+        collect_sample_hafpipe_allele_frequencies
+    output:
+        # This is the file name produced by the script. For now we do not allow to change this.
+        table="hafpipe/samples/{sample}.csv" + (
+            ".gz" if config["params"]["hafpipe"].get("compress-sample-tables", False) else ""
+        ),
+        done=touch("hafpipe/samples/{sample}.done")
+    params:
+        # The rule needs access to the list of chromosomes, and to the sample.
+        sample="{sample}",
+        chroms=get_hafpipe_chromosomes_list,
+
+        # We might want to compress the output per sample.
+        compress=config["params"]["hafpipe"].get("compress-sample-tables", False)
+    log:
+        "logs/hafpipe/samples/{sample}.log"
+    script:
+        "../scripts/hafpipe-concat.py"
+
+# Simply request all the above sample files.
+rule hafpipe_collect_concat_samples:
+    input:
+        tables=expand(
+            "hafpipe/samples/{sample}.csv" + (
+                ".gz" if config["params"]["hafpipe"].get("compress-sample-tables", False) else ""
+            ),
+            sample=config["global"]["sample-names"]
+        )
+    output:
+        done=touch("hafpipe/samples.done")
+
+# =================================================================================================
+#     HAFpipe Merge All
+# =================================================================================================
+
+# Get the afSite file list. As this is the result of task 4, task 3 will also be executed,
 # but we keep it simple here and only request the final files.
 def collect_all_hafpipe_allele_frequencies(wildcards):
     # We use the fai file of the ref genome to cross-check the list of chromosomes in the config.
@@ -491,13 +543,18 @@ rule hafpipe_merge_allele_frequencies:
     script:
         "../scripts/hafpipe-merge.py"
 
+# =================================================================================================
+#     HAFpipe All
+# =================================================================================================
+
 # Simple rule that requests all hafpipe af files, so that they get computed.
-# Will probably extend this in the future to a rule that combines all of them into one file.
+# This requests the completely merged table, and/or the per-sample concatenated tables.
 rule all_hafpipe:
     input:
         "hafpipe/all.csv" + (
             ".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""
-        )
+        ) if config["params"]["hafpipe"].get("make-merged-table", False) else [],
+        "hafpipe/samples.done" if config["params"]["hafpipe"].get("make-sample-tables", False) else []
         # collect_all_hafpipe_allele_frequencies
 
 localrules: all_hafpipe
