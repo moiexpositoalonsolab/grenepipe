@@ -97,11 +97,12 @@ def check_hafpipe_founder_vcf( vcf ):
                 "See also https://github.com/petrov-lab/HAFpipe-line/issues/6"
             )
 
+# The below is deactivated, as we switched to our HAF-pipe fork, which fixes that problem already.
 # We run this check every time... Bit wasteful, and we could make it a rule that is only
 # exectuted once, but that would give the error message in a log file, instead of the main
 # Snakemake output. So for now, we keep it like this, so that users get the error immediately.
-if os.path.exists( config["params"]["hafpipe"]["founder-vcf"] ):
-    check_hafpipe_founder_vcf( config["params"]["hafpipe"]["founder-vcf"] )
+# if os.path.exists( config["params"]["hafpipe"]["founder-vcf"] ):
+#     check_hafpipe_founder_vcf( config["params"]["hafpipe"]["founder-vcf"] )
 
 # =================================================================================================
 #     HAFpipe Task 1:  Make SNP Table
