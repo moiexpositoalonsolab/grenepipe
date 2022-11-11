@@ -106,7 +106,7 @@ if impmethod != "" and impmethod not in ["simpute", "npute"]:
 # We also export the path to harp first, so that it can found by HAFpipe,
 # and we finally also forward any extra params that the user might have provided.
 shell(
-    "export PATH=$PATH:{harp_path} ; "
+    "export PATH={harp_path}:$PATH ; "
     "{hafpipe_bin} " + args + \
     "    --logfile {snakemake.log:q} "
     "    {snakemake.params.extra} {log}"
