@@ -115,6 +115,7 @@ shell(
 # There is a bug in HAFpipe for Task 2 with simpute, where the output file is not named
 # as expected, see https://github.com/petrov-lab/HAFpipe-line/issues/4, so here we catch this
 # and manually rename to the expected file for that particular case, so that our rule finds it.
+# We fixed that in our fork of HAF-pipe, but keep this check around here for completeness.
 if snakemake.params.get("tasks") == "2" and impmethod == "simpute":
     if os.path.exists( snakemake.input.snptable + ".imputed" ):
         shell(
@@ -128,6 +129,7 @@ if snakemake.params.get("tasks") == "2" and impmethod == "simpute":
 # compressed `.numeric.bgz` file, which will then lead to errors down the line.
 # Here, we check this, and issue a proper error for the user, so that they don't have to debug
 # this issue, and can just increase their memory.
+# We fixed that in our fork of HAF-pipe, but keep this check around here for completeness.
 if snakemake.params.get("tasks") == "1":
     # We check that both files exist and that the bgzipped one is not so small that it's likely
     # just a zipped empty file. Reading bgzip in python is tricky, so we don't do that as of now...

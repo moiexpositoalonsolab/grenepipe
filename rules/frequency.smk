@@ -42,6 +42,10 @@ localrules:
 # Task 1 of HAFpipe (Make SNP Table) expects the founder VCF to contain "PASS" in the FILTER column,
 # while the common alternative notation "." does not work. We want to warn users about this,
 # as this is just nasty to debug and track down why the SNP table remains empty...
+#
+# Update: We switched to our our HAF-pipe fork, which fixes that problem already.
+# We keep the functions around here for reference, as they might be useful for someone using
+# the original HAF-pipe, but we have deactivated their usage below for now.
 
 # Open a file, potentially gzipped, inspired by https://stackoverflow.com/a/16816627
 def gzip_opener(filename):
@@ -203,18 +207,19 @@ impmethod = config["params"]["hafpipe"]["impmethod"]
 
 if impmethod in ["simpute", "npute"]:
 
-    # No comment...
-    if impmethod == "npute":
-        logger.warning(
-            "Using HAF-pipe with SNP table imputation method 'npute' is likely going to fail: "
-            "We are using Python >= 3.7 in grenepipe, whereas npute requires Pyhon 2.*, "
-            "and there is unfortunately no easy way to fix this. If you require npute, "
-            "and get error messages here, please submit an issue to "
-            "https://github.com/moiexpositoalonsolab/grenepipe/issues, "
-            "so that we know about this and can try to find a solution.\n"
-            "Alternatively, you can use the custom impmethod capability of grenepipe "
-            "to run npute yourself, by providing your own script that runs it.\n"
-        )
+    # Deactivated this warning now, as we switchted to our own HAF-pipe fork, which fixes this.
+    # if impmethod == "npute":
+        # No comment...
+        # logger.warning(
+        #     "Using HAF-pipe with SNP table imputation method 'npute' is likely going to fail: "
+        #     "We are using Python >= 3.7 in grenepipe, whereas npute requires Pyhon 2.*, "
+        #     "and there is unfortunately no easy way to fix this. If you require npute, "
+        #     "and get error messages here, please submit an issue to "
+        #     "https://github.com/moiexpositoalonsolab/grenepipe/issues, "
+        #     "so that we know about this and can try to find a solution.\n"
+        #     "Alternatively, you can use the custom impmethod capability of grenepipe "
+        #     "to run npute yourself, by providing your own script that runs it.\n"
+        # )
 
     # Call the HAFpipe script with one of the two existing methods.
     rule hafpipe_impute_snp_table:
@@ -276,6 +281,10 @@ elif impmethod != "":
 # We do not want to require the index files directly in downstream rules (Task 4),
 # as they are already created for the base table in the cases without imputation,
 # which would confuse snakemake if they already existed...
+#
+# Update: We fixed this in our HAF-pipe fork, so that this is not longer needed when using
+# one of the two HAF-pipe imputation methods. We still need this though for user-defined imputation
+# methods.
 if impmethod == "":
 
     # Without imputation, the files should already be there, so we do not need to do anything,
@@ -314,7 +323,11 @@ else:
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}-indices.log"
         shell:
-            # Calls from HAF-pipe, replicated here for our purposes
+            # Calls from HAF-pipe, replicated here for our purposes,
+            # and with additional checks for whether the files already exist, to not repeat effort.
+            # As we are still creating a new file (the flag file), we avoid that snakemake complains
+            # if the other two files already exist (because snakemake has a check for this, to
+            # avoid that files just "appear" without us intending to have created them).
             "if [ ! -e {input.snptable}{impmethod}.alleleCts ]; then "
             "    echo \"counting alleles in {input.snptable}\" >> {log} 2>&1 ; "
             "    {params.hp_scripts}/count_SNPtable.sh {input.snptable} >> {log} 2>&1 ; "
@@ -485,6 +498,8 @@ rule hafpipe_collect_concat_samples:
     output:
         done=touch("hafpipe/samples.done")
 
+localrules: hafpipe_collect_concat_samples
+
 # =================================================================================================
 #     HAFpipe Merge All
 # =================================================================================================
@@ -548,14 +563,26 @@ rule hafpipe_merge_allele_frequencies:
 #     HAFpipe All
 # =================================================================================================
 
+# Simply request all the above afSite files.
+# We always request to run this, so that HAF-pipe is run even when the two make table config
+# options are not set. This is so that users who just want HAF-pipe out as-is are able to get that.
+rule hafpipe_collect_allele_frequencies:
+    input:
+        collect_all_hafpipe_allele_frequencies
+    output:
+        done=touch("hafpipe/afSite.done")
+
+localrules: hafpipe_collect_allele_frequencies
+
 # Simple rule that requests all hafpipe af files, so that they get computed.
-# This requests the completely merged table, and/or the per-sample concatenated tables.
+# This requests the completely merged table, and/or the per-sample concatenated tables,
+# and always the basic HAF-pipe output, so that those are always produced independently of the tables.
 rule all_hafpipe:
     input:
+        "hafpipe/afSite.done",
         "hafpipe/all.csv" + (
             ".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""
         ) if config["params"]["hafpipe"].get("make-merged-table", False) else [],
         "hafpipe/samples.done" if config["params"]["hafpipe"].get("make-sample-tables", False) else []
-        # collect_all_hafpipe_allele_frequencies
 
 localrules: all_hafpipe
