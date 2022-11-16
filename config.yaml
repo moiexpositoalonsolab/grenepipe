@@ -162,7 +162,7 @@ settings:
   # Valid values to select the variant filtering tool:
   #  - "gatk-variantfiltration", to run GATK VariantFiltration. This is the default.
   #    See below `params: gatk-variantfiltration` for the detailled filter settings.
-  #  - "gatk-vqrs", to run GATK VariantRecalibrator/ApplyVQSR to apply machine learning base
+  #  - "gatk-vqsr", to run GATK VariantRecalibrator/ApplyVQSR to apply machine learning base
   #    recalibration (GATK VQSR) of quality scores instead of hard filtering.
   #    See below `params: gatk-vqsr` for the detailled filter settings.
   #  - "bcftools-filter", to run bcftools filter, which is recommended when using bcftools call

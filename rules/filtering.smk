@@ -43,9 +43,9 @@ if config["settings"]["filter-variants"] == "gatk-variantfiltration":
     # Use `gatk-variantfiltration`
     include: "filtering-gatk-variantfiltration.smk"
 
-elif config["settings"]["filter-variants"] == "gatk-vqrs":
+elif config["settings"]["filter-variants"] == "gatk-vqsr":
 
-    # Use `gatk-vqrs`
+    # Use `gatk-vqsr`
     include: "filtering-gatk-vqsr.smk"
 
 elif config["settings"]["filter-variants"] == "bcftools-filter":
@@ -74,7 +74,7 @@ rule merge_calls:
             "filtered/all.{vartype}.{filtertype}.vcf.gz",
             vartype=["SNP", "INDEL"],
             filtertype="recalibrated"
-            if config["settings"]["filter-variants"] == "gatk-vqrs"
+            if config["settings"]["filter-variants"] == "gatk-vqsr"
             else "filtered"
         )
     output:
