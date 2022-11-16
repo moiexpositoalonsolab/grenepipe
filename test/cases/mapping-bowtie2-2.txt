@@ -2,7 +2,7 @@ known-variants: ""	known-variants: "#BASEPATH#/test/reference/known-variants.vcf
 mapping-tool: "bwamem"	mapping-tool: "bowtie2"
 duplicates-tool: "picard"	duplicates-tool: "dedup"
 recalibrate-base-qualities: false	recalibrate-base-qualities: true
-mapping: True	mapping: False
+mapping: true	mapping: false
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
-merge-units: True	merge-units: False
+merge-units: true	merge-units: false

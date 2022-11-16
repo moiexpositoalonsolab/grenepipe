@@ -61,9 +61,9 @@ settings:
   # Furthermore, after mapping, and potentially after filtering if activated above, but again
   # before subsequent steps (deduplication, variant calling etc), clip overlapping reads,
   # using BamUtil clipOverlap.
-  # Using the base calls from both reads might violate the implicit assumption of genotype likelihood
-  # models of downstream callers: that each read represents unique insert information. This might
-  # bias the genotype likelihoods, particularly in low coverage settings.
+  # Using the base calls from both reads might violate the implicit assumption of genotype
+  # likelihood models of downstream callers: that each read represents unique insert information.
+  # This might bias the genotype likelihoods, particularly in low coverage settings.
   # We hence offer this clipping step, to remove any potential overlap between paired reads.
   # If set to `true`, use `params: bamutil` below to set additional parameters for this step.
   # Using this option can lead to one of the read mates being fully soft clipped (if the respective
@@ -124,11 +124,11 @@ settings:
   # overall number of compute tasks/jobs, so this is a tradeoff to be made depending on your data
   # and available compute resources.
   #
-  # Rule of thumb: If you have many small contigs and want to use this feature, you can set the value
-  # to roughly the size of an actual chromosome of your species. This should give a total number
-  # of bins that is approximately equal to the number of chromosomes (if they were fully assembled),
-  # with each bin (that is, each computational job) containing contigs whose length in sum is
-  # approximately the size of a chromosome.
+  # Rule of thumb: If you have many small contigs and want to use this feature, you can set the
+  # value to roughly the size of an actual chromosome of your species. This should give a total
+  # number of bins that is approximately equal to the number of chromosomes (if they were fully
+  # assembled), with each bin (that is, each computational job) containing contigs whose length in
+  # sum is approximately the size of a chromosome.
   #
   # Note that this contig group size is measured in basepairs (or nucleotides), and hence is not
   # the number of bins to create, but the size of each. So, for example, when your genome has a
@@ -187,10 +187,10 @@ settings:
   # intermediate files after the pipeline has completed steps that depend on them - snakemake
   # is able to handle this as well.
   keep-intermediate:
-    trimming: True
-    mapping: True
-    calling: True
-    filtering: True
+    trimming: true
+    mapping: true
+    calling: true
+    filtering: true
 
   # ----------------------------------------------------------------------
   #     Optional Steps
@@ -213,7 +213,7 @@ settings:
   # MultiQC report. Note that this requires the variant calling step - if you are working with
   # ancient DNA, you might want to deactivate this step, so that you can get the MultiQC report
   # for all other tools, without having to run the variant calling.
-  bcftools-stats: True
+  bcftools-stats: true
 
   # Set to true in order to run mapDamage.
   mapdamage: false
@@ -230,8 +230,8 @@ settings:
   #
   # When deciding to create pileups, we can further choose to merge certain bams beforehand.
   # Either all individally with no merging (each sample and each unit individually), merge units of
-  # the same sample, or (when making one pileup for all) merge all samples and units into one big pile.
-  # Note that these combined mpileup files will have the same order of pileup columns as
+  # the same sample, or (when making one pileup for all) merge all samples and units into one big
+  # pile. Note that these combined mpileup files will have the same order of pileup columns as
   # the input data:sample table specified above.
   #
   # By default, we do not make any pileup files (the empty list `[]`). To produce pileup files,
@@ -486,8 +486,8 @@ params:
     # Extra parameters for the samtools/mpileup step.
     pileup: "-d 10000"
 
-    # Used only if settings:pileups is used to produced pileup files where units or samples are merged.
-    # Extra parameters for the samtools/merge step prior to the samtools/mpileup step.
+    # Used only if settings:pileups is used to produced pileup files where units or samples are
+    # merged. Extra parameters for the samtools/merge step prior to the samtools/mpileup step.
     merge: ""
     merge-threads: 4
 
@@ -532,18 +532,17 @@ params:
     # Run several Picard QC tools, as needed, using Picard CollectMultipleMetrics.
     # See https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard
     CollectMultipleMetrics:
-      AlignmentSummaryMetrics: True
-      BaseDistributionByCycle: True
-      GcBiasMetrics: True
-      InsertSizeMetrics: True
-      QualityByCycleMetrics: True
-      QualityScoreDistributionMetrics: True
-      QualityYieldMetrics: True
-      # RnaSeqMetrics: False
+      AlignmentSummaryMetrics: true
+      BaseDistributionByCycle: true
+      GcBiasMetrics: true
+      InsertSizeMetrics: true
+      QualityByCycleMetrics: true
+      QualityScoreDistributionMetrics: true
+      QualityYieldMetrics: true
+      # RnaSeqMetrics: false
 
       # Extra parameters for CollectMultipleMetrics
-      extra:
-        "VALIDATION_STRINGENCY=LENIENT METRIC_ACCUMULATION_LEVEL=null METRIC_ACCUMULATION_LEVEL=SAMPLE"
+      extra: "VALIDATION_STRINGENCY=LENIENT METRIC_ACCUMULATION_LEVEL=null METRIC_ACCUMULATION_LEVEL=SAMPLE"
 
   # ----------------------------------------------------------------------
   #     dedup
@@ -659,10 +658,8 @@ params:
     # Extra parameters for the hard filtering as outlined in GATK docs
     # https://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
     # The filtering is separated for SNPs/SNVs and indels.
-    SNP:
-      "QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0"
-    INDEL:
-      "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0"
+    SNP: "QD < 2.0 || FS > 60.0 || MQ < 40.0 || MQRankSum < -12.5 || ReadPosRankSum < -8.0"
+    INDEL: "QD < 2.0 || FS > 200.0 || ReadPosRankSum < -20.0"
 
     # We also offer extra settings that are used for both.
     extra: ""
@@ -693,7 +690,7 @@ params:
     # for reference.
     resources:
       # Example resource using a 1001G Arabidopsis thaliana VCF.
-      - 1001G:
+      1001G:
         - known: false
         - training: true
         - truth: true
@@ -723,7 +720,7 @@ params:
     resource-files:
       # Example resource using a 1001G Arabidopsis thaliana VCF subset.
       # We just re-use the known variants file here, for illustration and test purposes only.
-      - 1001G: "#BASEPATH#/test/reference/known-variants.vcf.gz"
+      1001G: "#BASEPATH#/test/reference/known-variants.vcf.gz"
 
       # Other examples, from the GATK documentation, for the human genome.
       # - hapmap: "hapmap_3.3.hg38.sites.vcf.gz"
@@ -773,10 +770,8 @@ params:
     tool: "filter"
 
     # Parameters to use for the filtering, separated for SNPs/SNVs and indels.
-    SNP:
-      "-sFilterName -e'INFO/DP<5'"
-    INDEL:
-      "-sFilterName -e'INFO/DP<5'"
+    SNP: "-sFilterName -e'INFO/DP<5'"
+    INDEL: "-sFilterName -e'INFO/DP<5'"
 
     # We also offer extra settings, used for both, e.g., for memory or tmp dir settings.
     extra: ""
@@ -906,7 +901,7 @@ params:
     # (e.g., its biological replicates, or resequenced libraries) into one file. This usually is
     # more desirable, as it gives information on coverage per sample instead of per fastq or bam
     # file. However, this can be changed here.
-    merge-units: True
+    merge-units: true
 
     # Additional parameters for qualimap, see http://qualimap.conesalab.org/
     extra: "--java-mem-size=10G"
@@ -1049,24 +1044,24 @@ params:
     # This affects the merged bam files per sample (which are kind of temporary anyway), as well as
     # the `freqs` and `afSite` files of Tasks 3 and 4. The SNP tables of Tasks 1 and 2 are not
     # affected by this; we always keep them, as they might need to be re-used for other runs as well.
-    keep-intermediates: False
+    keep-intermediates: false
 
     # HAF-pipe by default produces individual files per sample and per chromosome, which can be a
     # bit hard to work with, in particular as the only way to determine the chromosome is from
     # the file name. So here we offer to concatenate the per-sample files for all chromsomes,
     # making it easier to work with downstream. The files will be stored in `hafpipe/samples`.
     # See also below for an option to compress these files to save disk space.
-    make-sample-tables: True
+    make-sample-tables: true
 
     # Furthermore, we offer to merge all samples (and chromosomes) into one big table.
     # Note that this can be quite huge, and take a while to create for large datasets.
     # See again below for an option to compress this file to save disk space.
-    make-merged-table: False
+    make-merged-table: false
 
     # If set to true, the final "hafpipe/samples/*.csv" tables are compressed with gzip to save
     # disk space. Only relevant if the above `make-sample-tables` is set to True.
-    compress-sample-tables: False
+    compress-sample-tables: false
 
     # If set to true, the final "hafpipe/all.csv" table is compressed with gzip to save disk space.
     # Only relevant if the above `make-merged-table` is set to True.
-    compress-merged-table: False
+    compress-merged-table: false

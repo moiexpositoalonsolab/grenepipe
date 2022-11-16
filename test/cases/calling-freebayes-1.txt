@@ -2,4 +2,4 @@ calling-tool: "haplotypecaller"	calling-tool: "freebayes"
 snpeff: false	snpeff: true
 vep: false	vep: true
 frequency-table: false	frequency-table: true
-merge-units: True	merge-units: False
+merge-units: true	merge-units: false

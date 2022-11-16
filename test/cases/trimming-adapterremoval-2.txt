@@ -2,7 +2,7 @@ trimming-tool: "trimmomatic"	trimming-tool: "adapterremoval"
 mapping-tool: "bwamem"	mapping-tool: "bwamem"
 filter-mapped-reads: false	filter-mapped-reads: true
 duplicates-tool: "picard"	duplicates-tool: "dedup"
-trimming: True	trimming: False
+trimming: true	trimming: false
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
 frequency-table: false	frequency-table: true

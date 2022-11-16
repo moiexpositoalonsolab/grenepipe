@@ -1,2 +1,2 @@
 duplicates-tool: "picard"	duplicates-tool: "dedup"
-mapping: True	mapping: False
+mapping: true	mapping: false

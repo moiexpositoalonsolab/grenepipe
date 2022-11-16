@@ -1,5 +1,5 @@
 calling-tool: "haplotypecaller"	calling-tool: "freebayes"
 contig-group-size: 0	contig-group-size: 38283346
-calling: True	calling: False
+calling: true	calling: false
 snpeff: false	snpeff: true
 vep: false	vep: true

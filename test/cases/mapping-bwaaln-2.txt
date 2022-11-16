@@ -2,6 +2,6 @@ trimming-tool: "trimmomatic"	trimming-tool: "fastp"
 merge-paired-end-reads: false	merge-paired-end-reads: true
 mapping-tool: "bwamem"	mapping-tool: "bwaaln"
 duplicates-tool: "picard"	duplicates-tool: "dedup"
-mapping: True	mapping: False
+mapping: true	mapping: false
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true

@@ -6,4 +6,4 @@ snpeff: false	snpeff: true
 vep: false	vep: true
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
-merge-units: True	merge-units: False
+merge-units: true	merge-units: false

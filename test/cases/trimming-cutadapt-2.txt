@@ -1,6 +1,6 @@
 trimming-tool: "trimmomatic"	trimming-tool: "cutadapt"
 clip-read-overlaps: false	clip-read-overlaps: true
 duplicates-tool: "picard"	duplicates-tool: "dedup"
-trimming: True	trimming: False
+trimming: true	trimming: false
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true

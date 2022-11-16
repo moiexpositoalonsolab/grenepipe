@@ -3,4 +3,4 @@ filter-variants: "gatk-variantfiltration"	filter-variants: "bcftools-filter"
 snpeff: false	snpeff: true
 vep: false	vep: true
 frequency-table: false	frequency-table: true
-merge-units: True	merge-units: False
+merge-units: true	merge-units: false
