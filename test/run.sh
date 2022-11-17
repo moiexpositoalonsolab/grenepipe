@@ -4,8 +4,13 @@
 #      Setup
 # ==================================================================================================
 
-# Global settings
-CORES=10
+# Threads to use. In the GitHub Actions env, we only have two cores.
+# This is a crude test for whether we run locally or on GitHub, but should work.
+if [[ `pwd` == /home/runner/* ]] ; then
+    CORES=2
+else
+    CORES=10
+fi
 
 # Color the spectrum!
 COLOR_RED="\033[31m"

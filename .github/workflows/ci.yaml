@@ -1,0 +1,57 @@
+# ==================================================================================================
+#     Header
+# ==================================================================================================
+
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# ==================================================================================================
+#     Jobs
+# ==================================================================================================
+
+jobs:
+  run-test-case:
+    runs-on: ${{ matrix.os }}
+
+    # ==========================================================================
+    #     Matrix
+    # ==========================================================================
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os:
+          - ubuntu-latest
+          # - macos-latest
+          # - ubuntu-22.04
+          # - ubuntu-20.04
+          # - macos-12
+          # - macos-11
+
+        # Test cases as listed in test/cases/*.txt
+        case: [ base ]
+
+    # ==========================================================================
+    #     Steps
+    # ==========================================================================
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v2.2.0
+        with:
+          environment-file: envs/grenepipe.yaml
+          activate-environment: grenepipe
+
+      - name: Run Test
+        # https://github.com/marketplace/actions/setup-miniconda#important
+        shell: bash -el {0}
+        run: |
+          ./test/run.sh ${{ matrix.case }}
