@@ -47,11 +47,23 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2.2.0
         with:
+          mamba-version: "*"
+          # The below should work, but we run into some issue similar to
+          # https://github.com/conda-incubator/setup-miniconda/issues/116
+          # The implementation of this Action uses `conda env update`, instead of `create`,
+          # which we also seem to have trouble with locally...
+          # So instead, we install the env manually below...
           environment-file: envs/grenepipe.yaml
           activate-environment: grenepipe
+
+      # - name: Install Conda Env
+      #   shell: bash -el {0}
+      #   run: |
+      #     mamba env create -f envs/grenepipe.yaml -n grenepipe
 
       - name: Run Test
         # https://github.com/marketplace/actions/setup-miniconda#important
         shell: bash -el {0}
         run: |
+          # conda activate grenepipe
           ./test/run.sh ${{ matrix.case }}
