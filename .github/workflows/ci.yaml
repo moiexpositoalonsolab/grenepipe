@@ -27,7 +27,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # - macos-latest
+          - macos-latest
           # - ubuntu-22.04
           # - ubuntu-20.04
           # - macos-12
@@ -35,6 +35,18 @@ jobs:
 
         # Test cases as listed in test/cases/*.txt
         case: [ base ]
+        # case: [
+        #   base, calling-bcftools-1, calling-bcftools-2, calling-bcftools-3, calling-bcftools-4,
+        #   calling-freebayes-1, calling-freebayes-2, calling-freebayes-3, calling-haplotypecaller-1,
+        #   calling-haplotypecaller-2, calling-haplotypecaller-3, calling-haplotypecaller-4,
+        #   duplicates-dedup-1, duplicates-dedup-2, hafpipe-1, hafpipe-2, hafpipe-3, hafpipe-4,
+        #   mapping-bowtie2-1, mapping-bowtie2-2, mapping-bwaaln-1, mapping-bwaaln-2,
+        #   mapping-bwaaln-3, mapping-bwaaln-4, mapping-bwa-mem-1, mapping-bwa-mem2-1,
+        #   mapping-bwa-mem2-2, pileup-1, trimming-adapterremoval-1, trimming-adapterremoval-2,
+        #   trimming-adapterremoval-3, trimming-cutadapt-1, trimming-cutadapt-2, trimming-fastp-1,
+        #   trimming-fastp-2, trimming-fastp-3, trimming-seqprep-1, trimming-seqprep-2,
+        #   trimming-skewer-1, trimming-skewer-2
+        # ]
 
     # ==========================================================================
     #     Steps
@@ -47,23 +59,24 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2.2.0
         with:
+          # We need mamba here already, otherwise we run into
+          # https://github.com/conda-incubator/setup-miniconda/issues/262
           mamba-version: "*"
-          # The below should work, but we run into some issue similar to
-          # https://github.com/conda-incubator/setup-miniconda/issues/116
-          # The implementation of this Action uses `conda env update`, instead of `create`,
-          # which we also seem to have trouble with locally...
-          # So instead, we install the env manually below...
           environment-file: envs/grenepipe.yaml
           activate-environment: grenepipe
 
+      # Manually create the conda env.
+      # Not needed at the moment, as the above setup works fine. Keeping this here for reference.
       # - name: Install Conda Env
       #   shell: bash -el {0}
       #   run: |
       #     mamba env create -f envs/grenepipe.yaml -n grenepipe
+      # The in the run step:
+      # conda activate grenepipe
 
       - name: Run Test
+        # Need to specify the shell explicitly.
         # https://github.com/marketplace/actions/setup-miniconda#important
         shell: bash -el {0}
         run: |
-          # conda activate grenepipe
           ./test/run.sh ${{ matrix.case }}

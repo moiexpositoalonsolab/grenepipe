@@ -4,12 +4,18 @@
 #      Setup
 # ==================================================================================================
 
-# Threads to use. In the GitHub Actions env, we only have two cores.
-# This is a crude test for whether we run locally or on GitHub, but should work.
+# Host-dependend settings:
+#  - Threads to use. In the GitHub Actions env, we only have two cores.
+#    This is a crude test for whether we run locally or on GitHub, but should work.
+#  - For GitHub Actions, we want to full snakemake output, instead of redirecting it to a file,
+#    in order to make it easier to debug CI runs. Locally, we don't want the clutter though,
+#    as we can easily access the log file.
 if [[ `pwd` == /home/runner/* ]] ; then
     CORES=2
+    LOGREDIRECT="/dev/stdout"
 else
     CORES=10
+    LOGREDIRECT="/dev/null"
 fi
 
 # Color the spectrum!
@@ -112,6 +118,8 @@ run_snakemake() {
 
     # Run snakemake in the background.
     # Importantly, specify the conda prefix, so that the tools do not have to be loaded each time.
+    # We write all snakemake output to a log file for ease of access, and so that we can parse
+    # it below to check progress on the test run.
     snakemake \
         --use-conda \
         --conda-prefix ${BASEPATH}/test/${CONDA_PREFIX} \
@@ -119,7 +127,10 @@ run_snakemake() {
         --cores ${CORES} \
         --directory ${DIRECTORY} \
         ${EXTRA} \
-        >> ${DIRECTORY}/test-run.log 2>&1 &
+        |& tee -a ${DIRECTORY}/test-run.log > ${LOGREDIRECT} &
+
+        # |& tee -a ${DIRECTORY}/test-run.log &
+        # >> ${DIRECTORY}/test-run.log 2>&1 &
     PROC_ID=$!
 
     # Use the process ID to keep looping here while it is running,
