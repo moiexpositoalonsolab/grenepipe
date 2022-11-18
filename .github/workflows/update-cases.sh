@@ -7,7 +7,12 @@ cd `dirname ${0}`/../..
 
 # Get all test cases.
 BASE=".github/workflows"
-ls test/cases/*.txt | sed "s/.txt//" | sed "/^_/d" | sed "s/^/          - /" > ${BASE}/cases.txt
+ls test/cases/*.txt | \
+    sed "s/.txt//" | \
+    sed "s?test/cases/??" | \
+    sed "/^_/d" | \
+    sed "s/^/          - /" \
+    > ${BASE}/cases.txt
 
 # Replace them in the CI yaml.
 # Adapted from here: https://unix.stackexchange.com/a/212011

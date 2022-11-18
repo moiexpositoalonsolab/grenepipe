@@ -2,7 +2,7 @@
 #     Header
 # ==================================================================================================
 
-name: ci
+name: CI
 on:
   pull_request:
   push:
@@ -118,3 +118,12 @@ jobs:
       - name: Run Test
         run: |
           ./test/run.sh ${{ matrix.case }}
+
+      - name: Upload Logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs
+          path: |
+            test/out-${{ matrix.case }}/test-run.log
+            test/out-${{ matrix.case }}/.snakemake/log
+            test/out-${{ matrix.case }}/logs
