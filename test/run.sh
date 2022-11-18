@@ -127,7 +127,7 @@ run_snakemake() {
         --cores ${CORES} \
         --directory ${DIRECTORY} \
         ${EXTRA} \
-        |& tee -a ${DIRECTORY}/test-run.log > ${LOGREDIRECT} &
+        2>&1 | tee -a ${DIRECTORY}/test-run.log > ${LOGREDIRECT} &
 
         # |& tee -a ${DIRECTORY}/test-run.log &
         # >> ${DIRECTORY}/test-run.log 2>&1 &
