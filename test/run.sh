@@ -10,7 +10,7 @@
 #  - For GitHub Actions, we want to full snakemake output, instead of redirecting it to a file,
 #    in order to make it easier to debug CI runs. Locally, we don't want the clutter though,
 #    as we can easily access the log file.
-if [[ `pwd` == /home/runner/* ]] ; then
+if [[ `whoami` == runner ]] ; then
     CORES=2
     LOGREDIRECT="/dev/stdout"
 else
@@ -89,6 +89,11 @@ function version {
 if [ $(version `snakemake --version`) -ge $(version "5.18.0") ]; then
     CONDA_FRONTEND="--conda-frontend mamba"
     CONDA_PREFIX="mamba-envs"
+fi
+
+# Update the test cases in the GitHub Actions workflow.
+if [[ -f ./.github/workflows/update-cases.sh ]]; then
+    ./.github/workflows/update-cases.sh
 fi
 
 # ==================================================================================================
@@ -264,4 +269,5 @@ if [[ ${PASSCOUNT} -gt 0 ]]; then
 fi
 if [[ ${FAILCOUNT} -gt 0 ]]; then
     printf "${COLOR_RED}FAIL ${FAILCOUNT}${COLOR_END}\n"
+    return 1
 fi

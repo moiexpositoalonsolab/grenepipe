@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - master
+      - dev
 
 # ==================================================================================================
 #     Jobs
@@ -16,6 +17,13 @@ on:
 jobs:
   run-test-case:
     runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        # Need to specify the shell explicitly.
+        # https://github.com/marketplace/actions/setup-miniconda#important
+        # https://github.com/conda-incubator/setup-miniconda#use-a-default-shell
+        shell: bash -el {0}
 
     # ==========================================================================
     #     Matrix
@@ -27,26 +35,61 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
+          # - macos-latest
           # - ubuntu-22.04
           # - ubuntu-20.04
           # - macos-12
           # - macos-11
 
         # Test cases as listed in test/cases/*.txt
-        case: [ base ]
-        # case: [
-        #   base, calling-bcftools-1, calling-bcftools-2, calling-bcftools-3, calling-bcftools-4,
-        #   calling-freebayes-1, calling-freebayes-2, calling-freebayes-3, calling-haplotypecaller-1,
-        #   calling-haplotypecaller-2, calling-haplotypecaller-3, calling-haplotypecaller-4,
-        #   duplicates-dedup-1, duplicates-dedup-2, hafpipe-1, hafpipe-2, hafpipe-3, hafpipe-4,
-        #   mapping-bowtie2-1, mapping-bowtie2-2, mapping-bwaaln-1, mapping-bwaaln-2,
-        #   mapping-bwaaln-3, mapping-bwaaln-4, mapping-bwa-mem-1, mapping-bwa-mem2-1,
-        #   mapping-bwa-mem2-2, pileup-1, trimming-adapterremoval-1, trimming-adapterremoval-2,
-        #   trimming-adapterremoval-3, trimming-cutadapt-1, trimming-cutadapt-2, trimming-fastp-1,
-        #   trimming-fastp-2, trimming-fastp-3, trimming-seqprep-1, trimming-seqprep-2,
-        #   trimming-skewer-1, trimming-skewer-2
-        # ]
+        # We update them automatically when running the test/run.sh script, so that each time
+        # we have and run a new test case, it also appears here. The script to run this update
+        # is located in .github/workflows/update-cases.sh
+        case:
+          # CASES_BEGIN
+          - test/cases/base
+          - test/cases/calling-bcftools-1
+          - test/cases/calling-bcftools-2
+          - test/cases/_calling-bcftools-3
+          - test/cases/calling-bcftools-3
+          - test/cases/calling-bcftools-4
+          - test/cases/calling-freebayes-1
+          - test/cases/calling-freebayes-2
+          - test/cases/calling-freebayes-3
+          - test/cases/_calling-freebayes-4
+          - test/cases/calling-haplotypecaller-1
+          - test/cases/calling-haplotypecaller-2
+          - test/cases/calling-haplotypecaller-3
+          - test/cases/calling-haplotypecaller-4
+          - test/cases/duplicates-dedup-1
+          - test/cases/duplicates-dedup-2
+          - test/cases/hafpipe-1
+          - test/cases/hafpipe-2
+          - test/cases/hafpipe-3
+          - test/cases/hafpipe-4
+          - test/cases/mapping-bowtie2-1
+          - test/cases/mapping-bowtie2-2
+          - test/cases/mapping-bwaaln-1
+          - test/cases/mapping-bwaaln-2
+          - test/cases/mapping-bwaaln-3
+          - test/cases/mapping-bwaaln-4
+          - test/cases/mapping-bwa-mem-1
+          - test/cases/mapping-bwa-mem2-1
+          - test/cases/mapping-bwa-mem2-2
+          - test/cases/pileup-1
+          - test/cases/trimming-adapterremoval-1
+          - test/cases/trimming-adapterremoval-2
+          - test/cases/trimming-adapterremoval-3
+          - test/cases/trimming-cutadapt-1
+          - test/cases/trimming-cutadapt-2
+          - test/cases/trimming-fastp-1
+          - test/cases/trimming-fastp-2
+          - test/cases/trimming-fastp-3
+          - test/cases/trimming-seqprep-1
+          - test/cases/trimming-seqprep-2
+          - test/cases/trimming-skewer-1
+          - test/cases/trimming-skewer-2
+          # CASES_END
 
     # ==========================================================================
     #     Steps
@@ -75,8 +118,5 @@ jobs:
       # conda activate grenepipe
 
       - name: Run Test
-        # Need to specify the shell explicitly.
-        # https://github.com/marketplace/actions/setup-miniconda#important
-        shell: bash -el {0}
         run: |
           ./test/run.sh ${{ matrix.case }}
