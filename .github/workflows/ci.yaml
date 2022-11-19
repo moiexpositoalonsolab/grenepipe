@@ -120,6 +120,8 @@ jobs:
           ./test/run.sh ${{ matrix.case }}
 
       - name: Upload Logs
+        # Upload logs even on failure, see https://stackoverflow.com/a/58859404
+        if: success() || failure()
         uses: actions/upload-artifact@v3
         with:
           name: logs
