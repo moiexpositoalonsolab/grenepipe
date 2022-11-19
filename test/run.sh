@@ -6,12 +6,12 @@
 
 # Host-dependend settings:
 #  - Threads to use. In the GitHub Actions env, we only have two cores.
-#    This is a crude test for whether we run locally or on GitHub, but should work.
 #  - For GitHub Actions, we want to full snakemake output, instead of redirecting it to a file,
 #    in order to make it easier to debug CI runs. Locally, we don't want the clutter though,
 #    as we can easily access the log file.
+#  This is a crude test for whether we run locally or on GitHub, but should work.
 if [[ `whoami` == runner ]] ; then
-    CORES=2
+    CORES=4
     LOGREDIRECT="/dev/stdout"
 else
     CORES=10
@@ -93,7 +93,7 @@ fi
 
 # Update the test cases in the GitHub Actions workflow.
 if [[ -f ./.github/workflows/update-cases.sh ]]; then
-    ./.github/workflows/update-cases.sh
+    ./.github/workflows/update-cases.sh > /dev/null
 fi
 
 # ==================================================================================================

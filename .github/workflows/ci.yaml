@@ -126,5 +126,5 @@ jobs:
           name: logs-${{ matrix.case }}
           path: |
             test/out-${{ matrix.case }}/test-run.log
-            test/out-${{ matrix.case }}/.snakemake/log
-            test/out-${{ matrix.case }}/logs
+            test/out-${{ matrix.case }}/.snakemake/log/
+            test/out-${{ matrix.case }}/logs/
