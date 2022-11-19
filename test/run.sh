@@ -269,5 +269,5 @@ if [[ ${PASSCOUNT} -gt 0 ]]; then
 fi
 if [[ ${FAILCOUNT} -gt 0 ]]; then
     printf "${COLOR_RED}FAIL ${FAILCOUNT}${COLOR_END}\n"
-    return 1
+    exit 1
 fi

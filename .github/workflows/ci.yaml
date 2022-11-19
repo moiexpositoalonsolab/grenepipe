@@ -15,7 +15,7 @@ on:
 # ==================================================================================================
 
 jobs:
-  run-test-case:
+  test:
     runs-on: ${{ matrix.os }}
 
     defaults:
@@ -120,11 +120,10 @@ jobs:
           ./test/run.sh ${{ matrix.case }}
 
       - name: Upload Logs
-        # Upload logs even on failure, see https://stackoverflow.com/a/58859404
-        if: success() || failure()
+        if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: logs
+          name: logs-${{ matrix.case }}
           path: |
             test/out-${{ matrix.case }}/test-run.log
             test/out-${{ matrix.case }}/.snakemake/log
