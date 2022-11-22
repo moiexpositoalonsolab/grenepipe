@@ -11,7 +11,7 @@
 #    as we can easily access the log file.
 #  This is a crude test for whether we run locally or on GitHub, but should work.
 if [[ `whoami` == runner ]] ; then
-    CORES=4
+    CORES=10
     LOGREDIRECT="/dev/stdout"
 else
     CORES=10
