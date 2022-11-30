@@ -123,7 +123,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: logs-${{ matrix.case }}
+          name: logs-${{ matrix.os}}-${{ matrix.case }}
           path: |
             test/out-${{ matrix.case }}/test-run.log
             test/out-${{ matrix.case }}/.snakemake/log/
