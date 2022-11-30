@@ -86,11 +86,6 @@ rule combine_contig:
                 "called/{sample}.{{contig}}.g.vcf.gz",
                 sample=config["global"]["sample-names"]
             )
-            if config["settings"]["keep-intermediate"]["calling"]
-            else temp( expand(
-                "called/{sample}.{{contig}}.g.vcf.gz",
-                sample=config["global"]["sample-names"]
-            ))
         ),
         indices=expand(
             "called/{sample}.{{contig}}.g.vcf.gz.tbi",
