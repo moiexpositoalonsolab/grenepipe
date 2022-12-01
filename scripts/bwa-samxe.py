@@ -94,19 +94,24 @@ if sort == "none":
 elif sort == "samtools":
 
     # Sort alignments using samtools sort.
-    pipe_cmd = "samtools sort {sort_extra} -o {snakemake.output[0]} -"
+    pipe_cmd = "samtools sort {sort_extra} -T {tmp} -o {snakemake.output[0]} -"
 
     # Add name flag if needed.
     if sort_order == "queryname":
         sort_extra += " -n"
 
-    # Here, we replace the old prefix temp dir by a proper temp dir.
+    # Below are some old fragments to get the tmp dir to properly work.
+    # We initially replaced the old prefix temp dir by a proper temp dir.
     # With the original implementation, we would always use the same tmp dir, which causes
     # samtools sort to fail if files from a previous run are still in there...
+    # However, we did that as part of sort_extra, introducing a nested {} brace substitution,
+    # which is not done by the snakemake shell command, hence using a literal `{tmp}` as the
+    # temp dir... so instead, we directly insert this into the command above now.
+
     # Use prefix for temp.
     # prefix = path.splitext(snakemake.output[0])[0]
     # sort_extra += " -T " + prefix + ".tmp"
-    sort_extra += " -T {tmp}"
+    # sort_extra += " -T {tmp}"
 
     # Define output format
     sort_extra += " --output-fmt {}".format(out_ext)
