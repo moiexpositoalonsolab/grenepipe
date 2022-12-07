@@ -56,7 +56,7 @@ if not config["data"]["reference-genome"].endswith( fastaexts ):
     )
 
 # =================================================================================================
-#     Read Samples File
+#     Read Samples Table
 # =================================================================================================
 
 # We add the samples information to the config, in order to not spam our global scope
@@ -71,12 +71,20 @@ else:
 
 # Read samples and units table, and enforce to use strings in the index
 config["global"]["samples"] = pd.read_csv(
-    config["data"]["samples"], sep='\t', dtype=str).set_index(["sample", "unit"], drop=False
+    config["data"]["samples-table"], sep='\t', dtype=str).set_index(["sample", "unit"], drop=False
 )
 config["global"]["samples"].index = config["global"]["samples"].index.set_levels(
     [i.astype(str) for i in config["global"]["samples"].index.levels]
 )
 snakemake.utils.validate( config["global"]["samples"], schema="../schemas/samples.schema.yaml" )
+
+# Helper function to get a list of all units of a given sample name.
+def get_sample_units( sample ):
+    res = list()
+    for unit in config["global"]["samples"].loc[sample].unit:
+        if unit not in res:
+            res.append(unit)
+    return res
 
 # Get a list of all samples names, in the same order as the input sample table.
 # Samples with multiple units appear only once, at the first position in the table.
@@ -93,6 +101,25 @@ for index, row in config["global"]["samples"].iterrows():
 config["global"]["unit-names"] = list(set(
     config["global"]["samples"].index.get_level_values("unit")
 ))
+
+# Wildcard constraints: only allow sample names from the spreadsheet to be used
+wildcard_constraints:
+    sample="|".join(config["global"]["sample-names"]),
+    unit="|".join(config["global"]["unit-names"])
+
+# =================================================================================================
+#     Validity Check the Samples Table
+# =================================================================================================
+
+# Check that the number of samples fits with the expectation, if provided by the user.
+if config["data"].get("samples-count", 0) > 0:
+    if config["data"]["samples-count"] != len(config["global"]["sample-names"]):
+        raise Exception(
+            "Inconsistent number of samples found in the sample table (" +
+            str(len(config["global"]["sample-names"])) +
+            ") and the samples count consistency check provided in the config file (" +
+            str(config["data"]["samples-count"]) + ")."
+        )
 
 # Helper to check that a string contains no invalid chars for file names.
 # This is just the file, not its path! Slashes are considered invalid by this function.
@@ -139,26 +166,13 @@ for index, row in config["global"]["samples"].iterrows():
         not pd.isnull(row["fq2"]) and not os.path.isfile(row["fq2"])
     ):
         raise Exception(
-            "Input fastq files listed in the input files table " + config["data"]["samples"] +
+            "Input fastq files listed in the input files table " + config["data"]["samples-table"] +
             " not found: " + str(row["fq1"]) + "; " + str(row["fq2"])
         )
     if not valid_filepath(row["fq1"]) or (
         not pd.isnull(row["fq2"]) and not valid_filepath(row["fq2"])
     ):
         problematic_filenames += 1
-
-# Helper function to get a list of all units of a given sample name.
-def get_sample_units( sample ):
-    res = list()
-    for unit in config["global"]["samples"].loc[sample].unit:
-        if unit not in res:
-            res.append(unit)
-    return res
-
-# Wildcard constraints: only allow sample names from the spreadsheet to be used
-wildcard_constraints:
-    sample="|".join(config["global"]["sample-names"]),
-    unit="|".join(config["global"]["unit-names"])
 
 # =================================================================================================
 #     Pipeline User Output
@@ -284,7 +298,7 @@ logger.info("")
 if problematic_filenames > 0:
     logger.warning(
         "In " + str(problematic_filenames) + " of the " + str(len(config["global"]["sample-names"])) +
-        " input fastq files listed in the input files table " + config["data"]["samples"] +
+        " input fastq files listed in the input files table " + config["data"]["samples-table"] +
         " contain problematic characters. We generally advise to only use alpha-numeric " +
         "characters, dots, dashes, and underscores. " +
         "Use for example the script `tools/copy-samples.py --mode link [...] --clean` " +
@@ -306,7 +320,8 @@ del unitcnt, smpcnt
 # Get the fastq files for a sample, either single or paired end, as a dictionary.
 def get_fastq(wildcards):
     """Get fastq files of given sample-unit."""
-    fastqs = config["global"]["samples"].loc[(wildcards.sample, wildcards.unit), ["fq1", "fq2"]].dropna()
+    smps = config["global"]["samples"]
+    fastqs = smps.loc[(wildcards.sample, wildcards.unit), ["fq1", "fq2"]].dropna()
     if len(fastqs) == 2:
         return {"r1": fastqs.fq1, "r2": fastqs.fq2}
     else:

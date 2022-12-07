@@ -8,14 +8,16 @@ properties:
   data:
     type: object
     properties:
-      samples:
+      samples-table:
         type: string
+      samples-count:
+        type: integer
       reference-genome:
         type: string
       known-variants:
         type: string
     required:
-      - samples
+      - samples-table
       - reference-genome
       - known-variants
 

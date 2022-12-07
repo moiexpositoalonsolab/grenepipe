@@ -49,7 +49,7 @@ rule seqs_per_sample:
     output:
         "tables/sample-sizes.tsv"
     params:
-        samples = config["data"]["samples"]
+        samples = config["data"]["samples-table"]
     script:
         "../scripts/sample-sizes.py"
 
