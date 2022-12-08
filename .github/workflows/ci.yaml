@@ -128,3 +128,4 @@ jobs:
             test/out-${{ matrix.case }}/test-run.log
             test/out-${{ matrix.case }}/.snakemake/log/
             test/out-${{ matrix.case }}/logs/
+            test/reference/logs/
