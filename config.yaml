@@ -23,8 +23,7 @@ data:
   # Optional. Path to any database of known variants (in vcf or vcf.gz format),
   # ideally as it is provided by the GATK bundle.
   # Use an empty list or string instead, if there is no reference of known variants or if you
-  # want to call variant without this guided approach.
-  # Path needs to be absolute, as above.
+  # want to call variant without this guided approach. Path needs to be absolute, as above.
   known-variants: ""
 
   # Optional. Number of distinct samples that are expect to be in the above samples table.
@@ -110,7 +109,7 @@ settings:
   recalibrate-base-qualities: false
 
   # Select the tool used for SNP calling.
-  # Valid values: "haplotypecaller", "bcftools", "freebayes".
+  # Valid values: "haplotypecaller" (for GATK HaplotypeCaller), "bcftools", "freebayes".
   # This produces a VCF file "genotyped/all.vcf.gz" containing all samples and all positions.
   # Note that when using bcftools here, we recommend to also use bcftools for the variant filtering
   # below (see `filter-variants`), as it uses different VCF annotations than GATK for the filters.

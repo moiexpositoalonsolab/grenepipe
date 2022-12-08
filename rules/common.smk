@@ -26,11 +26,22 @@ report: os.path.join(workflow.basedir, "reports/workflow.rst")
 # Load the config. If --directory was provided, this is also loaded from there.
 # This is useful to have runs that have different settings, but generally re-use the main setup.
 configfile: "config.yaml"
+
+# Legacy fixes to avoid disrupting user workflows that already have a config file from a previous
+# version of grenepipe. We change the config keys here to our new scheme.
+# We renamed "samples" to "samples-table":
+if "samples" in config["data"] and "samples-table" not in config["data"]:
+    config["data"]["samples-table"] = config["data"]["samples"]
+    del config["data"]["samples"]
+
+# After changing to our new scheme, we can verify the scheme to fit our expextation.
 snakemake.utils.validate(config, schema="../schemas/config.schema.yaml")
 
 # Some settings in the config file need to be converted from empty string to empty list, it seems,
 # so that rules that use the files specified in these settings are working properly.
 # Maybe there is some better way, but for now, this is working.
+# We need to do this after the scheme validation, as we are introducing changes here
+# that are not according to the scheme.
 if "known-variants" not in config["data"] or not config["data"]["known-variants"]:
     config["data"]["known-variants"]=[]
 if "restrict-regions" not in config["settings"] or not config["settings"]["restrict-regions"]:
@@ -106,73 +117,6 @@ config["global"]["unit-names"] = list(set(
 wildcard_constraints:
     sample="|".join(config["global"]["sample-names"]),
     unit="|".join(config["global"]["unit-names"])
-
-# =================================================================================================
-#     Validity Check the Samples Table
-# =================================================================================================
-
-# Check that the number of samples fits with the expectation, if provided by the user.
-if config["data"].get("samples-count", 0) > 0:
-    if config["data"]["samples-count"] != len(config["global"]["sample-names"]):
-        raise Exception(
-            "Inconsistent number of samples found in the sample table (" +
-            str(len(config["global"]["sample-names"])) +
-            ") and the samples count consistency check provided in the config file (" +
-            str(config["data"]["samples-count"]) + ")."
-        )
-
-# Helper to check that a string contains no invalid chars for file names.
-# This is just the file, not its path! Slashes are considered invalid by this function.
-def valid_filename(fn):
-    # Only accept alnum, underscore, dash, and dot.
-    return fn.replace('_', '').replace('-', '').replace('.', '').isalnum() and fn.isascii()
-    # Bit more loose: allow all except Windows forbidden chars.
-    # return not( True in [c in fn for c in "<>:\"/\\|?*"])
-
-# Helper to check if a file path contains weird characters.
-# We just want to warn about this for input fastq files, but still try to continue.
-def valid_filepath(fn):
-    # Only accept alnum, underscore, dash, dot, and slashes.
-    clean = fn.replace('_', '').replace('-', '').replace('.', '').replace('/', '').replace('\\', '')
-    return clean.isalnum() and clean.isascii()
-
-# List that contains tuples for all samples with their units.
-# In other words, a list of tuples of the sample and unit column of the sample table,
-# in the same order.
-config["global"]["sample-units"] = list()
-problematic_filenames = 0
-for index, row in config["global"]["samples"].iterrows():
-    if ( row["sample"], row["unit"] ) in config["global"]["sample-units"]:
-        raise Exception(
-            "Identical sample name and unit found in samples table: " +
-            str(row["sample"]) + " " + str(row["unit"])
-        )
-    config["global"]["sample-units"].append(( row["sample"], row["unit"] ))
-
-    # Do a check that the sample and unit names are valid file names.
-    # They are used for file names, and would cause weird errors if they contain bad chars.
-    if not valid_filename( row["sample"] ) or not valid_filename( row["unit"] ):
-        raise Exception(
-            "Invalid sample name or unit name found in samples table that contains characters " +
-            "which cannot be used as sample/unit names for naming output files: " +
-            str(row["sample"]) + " " + str(row["unit"]) +
-            "; for maximum robustness, we only allow alpha-numerical, dots, dashes, and underscores. " +
-            "Use for example the script `tools/copy-samples.py --mode link [...] --clean` " +
-            "to create a new samples table and symlinks to the existing fastq files to solve this."
-        )
-
-    # Do a check of the fastq file names.
-    if not os.path.isfile(row["fq1"]) or (
-        not pd.isnull(row["fq2"]) and not os.path.isfile(row["fq2"])
-    ):
-        raise Exception(
-            "Input fastq files listed in the input files table " + config["data"]["samples-table"] +
-            " not found: " + str(row["fq1"]) + "; " + str(row["fq2"])
-        )
-    if not valid_filepath(row["fq1"]) or (
-        not pd.isnull(row["fq2"]) and not valid_filepath(row["fq2"])
-    ):
-        problematic_filenames += 1
 
 # =================================================================================================
 #     Pipeline User Output
@@ -294,24 +238,124 @@ logger.info("")
 logger.info("=====================================================================================")
 logger.info("")
 
-# Warning about input names.
-if problematic_filenames > 0:
-    logger.warning(
-        "In " + str(problematic_filenames) + " of the " + str(len(config["global"]["sample-names"])) +
-        " input fastq files listed in the input files table " + config["data"]["samples-table"] +
-        " contain problematic characters. We generally advise to only use alpha-numeric " +
-        "characters, dots, dashes, and underscores. " +
-        "Use for example the script `tools/copy-samples.py --mode link [...] --clean` " +
-        "to create a new samples table and symlinks to the existing fastq files to solve this."
-        "We will try to continue running with these files, but it might lead to errors."
-    )
-
 # No need to have these output vars available in the rest of the snakefiles
-del problematic_filenames, indent
+del indent
 del pltfrm, hostname, username
 del conda_ver, conda_env
 del cmdline, cfgfiles
 del unitcnt, smpcnt
+
+# =================================================================================================
+#     File Validity Checks
+# =================================================================================================
+
+# Check that the number of samples fits with the expectation, if provided by the user.
+if config["data"].get("samples-count", 0) > 0:
+    if config["data"]["samples-count"] != len(config["global"]["sample-names"]):
+        raise Exception(
+            "Inconsistent number of samples found in the sample table (" +
+            str(len(config["global"]["sample-names"])) +
+            ") and the samples count consistency check provided in the config file (" +
+            str(config["data"]["samples-count"]) + ")."
+        )
+
+# Check the three file paths provided in the config file directly.
+if not os.path.isabs(config["data"]["samples-table"]):
+    logger.warning(
+        "Path to the samples table as provided in the config file is not an absolute path. "
+        "We recommend using absolute paths for all files."
+    )
+if not os.path.isabs(config["data"]["reference-genome"]):
+    logger.warning(
+        "Path to the reference genome as provided in the config file is not an absolute path. "
+        "We recommend using absolute paths for all files."
+    )
+if config["data"]["known-variants"] and not os.path.isabs(config["data"]["known-variants"]):
+    logger.warning(
+        "Path to samples table as provided in the config file is not an absolute path. "
+        "We recommend using absolute paths for all files."
+    )
+
+# Helper to check that a string contains no invalid chars for file names.
+# This is just the file, not its path! Slashes are considered invalid by this function.
+def valid_filename(fn):
+    # Only accept alnum, underscore, dash, and dot.
+    return fn.replace('_', '').replace('-', '').replace('.', '').isalnum() and fn.isascii()
+    # Bit more loose: allow all except Windows forbidden chars.
+    # return not( True in [c in fn for c in "<>:\"/\\|?*"])
+
+# Helper to check if a file path contains weird characters.
+# We just want to warn about this for input fastq files, but still try to continue.
+def valid_filepath(fn):
+    # Only accept alnum, underscore, dash, dot, and slashes.
+    clean = fn.replace('_', '').replace('-', '').replace('.', '').replace('/', '').replace('\\', '')
+    return clean.isalnum() and clean.isascii()
+
+# List that contains tuples for all samples with their units.
+# In other words, a list of tuples of the sample and unit column of the sample table,
+# in the same order.
+config["global"]["sample-units"] = list()
+problematic_filenames = 0
+relative_filenames = 0
+for index, row in config["global"]["samples"].iterrows():
+    if ( row["sample"], row["unit"] ) in config["global"]["sample-units"]:
+        raise Exception(
+            "Identical sample name and unit found in samples table: " +
+            str(row["sample"]) + " " + str(row["unit"])
+        )
+    config["global"]["sample-units"].append(( row["sample"], row["unit"] ))
+
+    # Do a check that the sample and unit names are valid file names.
+    # They are used for file names, and would cause weird errors if they contain bad chars.
+    if not valid_filename( row["sample"] ) or not valid_filename( row["unit"] ):
+        raise Exception(
+            "Invalid sample name or unit name found in samples table that contains characters " +
+            "which cannot be used as sample/unit names for naming output files: " +
+            str(row["sample"]) + " " + str(row["unit"]) +
+            "; for maximum robustness, we only allow alpha-numerical, dots, dashes, and underscores. " +
+            "Use for example the script `tools/copy-samples.py --mode link [...] --clean` " +
+            "to create a new samples table and symlinks to the existing fastq files to solve this."
+        )
+
+    # Do a check of the fastq file names.
+    if not os.path.isfile(row["fq1"]) or (
+        not pd.isnull(row["fq2"]) and not os.path.isfile(row["fq2"])
+    ):
+        raise Exception(
+            "Input fastq files listed in the input files table " + config["data"]["samples-table"] +
+            " not found: " + str(row["fq1"]) + "; " + str(row["fq2"])
+        )
+    if not valid_filepath(row["fq1"]) or (
+        not pd.isnull(row["fq2"]) and not valid_filepath(row["fq2"])
+    ):
+        problematic_filenames += 1
+    if not os.path.isabs(row["fq1"]) or (
+        not pd.isnull(row["fq2"]) and not os.path.isabs(row["fq2"])
+    ):
+        relative_filenames += 1
+
+# Warning about input names and files.
+if problematic_filenames > 0:
+    logger.warning(
+        str(problematic_filenames) + " of the " + str(len(config["global"]["sample-names"])) +
+        " input fastq files listed in the input files table " + config["data"]["samples-table"] +
+        " contain problematic characters. We generally advise to only use alpha-numeric "
+        "characters, dots, dashes, and underscores. "
+        "Use for example the script `tools/copy-samples.py --mode link [...] --clean` "
+        "to create a new samples table and symlinks to the existing fastq files to solve this. "
+        "We will try to continue running with these files, but it might lead to errors."
+    )
+if relative_filenames > 0:
+    logger.warning(
+        str(relative_filenames) + " of the " + str(len(config["global"]["sample-names"])) +
+        " input fastq files listed in the input files table " + config["data"]["samples-table"] +
+        " use relative file paths. We generally advise to only use absolute paths. "
+        "Use for example the script `tools/generate-table.py` "
+        "to create a samples table with absolute paths. "
+        "We will try to continue running with these files, but it might lead to errors."
+    )
+
+del problematic_filenames, relative_filenames
 
 # =================================================================================================
 #     Common File Access Functions
