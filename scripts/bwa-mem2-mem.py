@@ -28,7 +28,7 @@ import tempfile
 from snakemake.shell import shell
 
 # Extract arguments.
-extra = " -t {snakemake.threads} " + snakemake.params.get("extra", "")
+extra = " -t {} ".format(snakemake.threads) + snakemake.params.get("extra", "")
 sort = snakemake.params.get("sort", "none")
 sort_order = snakemake.params.get("sort_order", "coordinate")
 sort_extra = snakemake.params.get("sort_extra", "")
