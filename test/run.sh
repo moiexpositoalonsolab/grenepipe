@@ -57,13 +57,14 @@ make_config() {
 
     cp ./config.yaml ${TARGET}
     # cat ./config.yaml | sed "s?#BASEPATH#?${BASEPATH}?g" > ${TARGET}
-    sed -i "s?/path/to/data/samples.tsv?${BASEPATH}/test/samples.tsv?g" ${TARGET}
-    sed -i "s?/path/to/data/genome.fa?${BASEPATH}/test/reference/TAIR10_chr_all.fa?g" ${TARGET}
+    sed -i.bak -e "s?/path/to/data/samples.tsv?${BASEPATH}/test/samples.tsv?g" ${TARGET}
+    sed -i.bak -e "s?/path/to/data/genome.fa?${BASEPATH}/test/reference/TAIR10_chr_all.fa?g" ${TARGET}
     # cat ./test/config_template.yaml | sed "s?#BASEPATH#?${BASEPATH}?g" > ./test/config.yaml
 
     # Need an extra replacement step for threads. Might change in the future - this is a bit
     # volatile. But works for now.
-    sed -i "s/threads: 12/threads: 6/g" ${TARGET}
+    sed -i.bak -e "s/threads: 12/threads: 6/g" ${TARGET}
+    rm ${TARGET}.bak
 }
 
 # Helper to list _all_ decendant processes of this script, so that when killing the script,
@@ -239,13 +240,15 @@ for DICT in ${DICTS} ; do
 
             # Replace the content in the config file. We use perl to be able to process
             # multi-line replacements as in the pileup case.
-            # sed -i "s?${FROM}?${TO}?g" ./test/out-${TARGET}/config.yaml
+            # sed -i.bak -e "s?${FROM}?${TO}?g" ./test/out-${TARGET}/config.yaml
+            # rm ./test/out-${TARGET}/config.yaml.bak
             perl -pi -e "s?${FROM}?${TO}?g" ./test/out-${TARGET}/config.yaml
         done < ${DICT}
 
         # The known variants and restrict regions entries in the test cases uses a placeholder
         # for the directory, which we need to replace by the correct path here.
-        sed -i "s?#BASEPATH#?${BASEPATH}?g" ./test/out-${TARGET}/config.yaml
+        sed -i.bak -e "s?#BASEPATH#?${BASEPATH}?g" ./test/out-${TARGET}/config.yaml
+        rm ./test/out-${TARGET}/config.yaml.bak
     fi
 
     # For the pileup test cases, we do not want to run the whole pipeline,

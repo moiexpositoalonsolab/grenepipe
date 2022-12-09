@@ -128,7 +128,8 @@ echo
 
 # Replace version line in common.smk file.
 echo "Replace version in rules/common.smk"
-sed -i "s/grenepipe_version = \".*\" #GRENEPIPE_VERSION#/grenepipe_version = \"${version}\" #GRENEPIPE_VERSION#/g" rules/common.smk
+sed -i.bak -e "s/grenepipe_version = \".*\" #GRENEPIPE_VERSION#/grenepipe_version = \"${version}\" #GRENEPIPE_VERSION#/g" rules/common.smk
+rm rules/common.smk.bak
 
 ####################################################################################################
 #    Commit and Tag

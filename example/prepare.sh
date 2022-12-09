@@ -10,8 +10,10 @@ DIR=`pwd -P $(dirname "$0")`
 cp ../config.yaml ./config.yaml
 
 # Replace paths in config file
-sed -i"" "s?/path/to/data?${DIR}?g" config.yaml
-sed -i"" "s?genome.fa?TAIR10_chr_all.fa.gz?g" config.yaml
+sed -i.bak -e "s?/path/to/data?${DIR}?g" config.yaml
+sed -i.bak -e "s?genome.fa?TAIR10_chr_all.fa.gz?g" config.yaml
+rm config.yaml.bak
 
 # Replace paths in samples table
-sed -i"" "s?/path/to/grenepipe/example?${DIR}?g" samples.tsv
+sed -i.bak -e "s?/path/to/grenepipe/example?${DIR}?g" samples.tsv
+rm samples.tsv.bak
