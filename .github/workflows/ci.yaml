@@ -192,7 +192,7 @@ jobs:
       - name: Run Example
         run: |
           ./example/prepare.sh
-          snakemake --use-conda --conda-frontend mamba --cores 4 --directory example/ &> example/run.log
+          snakemake --use-conda --conda-frontend mamba --cores 4 --directory example/ 2>&1 | tee example/run.log
 
       - name: Upload Logs
         if: always()

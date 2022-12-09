@@ -54,9 +54,12 @@ rule decompress_genome:
     log:
         os.path.join( genome_logdir, genomename + ".decompress.log" )
     shell:
-        "zcat {input} > {output}"
         # Cannot use gunzip here, as CentOS does not support the --keep option...
         # "gunzip --keep {input}"
+        # Well, zcat doesn't work on MacOS, see https://serverfault.com/a/704521
+        # "zcat {input} > {output}"
+        # So back to gunzip, but with a different arg to keep the original file...
+        "gunzip -c {input} > {output}"
 
 localrules:
     decompress_genome
