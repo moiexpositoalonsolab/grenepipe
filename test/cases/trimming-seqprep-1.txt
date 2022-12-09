@@ -1,4 +1,4 @@
-samples: "(.*)/samples.tsv"	samples: "\\1/samples-pe.tsv"
+samples-table: "(.*)/samples.tsv"	samples-table: "\\1/samples-pe.tsv"
 trimming-tool: "trimmomatic"	trimming-tool: "seqprep"
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
