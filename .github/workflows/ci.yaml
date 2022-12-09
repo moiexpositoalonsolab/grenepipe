@@ -15,6 +15,11 @@ on:
 # ==================================================================================================
 
 jobs:
+
+  # ==========================================================================
+  #     test
+  # ==========================================================================
+
   test:
     runs-on: ${{ matrix.os }}
 
@@ -25,9 +30,9 @@ jobs:
         # https://github.com/conda-incubator/setup-miniconda#use-a-default-shell
         shell: bash -el {0}
 
-    # ==========================================================================
+    # -------------------------------------------------------
     #     Matrix
-    # ==========================================================================
+    # -------------------------------------------------------
 
     strategy:
       fail-fast: false
@@ -89,9 +94,23 @@ jobs:
           - trimming-skewer-2
           # CASES_END
 
-    # ==========================================================================
+        include:
+          # Also test with other operating systems.
+          # For now, we just test the base case to see if it's generally working.
+          # This repeats one of the Ubuntu runs for the base case, but that's okay
+          # to keep it future proof when the default ubuntu-latest changes.
+          - os: ubuntu-22.04
+            case: base
+          - os: ubuntu-20.04
+            case: base
+          - os: macos-12
+            case: base
+          - os: macos-11
+            case: base
+
+    # -------------------------------------------------------
     #     Steps
-    # ==========================================================================
+    # -------------------------------------------------------
 
     steps:
       - name: Checkout
@@ -112,7 +131,7 @@ jobs:
       #   shell: bash -el {0}
       #   run: |
       #     mamba env create -f envs/grenepipe.yaml -n grenepipe
-      # The in the run step:
+      # Then in the run step:
       # conda activate grenepipe
 
       - name: Run Test
@@ -123,9 +142,64 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: logs-${{ matrix.os}}-${{ matrix.case }}
+          name: logs-test-${{ matrix.os }}-${{ matrix.case }}
           path: |
             test/out-${{ matrix.case }}/test-run.log
-            test/out-${{ matrix.case }}/.snakemake/log/
             test/out-${{ matrix.case }}/logs/
+            test/out-${{ matrix.case }}/.snakemake/log/
             test/reference/logs/
+
+  # ==========================================================================
+  #     example
+  # ==========================================================================
+
+  example:
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    # -------------------------------------------------------
+    #     Matrix
+    # -------------------------------------------------------
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-20.04
+          - macos-12
+          - macos-11
+
+    # -------------------------------------------------------
+    #     Steps
+    # -------------------------------------------------------
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v2.2.0
+        with:
+          mamba-version: "*"
+          environment-file: envs/grenepipe.yaml
+          activate-environment: grenepipe
+
+      - name: Run Example
+        run: |
+          ./example/prepare.sh
+          snakemake --use-conda --conda-frontend mamba --cores 4 --directory example/ &> example/run.log
+
+      - name: Upload Logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-example-${{ matrix.os }}
+          path: |
+            example/run.log
+            example/logs/
+            example/.snakemake/log/
