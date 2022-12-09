@@ -1,3 +1,5 @@
+import platform
+
 # =================================================================================================
 #     mapDamage
 # =================================================================================================
@@ -25,7 +27,14 @@ rule mapdamage:
     log:
         "logs/mapdamage/{sample}-{unit}.log"
     conda:
-        "../envs/mapdamage.yaml"
+        # We have two different env yaml files, depending on the platform.
+        # This is because on Linux, a particular lib might be missing that is needed for mapdamage,
+        # but that lib does not exist on conda for MacOS, so we want to skip it there.
+        (
+            "../envs/mapdamage-macos.yaml"
+            if platform.system() == "Darwin"
+            else "../envs/mapdamage-linux.yaml"
+        )
     shell:
         "mapDamage -i {input[0]} -r {params.index} -d {params.outdir} {params.extra} > {log} 2>&1"
 
