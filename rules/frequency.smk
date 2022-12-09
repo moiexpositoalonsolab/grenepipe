@@ -315,11 +315,16 @@ else:
             numeric   = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".numeric.bgz",
             flag      = get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".flag"
         params:
-            hp_scripts = (
-                get_packages_dir() + "/hafpipe/scripts"
-                if os.path.exists( get_packages_dir() + "/hafpipe/scripts" )
-                else get_packages_dir() + "/hafpipe"
-            )
+            hp_scripts = get_packages_dir() + "/hafpipe/scripts"
+            # The below code tries to switch where the scripts are found for the old and our
+            # new improved version of HAF-pipe... it however does not work if HAF-pipe has not
+            # been downloaded yet by the hafpipe_setup rule. We have fixed this now to always
+            # use our new version anyway, so we don't need the switch any more.
+            # hp_scripts = (
+            #     get_packages_dir() + "/hafpipe/scripts"
+            #     if os.path.exists( get_packages_dir() + "/hafpipe/scripts" )
+            #     else get_packages_dir() + "/hafpipe"
+            # )
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}-indices.log"
         shell:
