@@ -172,9 +172,19 @@ run_snakemake() {
 #      Test Cases
 # ==================================================================================================
 
-# Either get all scripts that we have, or the use provided ones via wildcard inclusion
+# Either get all scripts that we have, or the use provided ones via wildcard inclusion,
+# using comma separated cases to specify multiple at a time.
 DICTS=`ls ./test/cases/*.txt`
-[[ "${1}" ]] && DICTS=`ls ./test/cases/*${1}*.txt`
+# [[ "${1}" ]] && DICTS=`ls ./test/cases/*${1}*.txt`
+if [[ "${1}" ]]; then
+    DICTS=""
+    for CASES in `echo ${1} | sed "s/ //g" | tr "," "\n"` ; do
+        DICTS="${DICTS} `ls ./test/cases/*${CASES}*.txt`";
+    done
+    DICTS=`echo ${DICTS} | sed "s/ /\n/g"`
+fi
+NUM_CASES=`echo "${DICTS}" | wc -l`
+echo "Running ${NUM_CASES} case(s)"
 
 # Now run all test cases. We always use the base config. This way, when we update the main
 # grenepipe config file for new functionality, we only have to do minimal replacement here as well.
