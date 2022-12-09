@@ -1,7 +1,7 @@
 Overview
 ==============
 
-This directory contains some simple test/exemplary data, to get started with the pipeline.
+This directory contains some simple exemplary and testing data, to get started with the pipeline.
 See https://github.com/lczech/grenepipe/wiki/Quick-Start-and-Full-Example for details.
 
 
@@ -35,7 +35,8 @@ Known Variants and Regions
 ==============
 
 For testing purposes, we here also include a `known-variants.vcf.gz` file that can be used
-to constrain the variant calling process. This file is based on the [1001 Genomes](https://www.1001genomes.org/) dataset, and imputed and subset to serve for exemplary and test purposes.
+to constrain the variant calling process. This file is based on the [1001 Genomes](https://www.1001genomes.org/) dataset, 
+and subset to serve for exemplary and test purposes (see `known-variants.sh` for the subsetting steps if you are interested).
 
 Furthermore, for testing, we provide a simple `regions.bed` file that restricts the calling process
 to just some of the regions in the chromosomes. Note that this is mostly an experimental feature
@@ -54,7 +55,7 @@ Alternative to these two steps, simply call `prepare.sh`, which does these steps
 
 Finally, from the main grenepipe directory, run
 
-    snakemake --use-conda --cores 4 --directory example/
+    snakemake --use-conda --conda-frontend mamba --cores 4 --directory example/
 
 This calls variants and produces quality control statistics.
 See https://github.com/lczech/grenepipe/wiki/Quick-Start-and-Full-Example for details.
