@@ -1,3 +1,5 @@
+import platform
+
 # =================================================================================================
 #     Common Functions used for bcftools calling
 # =================================================================================================
@@ -57,6 +59,13 @@ if config["settings"].get("contig-group-size"):
         output:
             vcf = "genotyped/all.vcf.gz",
             done = touch("genotyped/all.done")
+        params:
+            # See duplicates-picard.smk for the reason whe need this on MacOS.
+            extra = (
+                " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
+                if platform.system() == "Darwin"
+                else ""
+            )
         log:
             "logs/vcflib/sort-genotyped.log"
         benchmark:
@@ -69,4 +78,5 @@ if config["settings"].get("contig-group-size"):
             "INPUT={input.vcf} "
             "OUTPUT={output.vcf} "
             "SEQUENCE_DICTIONARY={input.refdict} "
+            "{params.extra} "
             "> {log} 2>&1"

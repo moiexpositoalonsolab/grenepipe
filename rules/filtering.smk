@@ -1,4 +1,5 @@
 import json
+import platform
 
 # =================================================================================================
 #     Variant Selection Helper
@@ -81,6 +82,13 @@ rule merge_calls:
         vcf="filtered/all.vcf.gz",
         # vcf=protected("filtered/all.vcf.gz")
         done=touch("filtered/all.done")
+    params:
+        # See duplicates-picard.smk for the reason whe need this on MacOS.
+        extra = (
+            " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
+            if platform.system() == "Darwin"
+            else ""
+        )
     log:
         "logs/picard/merge-filtered.log"
     benchmark:
