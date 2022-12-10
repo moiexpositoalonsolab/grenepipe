@@ -66,6 +66,7 @@ rule gatk_variant_recalibrator:
     input:
         ref=config["data"]["reference-genome"],
         vcf="filtered/all.{vartype}.selected.vcf.gz",
+        refdict=genome_dict(),
 
         # Resources have to be given as named input files, we unpack the dict to get them.
         # We also request the tbi index files, so that users get a nice error message if missing.
@@ -119,6 +120,7 @@ rule gatk_variant_recalibrator:
 rule gatk_apply_vqsr:
     input:
         ref=config["data"]["reference-genome"],
+        refdict=genome_dict(),
         vcf="filtered/all.{vartype}.selected.vcf.gz",
         recal="filtered/all.{vartype}.vqsr-recal.vcf.gz",
         tranches="filtered/all.{vartype}.vqsr-recal.tranches"

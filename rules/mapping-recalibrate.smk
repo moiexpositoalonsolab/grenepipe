@@ -75,6 +75,7 @@ rule recalibrate_base_qualities:
             config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
+        refdict=genome_dict(),
         known=config["data"]["known-variants"]
     output:
         bam=(

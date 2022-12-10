@@ -122,6 +122,7 @@ rule combine_calls:
             config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
+        refdict=genome_dict(),
 
         # Get the sample data, including indices.
         gvcfs=expand(
@@ -166,6 +167,7 @@ rule genotype_variants:
             config["data"]["reference-genome"] + ".{ext}",
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
+        refdict=genome_dict(),
 
         gvcf="called/all.{contig}.g.vcf.gz"
     output:

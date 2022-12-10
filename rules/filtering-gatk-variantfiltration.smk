@@ -13,7 +13,8 @@ def get_filter(wildcards):
 rule gatk_hard_filter_calls:
     input:
         ref=config["data"]["reference-genome"],
-        vcf="filtered/all.{vartype}.selected.vcf.gz"
+        vcf="filtered/all.{vartype}.selected.vcf.gz",
+        refdict=genome_dict()
     output:
         vcf=(
             "filtered/all.{vartype}.filtered.vcf.gz"
