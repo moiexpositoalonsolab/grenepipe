@@ -327,6 +327,8 @@ else:
             # )
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}-indices.log"
+        conda:
+            "../envs/hafpipe.yaml"
         shell:
             # Calls from HAF-pipe, replicated here for our purposes,
             # and with additional checks for whether the files already exist, to not repeat effort.
