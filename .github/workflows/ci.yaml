@@ -134,10 +134,18 @@ jobs:
       # Then in the run step:
       # conda activate grenepipe
 
+      # Run the test case
       - name: Run Test
         run: |
           ./test/run.sh ${{ matrix.case }}
 
+      # Store a list of all files and sizes, for debugging.
+      - name: File Inventory
+        run: |
+          ls -alFR test/out-${{ matrix.case }} >  test/out-${{ matrix.case }}/logs/files.txt
+          ls -alFR test/reference/logs/        >> test/out-${{ matrix.case }}/logs/files.txt
+
+      # Upload the log files as a GitHub Actions artifact
       - name: Upload Logs
         if: always()
         uses: actions/upload-artifact@v3
