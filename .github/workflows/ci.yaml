@@ -141,6 +141,7 @@ jobs:
 
       # Store a list of all files and sizes, for debugging.
       - name: File Inventory
+        if: always()
         run: |
           ls -alFR test/out-${{ matrix.case }} >  test/out-${{ matrix.case }}/logs/files.txt
           ls -alFR test/reference/logs/        >> test/out-${{ matrix.case }}/logs/files.txt
