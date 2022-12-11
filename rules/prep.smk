@@ -136,7 +136,7 @@ rule sequence_dictionary:
     conda:
         "../envs/prep.yaml"
     shell:
-        "gatk CreateSequenceDictionary -R {input} -O {output} > {log} 2>&1"
+        "gatk CreateSequenceDictionary -R {input} -O {output} --VERBOSITY DEBUG > {log} 2>&1"
 
 # Get some statistics about the reference genome
 rule reference_seqkit:

@@ -144,7 +144,7 @@ jobs:
         if: always()
         run: |
           ls -alFR test/out-${{ matrix.case }} >  test/out-${{ matrix.case }}/logs/files.txt
-          ls -alFR test/reference/logs/        >> test/out-${{ matrix.case }}/logs/files.txt
+          ls -alFR test/reference/             >> test/out-${{ matrix.case }}/logs/files.txt
 
       # Upload the log files as a GitHub Actions artifact
       - name: Upload Logs
@@ -157,6 +157,7 @@ jobs:
             test/out-${{ matrix.case }}/logs/
             test/out-${{ matrix.case }}/.snakemake/log/
             test/reference/logs/
+            test/reference/TAIR10_chr_all.dict
 
   # ==========================================================================
   #     example
