@@ -246,7 +246,7 @@ del cmdline, cfgfiles
 del unitcnt, smpcnt
 
 # =================================================================================================
-#     File Validity Checks
+#     Sample and File Validity Checks
 # =================================================================================================
 
 # Check that the number of samples fits with the expectation, if provided by the user.
@@ -263,17 +263,17 @@ if config["data"].get("samples-count", 0) > 0:
 if not os.path.isabs(config["data"]["samples-table"]):
     logger.warning(
         "Path to the samples table as provided in the config file is not an absolute path. "
-        "We recommend using absolute paths for all files."
+        "We recommend using absolute paths for all files.\n"
     )
 if not os.path.isabs(config["data"]["reference-genome"]):
     logger.warning(
         "Path to the reference genome as provided in the config file is not an absolute path. "
-        "We recommend using absolute paths for all files."
+        "We recommend using absolute paths for all files.\n"
     )
 if config["data"]["known-variants"] and not os.path.isabs(config["data"]["known-variants"]):
     logger.warning(
         "Path to samples table as provided in the config file is not an absolute path. "
-        "We recommend using absolute paths for all files."
+        "We recommend using absolute paths for all files.\n"
     )
 
 # Helper to check that a string contains no invalid chars for file names.
@@ -300,7 +300,7 @@ relative_filenames = 0
 for index, row in config["global"]["samples"].iterrows():
     if ( row["sample"], row["unit"] ) in config["global"]["sample-units"]:
         raise Exception(
-            "Identical sample name and unit found in samples table: " +
+            "Multiple rows with identical sample name and unit found in samples table: " +
             str(row["sample"]) + " " + str(row["unit"])
         )
     config["global"]["sample-units"].append(( row["sample"], row["unit"] ))
@@ -338,24 +338,51 @@ for index, row in config["global"]["samples"].iterrows():
 if problematic_filenames > 0:
     logger.warning(
         str(problematic_filenames) + " of the " + str(len(config["global"]["sample-names"])) +
-        " input fastq files listed in the input files table " + config["data"]["samples-table"] +
+        " input samples listed in the input files table " + config["data"]["samples-table"] +
         " contain problematic characters. We generally advise to only use alpha-numeric "
         "characters, dots, dashes, and underscores. "
         "Use for example the script `tools/copy-samples.py --mode link [...] --clean` "
         "to create a new samples table and symlinks to the existing fastq files to solve this. "
-        "We will try to continue running with these files, but it might lead to errors."
+        "We will try to continue running with these files, but it might lead to errors.\n"
     )
 if relative_filenames > 0:
     logger.warning(
         str(relative_filenames) + " of the " + str(len(config["global"]["sample-names"])) +
-        " input fastq files listed in the input files table " + config["data"]["samples-table"] +
+        " input samples listed in the input files table " + config["data"]["samples-table"] +
         " use relative file paths. We generally advise to only use absolute paths. "
         "Use for example the script `tools/generate-table.py` "
         "to create a samples table with absolute paths. "
-        "We will try to continue running with these files, but it might lead to errors."
+        "We will try to continue running with these files, but it might lead to errors.\n"
     )
 
 del problematic_filenames, relative_filenames
+
+# Check if a given string can be converted to a number, https://stackoverflow.com/q/354038/4184258
+def is_number(s):
+    try:
+        float(s) # for int, long, float
+    except ValueError:
+        return False
+    return True
+
+# We check if any sample names are only numbers, and warn about this. Bioinformatics is messy...
+numeric_sample_names = 0
+for sn in config["global"]["sample-names"]:
+    if is_number(sn):
+        numeric_sample_names += 1
+
+if numeric_sample_names > 0:
+    logger.warning(
+        str(numeric_sample_names) + " of the " + str(len(config["global"]["sample-names"])) +
+        " input samples listed in the input files table " + config["data"]["samples-table"] +
+        " are just numbers, or can be converted to numbers. We generally advise to avoid this, "
+        "as it might confuse downstream processing such as Excel and R. The same applies for names "
+        "that can be converted to dates (\"Dec21\"), but we do not check this here. "
+        "We will now continue running with these files, as we can work with this here, "
+        "but recommend to change the sample names.\n"
+    )
+
+del numeric_sample_names
 
 # =================================================================================================
 #     Common File Access Functions
