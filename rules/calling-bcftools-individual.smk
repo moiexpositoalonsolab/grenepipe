@@ -12,8 +12,8 @@ rule call_variants:
         ),
 
         # Get the sample data.
-        samples=get_sample_bams_wildcard,
-        indices=get_sample_bais_wildcard,
+        samples=get_sample_bams_wildcards,
+        indices=get_sample_bais_wildcards,
 
         # If we use restricted regions, set them here. If not, empty, which will propagate to the
         # get_mpileup_params function as well. Same for small contig groups.

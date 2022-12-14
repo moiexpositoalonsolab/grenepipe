@@ -17,8 +17,8 @@ def get_gatk_call_variants_params(wildcards, input):
 rule call_variants:
     input:
         # Get the sample data.
-        bam=get_sample_bams_wildcard,
-        bai=get_sample_bais_wildcard,
+        bam=get_sample_bams_wildcards,
+        bai=get_sample_bais_wildcards,
 
         # Get the reference genome, as well as its indices.
         ref=config["data"]["reference-genome"],

@@ -10,8 +10,8 @@ from itertools import chain
 def get_read_group_tags( wildcards ):
     # We need the @RG read group tags, including `ID` and `SM`, as downstream tools use these.
     # Potentially, we also set the PL platform. Also add the config extra settings.
-    res = [ "ID:" + wildcards.sample, "SM:" + wildcards.sample ]
-    # TODO Add LD field as well for the unit?! http://www.htslib.org/workflow/
+    res = [ "ID:" + wildcards.sample + "-" + wildcards.unit, "SM:" + wildcards.sample ]
+    # TODO Add LD? LB? field as well for the unit?! http://www.htslib.org/workflow/
 
     # Add platform information, if available, giving precedence to the table over the config.
     pl = ""
@@ -265,11 +265,11 @@ def get_sample_bais(sample):
     )
 
 # Return the bam file(s) for a sample, given a wildcard param from a rule.
-def get_sample_bams_wildcard(wildcards):
+def get_sample_bams_wildcards(wildcards):
     return get_sample_bams( wildcards.sample )
 
 # Return the bai file(s) for a sample, given a wildcard param from a rule.
-def get_sample_bais_wildcard(wildcards):
+def get_sample_bais_wildcards(wildcards):
     return get_sample_bais( wildcards.sample )
 
 # Return the bam file(s) for all samples
@@ -295,10 +295,6 @@ def get_all_bais():
     # return list(chain.from_iterable( [
     #     get_sample_bais(sample) for sample in config["global"]["sample-names"]
     # ] ))
-
-# Simple wildcard resolution.
-def get_sample_bams_wildcards(wildcards):
-    return get_sample_bams(wildcards.sample)
 
 # =================================================================================================
 #     All bams, but not SNP calling
