@@ -93,7 +93,7 @@ if [ $(version `snakemake --version`) -ge $(version "5.18.0") ]; then
     # We also check for the existence of an env var that prevents us from using mamba.
     # This is useful to test with normal conda without having to change this script,
     # for example when running in a CI environment.
-    if [[ -n "${GRENEPIPE_TESTS_NO_MAMBA}" ]]; then
+    if [[ -z "${GRENEPIPE_TESTS_NO_MAMBA}" ]]; then
         CONDA_FRONTEND="--conda-frontend mamba"
         CONDA_PREFIX="mamba-envs"
     fi
