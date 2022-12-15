@@ -146,9 +146,9 @@ jobs:
 
       # Run the test case.
       # Add the following line to test with conda instead of mamba.
-      # export GRENEPIPE_TESTS_NO_MAMBA=1
       - name: Run Test
         run: |
+          export GRENEPIPE_TESTS_NO_MAMBA=1
           ./test/run.sh ${{ matrix.case }}
 
       # Store a list of all files and sizes, for debugging.
