@@ -15,8 +15,8 @@ dependencies:
   # We need samtools for indexing bam files.
   # Also, tabix and bgzip are dependencies of hafpipe,
   # which both seem to be provided via samtools as well.
-  - samtools ==1.12
-  # - htslib ==1.10
+  - samtools ==1.16.1
+  # - htslib ==1.16
   # - tabix ==1.10
 
   # hafpipe needs R version >= 3.2, so we use the same that

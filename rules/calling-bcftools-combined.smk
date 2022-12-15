@@ -100,6 +100,8 @@ rule called_vcf_index:
         "-p vcf"
     log:
         "logs/tabix/called/{contig}.log"
+    conda:
+        "../envs/tabix.yaml"
     wrapper:
         "0.55.1/bio/tabix"
 

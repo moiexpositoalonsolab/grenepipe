@@ -219,6 +219,8 @@ rule variants_vcf_index:
         "known_variants"
     log:
         os.path.join( variant_logdir, os.path.basename(variants) + ".vcf_index.log" )
+    conda:
+        "../envs/tabix.yaml"
     wrapper:
         "0.55.1/bio/tabix"
 

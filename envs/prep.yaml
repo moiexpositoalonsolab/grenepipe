@@ -15,4 +15,4 @@ dependencies:
   # Tools
   - bwa ==0.7.17
   - gatk4 ==4.1.4.1
-  - samtools ==1.12
+  - samtools ==1.16.1

@@ -8,5 +8,5 @@ dependencies:
   - numpy ==1.21.2
   # Tools
   - bwa ==0.7.17
-  - samtools ==1.12
-  - picard ==2.20.1
+  - samtools ==1.16.1
+  - picard ==2.27.4

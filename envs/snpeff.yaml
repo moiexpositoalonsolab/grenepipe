@@ -8,5 +8,5 @@ dependencies:
   - numpy ==1.21.2
   # Tools
   - snpeff ==4.3.1t
-  - bcftools =1.11
+  - bcftools ==1.16
   - snakemake-wrapper-utils >=0.1.3

@@ -4,5 +4,5 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - vcflib =1.0.2
-  - samtools ==1.12
+  - vcflib =1.0.3
+  - samtools ==1.16.1

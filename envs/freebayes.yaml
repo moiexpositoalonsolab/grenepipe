@@ -11,7 +11,7 @@ dependencies:
   - numpy ==1.21.2
   # Tools
   - freebayes =1.3.1
-  - bcftools =1.11
+  - bcftools ==1.16
   - parallel =20190522
   - bedtools >=2.29
   - sed =4.7

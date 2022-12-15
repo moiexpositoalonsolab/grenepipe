@@ -6,8 +6,23 @@ dependencies:
   - python ==3.7.10
   - pandas ==1.3.1
   - numpy ==1.21.2
+
   # Tools
-  # This version should not be changed unless the vep_install command needs an
-  # update or suddenly stops working.
+  # The VEP version should not be changed unless the vep_install command needs an
+  # update or suddenly stops working. It's super fragile...
   - ensembl-vep =104
+  # Unfortunately, for that reason, we also have to keep the bcftools version at this here,
+  # instead of using the more recent version that we have throughout the other env files.
+  # Updating this to bcftools 1.16 conflicts with VEP 104, but updating VEP to a non-conflicting
+  # version then leads to errors as in https://github.com/Ensembl/ensembl-vep/issues/47
+  # For more inspiration on environment configurations that might work, see the official wrapper:
+  # https://github.com/snakemake/snakemake-wrappers/blob/master/bio/vep/annotate/environment.yaml
+  # but that still would need adapting our rules to the new VEP version, updating server paths, etc...
   - bcftools =1.10
+
+  # A potential solution to get the packages to work with the above described updates is to
+  # also add the following two packages. That works to create the env and to get VEP to run,
+  # but then it fails downstream when trying to run the annotate command, with some weird
+  # issues concerning compression. So for now, we don't change the running system.
+  # - perl-dbi
+  # - perl-dbd-mysql

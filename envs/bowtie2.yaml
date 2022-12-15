@@ -9,5 +9,5 @@ dependencies:
   - numpy ==1.21.2
   # Tools
   - bowtie2 ==2.4.1
-  - samtools ==1.12
+  - samtools ==1.16.1
   - tbb ==2020.2

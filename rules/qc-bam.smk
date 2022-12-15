@@ -32,6 +32,8 @@ rule samtools_stats:
         "benchmarks/samtools-stats/{sample}.bench.log"
     group:
         "qc"
+    conda:
+        "../envs/samtools.yaml"
     wrapper:
         "0.27.1/bio/samtools/stats"
 
@@ -57,6 +59,8 @@ rule samtools_flagstat:
         "benchmarks/samtools-flagstat/{sample}.bench.log"
     group:
         "qc"
+    conda:
+        "../envs/samtools.yaml"
     wrapper:
         "0.64.0/bio/samtools/flagstat"
 

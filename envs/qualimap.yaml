@@ -1,5 +1,12 @@
 channels:
-  - bioconda
+  # This env with a single package used to be unsolvable by conda (worked fine with mamba though).
+  # Trying to solve this as described in https://github.com/bioconda/bioconda-utils/issues/330
+  # by using conda-forge as the first channel. Seems to be working now, but only with the specified
+  # qualimap version 2.2.2d below... the others still don't work on conda...
   - conda-forge
+  - bioconda
 dependencies:
-  - qualimap ==2.2.2a
+  - qualimap ==2.2.2d
+  # - qualimap
+  # - qualimap ==2.2.2a
+  # - qualimap ==2.2.2d

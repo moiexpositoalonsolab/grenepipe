@@ -1,4 +1,6 @@
 channels:
+  # Use anaconda as first channel to fix issue #25
+  - anaconda
   - bioconda
   - conda-forge
 dependencies:

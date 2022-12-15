@@ -1,12 +1,25 @@
 channels:
-  - bioconda
+  # This env was a long term problem, as it failed to get resolved by conda (working perfectly fine
+  # with mamba though). We now tried to use conda-forge as the first channel, and have updated a few
+  # versions of the packages below. It seems to be working... for now.
+  # conda-forge channel first, as required by issue #25
   - conda-forge
+  - bioconda
+  # In issue #11 it was mentioned that removing some channels solves the problem.
+  # But of course it did not... trying to add this one again, in the hope that this
+  # helps with this nightmare of an environemnt.
+  - r
 dependencies:
   # Python
   - python ==3.7.10
   - pandas ==1.3.1
   - numpy ==1.21.2
+
   # Tools
-  - picard ==2.23.0
-  - r-tidyverse ==1.2.1
-  - snakemake-wrapper-utils >=0.1.3
+  - picard ==2.27.4
+
+  # Need tidyverse because of issue #9
+  # We are now using the version that gets installed when specifying no version,
+  # in the hope that this can be solved more easilty by conda then.
+  - r-tidyverse ==1.3.2
+  - snakemake-wrapper-utils
