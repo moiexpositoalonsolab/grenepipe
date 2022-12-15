@@ -377,9 +377,19 @@ rule hafpipe_sample_bams:
     log:
         "logs/samtools/hafpipe/bam-{sample}.log"
     shell:
-        "ln -s {input.bam} {output.bam} ; "
-        "ln -s {input.bai} {output.bai} ; "
+        # This is a bit... hacky... but dealing with absolute paths seems even worse
+        # (and would need hacks as well to get to work on Linux and MacOS with the same commands).
+        # So, we know that the symlinks are going to two directories down, as specified in the
+        # output, and so we first go these two levels up again...
+        "ln -s ../../{input.bam} {output.bam} ; "
+        "ln -s ../../{input.bai} {output.bai} ; "
 
+# Here, we have a special case where we need to fix the rule order, instead of relying
+# on file names to distinguish between rules. That is because on the one hand, we want to keep the
+# generic bai rule, so that we do not have to write one for every case where a bai file is needed.
+# On the other hand, this rule here also "produces" bai files, but by linking them, so it does
+# something different, meaning that we need both rules, and hence need to resolve like this:
+ruleorder: hafpipe_sample_bams > bam_index
 localrules: hafpipe_sample_bams
 
 # We run the two steps separately, so that if Task 4 fails,

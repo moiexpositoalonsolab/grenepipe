@@ -35,7 +35,7 @@ shell(
 def get_afsite_path( sample, chrom ):
     if chrom not in snakemake.params.chroms:
         raise Exception( "Invalid chrom " + chrom )
-    return "hafpipe/frequencies/" + sample + ".merged.bam." + chrom + ".afSite"
+    return "hafpipe/frequencies/" + sample + ".bam." + chrom + ".afSite"
 
 # -------------------------------------------------------------------------
 #     Concat chromosomes
