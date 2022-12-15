@@ -365,42 +365,30 @@ def get_hafpipe_snp_table_flag(wildcards):
 # =================================================================================================
 
 # We use the merged bam files of all bams per sample.
-# The below rule is the same as the mpileup_merge_unit_bams rule in pileup.smk, and in the qualimap
-# merging in qc.smk, but we do want this separate implemenation here, to have a bit more control
-# of where the files go, and to stay independent of the mpileup rules. Bit of code duplication,
-# might refactor in the future though.
-
-rule hafpipe_merge_unit_bams:
+# Unfortunately, HAF-pipe names its output files after its input files,
+# so here we create symlinks to the merged bam files, to keep the naming consistent...
+rule hafpipe_sample_bams:
     input:
-        get_sample_bams_wildcards # provided in mapping.smk
+        bam=get_sample_bams_wildcards, # provided in mapping.smk
+        bai=get_sample_bais_wildcards  # provided in mapping.smk
     output:
-        # Making the bam files temporary is a bit dangerous, as an error in the calling of Task 4
-        # after it has already written the header of the output file will lead to snakemake thinking
-        # that the output is valid, hence deleting the bam files... Then, for re-running Task 4 we
-        # need to first create the bam files again, which will then update Task 3, which takes ages...
-        # But let's assume that all steps work ;-)
-        (
-            "hafpipe/bam/{sample}.merged.bam"
-            if config["params"]["hafpipe"].get("keep-intermediates", True)
-            else temp("hafpipe/bam/{sample}.merged.bam")
-        ),
-        touch("hafpipe/bam/{sample}.merged.done")
-    params:
-        config["params"]["samtools"]["merge"]
-    threads:
-        config["params"]["samtools"]["merge-threads"]
+        bam="hafpipe/bam/{sample}.bam",
+        bai="hafpipe/bam/{sample}.bam.bai"
     log:
-        "logs/samtools/hafpipe/merge-{sample}.log"
-    wrapper:
-        "0.74.0/bio/samtools/merge"
+        "logs/samtools/hafpipe/bam-{sample}.log"
+    shell:
+        "ln -s {input.bam} {output.bam} ; "
+        "ln -s {input.bai} {output.bai} ; "
+
+localrules: hafpipe_sample_bams
 
 # We run the two steps separately, so that if Task 4 fails,
 # Task 3 does not have to be run again, hence saving time.
 
 rule hafpipe_haplotype_frequencies:
     input:
-        bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
-        baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
+        bamfile="hafpipe/bam/{sample}.bam",     # provided above
+        baifile="hafpipe/bam/{sample}.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
         flag=get_hafpipe_snp_table_flag,
         refseq=config["data"]["reference-genome"],
@@ -410,11 +398,11 @@ rule hafpipe_haplotype_frequencies:
         # Might want to refactor in the future to be able to provide our own names,
         # and have the script rename the files automatically.
         freqs=(
-            "hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs"
+            "hafpipe/frequencies/{sample}.bam.{chrom}.freqs"
             if config["params"]["hafpipe"].get("keep-intermediates", True)
-            else temp("hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs")
+            else temp("hafpipe/frequencies/{sample}.bam.{chrom}.freqs")
         ),
-        done=touch("hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs.done")
+        done=touch("hafpipe/frequencies/{sample}.bam.{chrom}.freqs.done")
     params:
         tasks="3",
         outdir="hafpipe/frequencies",
@@ -428,20 +416,20 @@ rule hafpipe_haplotype_frequencies:
 
 rule hafpipe_allele_frequencies:
     input:
-        bamfile="hafpipe/bam/{sample}.merged.bam",     # provided above
-        baifile="hafpipe/bam/{sample}.merged.bam.bai", # provided via bam_index rule in mapping.smk
+        bamfile="hafpipe/bam/{sample}.bam",     # provided above
+        baifile="hafpipe/bam/{sample}.bam.bai", # provided via bam_index rule in mapping.smk
         snptable=get_hafpipe_snp_table,                # provided above
         flag=get_hafpipe_snp_table_flag,
-        freqs="hafpipe/frequencies/{sample}.merged.bam.{chrom}.freqs", # from Task 3 above
+        freqs="hafpipe/frequencies/{sample}.bam.{chrom}.freqs", # from Task 3 above
         bins=get_hafpipe_bins()
     output:
         # Same as above: just expect the file name as produced by HAFpipe.
         afSite=(
-            "hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite"
+            "hafpipe/frequencies/{sample}.bam.{chrom}.afSite"
             if config["params"]["hafpipe"].get("keep-intermediates", True)
-            else temp("hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite")
+            else temp("hafpipe/frequencies/{sample}.bam.{chrom}.afSite")
         ),
-        done=touch("hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite.done")
+        done=touch("hafpipe/frequencies/{sample}.bam.{chrom}.afSite.done")
     params:
         tasks="4",
         outdir="hafpipe/frequencies",
@@ -465,7 +453,7 @@ def collect_sample_hafpipe_allele_frequencies(wildcards):
     # Snakemake then needs an input function to work with the fai checkpoint here.
     fai = checkpoints.samtools_faidx.get().output[0]
     return expand(
-        "hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite",
+        "hafpipe/frequencies/{sample}.bam.{chrom}.afSite",
         sample=wildcards.sample,
         chrom=get_hafpipe_chromosomes( fai )
     )
@@ -519,7 +507,7 @@ def collect_all_hafpipe_allele_frequencies(wildcards):
     # Snakemake then needs an input function to work with the fai checkpoint here.
     fai = checkpoints.samtools_faidx.get().output[0]
     return expand(
-        "hafpipe/frequencies/{sample}.merged.bam.{chrom}.afSite",
+        "hafpipe/frequencies/{sample}.bam.{chrom}.afSite",
         sample=config["global"]["sample-names"],
         chrom=get_hafpipe_chromosomes( fai )
     )

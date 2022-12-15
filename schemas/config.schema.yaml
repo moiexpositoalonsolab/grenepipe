@@ -219,8 +219,8 @@ properties:
                 type: boolean
               # RnaSeqMetrics:
               #   type: boolean
-              extra:
-                type: string
+            CollectMultipleMetrics-extra:
+              type: string
             required:
               - AlignmentSummaryMetrics
               - BaseDistributionByCycle
@@ -230,10 +230,10 @@ properties:
               - QualityScoreDistributionMetrics
               - QualityYieldMetrics
               # - RnaSeqMetrics
-              - extra
         required:
           - MarkDuplicates
           - CollectMultipleMetrics
+          - CollectMultipleMetrics-extra
       dedup:
         type: object
         properties:
@@ -346,6 +346,8 @@ properties:
       qualimap:
         type: object
         properties:
+          bams:
+            type: string
           extra:
             type: string
           threads:

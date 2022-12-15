@@ -23,17 +23,18 @@ if len(config["params"]["samtools"]["temp-dir"]) > 0:
 rule mark_duplicates:
     input:
         # Get either the normal mapping output, or, if additional filtering via `samtools view`
-        # is set in the config settings: filter-mapped-reads, use the filtered output instead.
+        # is set in the config settings: filter-mapped-reads, use the filtered output instead,
+        # or the clipped ones, if those were requested.
+        # We always use the merged units per sample here.
         get_mapped_reads
-        # "mapped/{sample}-{unit}.sorted.bam"
     output:
-        bam=temp("dedup/{sample}-{unit}_rmdup.bam"),
-        metrics="dedup/{sample}-{unit}.dedup.json",
-        done=touch("dedup/{sample}-{unit}.dedup.done")
+        bam=temp("dedup/{sample}_rmdup.bam"),
+        metrics="dedup/{sample}.dedup.json",
+        done=touch("dedup/{sample}.dedup.done")
     log:
-        "logs/dedup/{sample}-{unit}.log"
+        "logs/dedup/{sample}.log"
     benchmark:
-        "benchmarks/dedup/{sample}-{unit}.bench.log"
+        "benchmarks/dedup/{sample}.bench.log"
     params:
         extra=config["params"]["dedup"]["extra"],
         out_dir="dedup"
@@ -46,29 +47,29 @@ rule mark_duplicates:
         # output the file names that we want.
         "dedup -i {input} -o {params.out_dir} {params.extra} > {log} 2>&1 ; "
         "mv"
-        "    dedup/{wildcards.sample}-{wildcards.unit}." + get_mapped_read_infix() + "_rmdup.bam"
-        "    dedup/{wildcards.sample}-{wildcards.unit}_rmdup.bam ; "
+        "    dedup/{wildcards.sample}." + get_mapped_read_infix() + "_rmdup.bam"
+        "    dedup/{wildcards.sample}_rmdup.bam ; "
         "mv"
-        "    dedup/{wildcards.sample}-{wildcards.unit}." + get_mapped_read_infix() + ".dedup.json"
-        "    dedup/{wildcards.sample}-{wildcards.unit}.dedup.json"
+        "    dedup/{wildcards.sample}." + get_mapped_read_infix() + ".dedup.json"
+        "    dedup/{wildcards.sample}.dedup.json"
 
 rule sort_reads_dedup:
     input:
-        "dedup/{sample}-{unit}_rmdup.bam"
+        "dedup/{sample}_rmdup.bam"
     output:
         (
-            "dedup/{sample}-{unit}.bam"
+            "dedup/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("dedup/{sample}-{unit}.bam")
+            else temp("dedup/{sample}.bam")
         ),
-        touch("dedup/{sample}-{unit}.done")
+        touch("dedup/{sample}.done")
     params:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"]
     threads:  # Samtools takes additional threads through its option -@
         1     # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
-        "logs/samtools/sort/{sample}-{unit}-dedup.log"
+        "logs/samtools/sort/{sample}-dedup.log"
     group:
         "mapping_extra"
     wrapper:

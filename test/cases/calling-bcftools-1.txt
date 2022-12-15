@@ -3,4 +3,7 @@ filter-variants: "gatk-variantfiltration"	filter-variants: "bcftools-filter"
 snpeff: false	snpeff: true
 vep: false	vep: true
 frequency-table: false	frequency-table: true
-merge-units: true	merge-units: false
+stats-bams: "processed"	stats-bams: "merged"
+flagstat-bams: "processed"	flagstat-bams: "merged"
+CollectMultipleMetrics-bams: "processed"	CollectMultipleMetrics-bams: "merged"
+bams: "processed"	bams: "merged"

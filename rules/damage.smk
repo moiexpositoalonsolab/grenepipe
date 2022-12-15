@@ -19,13 +19,13 @@ rule mapdamage:
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
     output:
-        "mapdamage/{sample}-{unit}/Runtime_log.txt"
+        "mapdamage/{sample}/Runtime_log.txt"
     params:
         index=config["data"]["reference-genome"],
         extra=config["params"]["mapdamage"]["extra"],
-        outdir="mapdamage/{sample}-{unit}"
+        outdir="mapdamage/{sample}"
     log:
-        "logs/mapdamage/{sample}-{unit}.log"
+        "logs/mapdamage/{sample}.log"
     conda:
         # We have two different env yaml files, depending on the platform.
         # This is because on Linux, a particular lib might be missing that is needed for mapdamage,
@@ -41,8 +41,8 @@ rule mapdamage:
 rule mapdamage_collect:
     input:
         expand(
-            "mapdamage/{u.sample}-{u.unit}/Runtime_log.txt",
-            u=config["global"]["samples"].itertuples()
+            "mapdamage/{sample}/Runtime_log.txt",
+            sample=config["global"]["sample-names"]
         )
     output:
         touch("mapdamage/mapdamage.done")
@@ -68,13 +68,13 @@ rule damageprofiler:
             ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
         ),
     output:
-        "damageprofiler/{sample}-{unit}/DamageProfiler.log"
+        "damageprofiler/{sample}/DamageProfiler.log"
     params:
         index=config["data"]["reference-genome"],
         extra=config["params"]["damageprofiler"]["extra"],
-        outdir="damageprofiler/{sample}-{unit}"
+        outdir="damageprofiler/{sample}"
     log:
-        "logs/damageprofiler/{sample}-{unit}.log"
+        "logs/damageprofiler/{sample}.log"
     conda:
         "../envs/damageprofiler.yaml"
     shell:
@@ -84,8 +84,8 @@ rule damageprofiler:
 rule damageprofiler_collect:
     input:
         expand(
-            "damageprofiler/{u.sample}-{u.unit}/DamageProfiler.log",
-            u=config["global"]["samples"].itertuples()
+            "damageprofiler/{sample}/DamageProfiler.log",
+            sample=config["global"]["sample-names"]
         )
     output:
         touch("damageprofiler/damageprofiler.done")

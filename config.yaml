@@ -60,10 +60,12 @@ settings:
   merge-paired-end-reads: false
 
   # Select the tool used for read mapping.
+  # After the mapping, we always sort by genomic coordinate, and merge the units of a sample into
+  # one bam file, so that all downstream processes only work on one file per sample.
   # Valid values: "bwamem", "bwamem2", "bwaaln", "bowtie2"
   mapping-tool: "bwamem"
 
-  # After mapping, and before any subsequent steps (deduplication, variant calling etc),
+  # After the above mapping, and before any subsequent steps (deduplication, variant calling etc),
   # apply a filtering step using `samtools view`. If set to `true`,
   # use 'params: samtools: view' below to set the actual filtering parameters being used.
   # This step is for example useful when working with ancient DNA or pool sequencing data,
@@ -73,8 +75,9 @@ settings:
   # Furthermore, after mapping, and potentially after filtering if activated above, but again
   # before subsequent steps (deduplication, variant calling etc), clip overlapping reads,
   # using BamUtil clipOverlap.
-  # Using the base calls from both reads might violate the implicit assumption of genotype
-  # likelihood models of downstream callers: that each read represents unique insert information.
+  # Using the base calls from both forward and backward reads of paired end files might violate the
+  # implicit assumption of genotype likelihood models of downstream callers: that each read
+  # represents unique insert information.
   # This might bias the genotype likelihoods, particularly in low coverage settings.
   # We hence offer this clipping step, to remove any potential overlap between paired reads.
   # If set to `true`, use `params: bamutil` below to set additional parameters for this step.
@@ -98,8 +101,8 @@ settings:
 
   # Select whether to recalibrate base frequencies after mapping (in fact, after all the above
   # steps that might include filtering and duplicate removal), using gatk/baserecalibrator.
-  # If set to true, "data: known-variants" has to be provided as well.
-  # Furthermore, either the samples table (as provided via "data: samples") needs to contain
+  # If set to true, "data: known-variants" has to be provided as well above.
+  # Furthermore, either the samples table (as provided via "data: samples-table") needs to contain
   # a `platform` column containing the sequencing platform/instrument for each sample,
   # or the setting "params: gatk: platform" has to be set below to one of the valid platform values,
   # which is then used for all samples.
@@ -228,9 +231,11 @@ settings:
   bcftools-stats: true
 
   # Set to true in order to run mapDamage.
+  # See below `params: mapdamage` for additional settings.
   mapdamage: false
 
   # Set to true in order to run DamageProfiler.
+  # See below `params: damageprofiler` for additional settings.
   damageprofiler: false
 
   # Optionally, we can create (m)pileup files based on the mapping result.
@@ -241,42 +246,29 @@ settings:
   # if `recalibrate-base-qualities` is set, in that order of processing.
   #
   # When deciding to create pileups, we can further choose to merge certain bams beforehand.
-  # Either all individally with no merging (each sample and each unit individually), merge units of
-  # the same sample, or (when making one pileup for all) merge all samples and units into one big
-  # pile. Note that these combined mpileup files will have the same order of pileup columns as
-  # the input data:sample table specified above.
-  #
   # By default, we do not make any pileup files (the empty list `[]`). To produce pileup files,
   # remove the empty list brackets, and uncomment the types of pileups that you need, as listed
   # (with explanations) below.
   pileups: []
-    # Make one pileup file per sample, with each unit of the sample as an individual column.
-    # - "samples-individual-units"
+    # Make one pileup file per sample (with all units of each sample merged into one pile).
+    # - "individual-samples"
     #
-    # Make one pileup file per sample, with all units of the sample merged into one pile.
-    # - "samples-merged-units"
-    #
-    # Make a pileup file containing all samples with all units as individual columns.
-    # This also creates a file `all-individual-units.names.txt`, which lists the order of the
-    # pileup columns in the file, which is the same order as the data:samples input table.
-    # - "all-individual-units"
-    #
-    # Make a pileup file containing columns for each sample, with units per sample merged.
-    # This also creates a file `all-merged-units.names.txt`, which lists the order of the
-    # pileup columns in the file, which is the same order as the data:samples input table,
-    # but using the first position of each sample (for samples that have multiple units).
-    # - "all-merged-units"
+    # Make a pileup file containing columns for each sample (with units per sample merged).
+    # This also creates a file "mpileup/all-sample-names.txt", which lists the order of the
+    # pileup columns in the file, which is the same order as the `data: samples-table` input table
+    # (the order in which each sample name appears first in the table, forsamples with multiple units).
+    # - "all-sampless"
     #
     # Make a pileup file with one column only, by merging all samples with all units into one pile.
     # - "all-merged-samples"
 
-  # Set to true in order to run HAFpipe to estimate haplotype-inferred allele frequencies
+  # Set to true in order to run HAF-pipe to estimate haplotype-inferred allele frequencies
   # from pool-seq data and founder SNP profiles.
-  # See params: hafpipe below for details and for the settings that need to be provided.
-  # Alternatively, if you just want to run HAFpipe (and all necessary steps before that, such as
+  # See `params: hafpipe` below for details and for the settings that need to be provided.
+  # Alternatively, if you just want to run HAF-pipe (and all necessary steps before that, such as
   # mapping the reads), instead of the whole pipeline, you can also call snakemake directly with
   # the special target "all_hafpipe" (just append that to the end of your usual snakemake call),
-  # which will just run the steps necessary to create the "hafpipe/all.csv" table.
+  # which will just run the steps necessary to create the HAF-pipe files.
   hafpipe: false
 
   # Set to true to compute a table of allele frequencies from the filtered vcf,
@@ -487,25 +479,37 @@ params:
   # See http://www.htslib.org/doc/samtools.html
   samtools:
 
-    # Used only if settings:filter-mapped-reads == true
+    # Extra paramters for the samtools/merge step per sample, combining all the units of a sample.
+    # Used for the merge step after mapping. We merge all bam files the same sample (all its units)
+    # before running any of the downstream steps (filtering, clipping, duplicate removel, etc),
+    # in order to streamline the process, and to make sure that all tools understand that all units
+    # of a sample belong to the same sample.
+    merge: ""
+    merge-threads: 4
+
     # Extra parameters for samtools/view.
+    # Used only if settings:filter-mapped-reads == true, in order to filter the mapped samples
+    # (which at this point had their units merged by the above samtools merge step).
     # These are the optional filtering criteria that are used beween mapping and subsequent steps.
     # We internally always add `-b` to this, so that the output is in the binary format that we
     # expect for our subsequent steps.
     view: "-q 1"
 
-    # Used only if settings:pileups is not empty, that is, if pileup files are generated.
     # Extra parameters for the samtools/mpileup step.
+    # Used only if settings:pileups is not empty, that is, if pileup files are generated.
     pileup: "-d 10000"
 
-    # Used only if settings:pileups is used to produced pileup files where units or samples are
-    # merged. Extra parameters for the samtools/merge step prior to the samtools/mpileup step.
-    merge: ""
-    merge-threads: 4
-
-    # Extra parameters for samtools sort, where ever it is used in the pipeline
+    # Extra parameters for samtools sort, whereever it is used in the pipeline
     # (e.g., after mapping, see above tools as well).
     sort: "-m 4G"
+
+    # By default, we run the samtools stats and flagstat QC tools on the processed bam files after
+    # processing all (optional) steps (filtering, clipping, dedup, base recalibration).
+    # However, we can also run on the raw merged samples, where reads just have been mapped, sorted,
+    # and merged per sample (all units of a sample into one bam file), but before any other processing.
+    # Valid values: "processed", "merged"
+    stats-bams: "processed"
+    flagstat-bams: "processed"
 
     # Temporary directory, used for example for samtools sort, which can cause trouble.
     # Samtools sort creates temporary files that are not cleaned up when a cluster job runs out of
@@ -548,8 +552,15 @@ params:
       QualityYieldMetrics: true
       # RnaSeqMetrics: false
 
-      # Extra parameters for CollectMultipleMetrics
-      extra: "VALIDATION_STRINGENCY=LENIENT METRIC_ACCUMULATION_LEVEL=null METRIC_ACCUMULATION_LEVEL=SAMPLE"
+    # Extra parameters for CollectMultipleMetrics
+    CollectMultipleMetrics-extra: "VALIDATION_STRINGENCY=LENIENT METRIC_ACCUMULATION_LEVEL=null METRIC_ACCUMULATION_LEVEL=SAMPLE"
+
+    # By default, we run the picard CollectMultipleMetrics QC tool on the processed bam files after
+    # processing all (optional) steps (filtering, clipping, dedup, base recalibration).
+    # However, we can also run on just the merged samples, where reads just have been mapped, sorted,
+    # and merged per sample (all units of a sample into one bam file), but before any other processing.
+    # Valid values: "processed", "merged"
+    CollectMultipleMetrics-bams: "processed"
 
   # ----------------------------------------------------------------------
   #     dedup
@@ -888,6 +899,7 @@ params:
   #     fastqc
   # ----------------------------------------------------------------------
 
+  # Used to produce statistics on the fastq files to find issues in the sequencing.
   fastqc:
 
     # Select input files for fastqc: either "samples" for the raw sequence input files,
@@ -902,13 +914,15 @@ params:
   #     qualimap
   # ----------------------------------------------------------------------
 
+  # Used to produce statistics on the mapping quality of the reads.
   qualimap:
 
-    # By default, we run qualimap on the merged bam file of each sample, combining all its units
-    # (e.g., its biological replicates, or resequenced libraries) into one file. This usually is
-    # more desirable, as it gives information on coverage per sample instead of per fastq or bam
-    # file. However, this can be changed here.
-    merge-units: true
+    # By default, we run the qualimap QC tool on the processed bam files after
+    # processing all (optional) steps (filtering, clipping, dedup, base recalibration).
+    # However, we can also run on the raw merged samples, where reads just have been mapped, sorted,
+    # and merged per sample (all units of a sample into one bam file), but before any other processing.
+    # Valid values: "processed", "merged"
+    bams: "processed"
 
     # Additional parameters for qualimap, see http://qualimap.conesalab.org/
     extra: "--java-mem-size=10G"

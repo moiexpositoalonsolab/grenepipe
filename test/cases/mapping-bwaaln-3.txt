@@ -3,4 +3,7 @@ mapping-tool: "bwamem"	mapping-tool: "bwaaln"
 recalibrate-base-qualities: false	recalibrate-base-qualities: true
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
-merge-units: true	merge-units: false
+stats-bams: "processed"	stats-bams: "merged"
+flagstat-bams: "processed"	flagstat-bams: "merged"
+CollectMultipleMetrics-bams: "processed"	CollectMultipleMetrics-bams: "merged"
+bams: "processed"	bams: "merged"

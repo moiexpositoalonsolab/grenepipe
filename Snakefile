@@ -28,17 +28,7 @@ rule all:
         config["data"]["reference-genome"] + ".seqkit",
 
         # Pileup
-        expand(
-            "mpileup/{sample}-individual-units.mpileup.gz",
-            sample=config["global"]["sample-names"]
-        ) if "samples-individual-units" in config["settings"]["pileups"] else [],
-        expand(
-            "mpileup/{sample}-merged-units.mpileup.gz",
-            sample=config["global"]["sample-names"]
-        ) if "samples-merged-units" in config["settings"]["pileups"] else [],
-        "mpileup/all-individual-units.mpileup.gz" if "all-individual-units" in config["settings"]["pileups"] else [],
-        "mpileup/all-merged-units.mpileup.gz" if "all-merged-units" in config["settings"]["pileups"] else [],
-        "mpileup/all-merged-samples.mpileup.gz" if "all-merged-samples" in config["settings"]["pileups"] else [],
+        "mpileup/all-pileups.done" if len(config["settings"]["pileups"]) else [],
 
         # HAFpipe
         "hafpipe/all.csv" + (

@@ -1,18 +1,35 @@
 import platform
 
+# The bam QC rules can either be run on the samples right after merging their units,
+# or after the further downstream processing steps (filtering, clipping, dedup, recal etc)
+# have been run. Here, we offer a simple function to switch between these inputs,
+# in order to avoid duplicating thise code below.
+# It expects the tool and key from the config.yaml
+def bam_qc_input( tool, key ):
+    if key not in config["params"][tool]:
+        raise Exception("config key " + key + " not found for tool " + tool)
+    if config["params"][tool][key] == "processed":
+        return get_mapping_result()
+    elif config["params"][tool][key] == "merged":
+        return "mapped/{sample}.merged.bam"
+    else:
+        raise Exception(
+            "Unknown setting for " + tool + " " + key + ": " + config["params"][tool][key]
+        )
+
 # =================================================================================================
-#     samtools_stats
+#     samtools stats and flagstat
 # =================================================================================================
 
 rule samtools_stats:
     input:
-        get_mapping_result()
+        bam_qc_input("samtools", "stats-bams")
     output:
-        "qc/samtools-stats/{sample}-{unit}.txt"
+        "qc/samtools-stats/{sample}.txt"
     log:
-        "logs/samtools-stats/{sample}-{unit}.log"
+        "logs/samtools-stats/{sample}.log"
     benchmark:
-        "benchmarks/samtools-stats/{sample}-{unit}.bench.log"
+        "benchmarks/samtools-stats/{sample}.bench.log"
     group:
         "qc"
     wrapper:
@@ -21,27 +38,23 @@ rule samtools_stats:
 rule samtools_stats_collect:
     input:
         expand(
-            "qc/samtools-stats/{u.sample}-{u.unit}.txt",
-            u=config["global"]["samples"].itertuples()
+            "qc/samtools-stats/{sample}.txt",
+            sample=config["global"]["sample-names"]
         )
     output:
         touch("qc/samtools-stats/samtools-stats.done")
 
 localrules: samtools_stats_collect
 
-# =================================================================================================
-#     samtools_flagstat
-# =================================================================================================
-
 rule samtools_flagstat:
     input:
-        get_mapping_result()
+        bam_qc_input("samtools", "flagstat-bams")
     output:
-        "qc/samtools-flagstats/{sample}-{unit}.txt"
+        "qc/samtools-flagstat/{sample}.txt"
     log:
-        "logs/samtools-flagstats/{sample}-{unit}.log"
+        "logs/samtools-flagstat/{sample}.log"
     benchmark:
-        "benchmarks/samtools-flagstats/{sample}-{unit}.bench.log"
+        "benchmarks/samtools-flagstat/{sample}.bench.log"
     group:
         "qc"
     wrapper:
@@ -50,11 +63,11 @@ rule samtools_flagstat:
 rule samtools_flagstat_collect:
     input:
         expand(
-            "qc/samtools-flagstats/{u.sample}-{u.unit}.txt",
-            u=config["global"]["samples"].itertuples()
+            "qc/samtools-flagstat/{sample}.txt",
+            sample=config["global"]["sample-names"]
         )
     output:
-        touch("qc/samtools-flagstats/samtools-flagstats.done")
+        touch("qc/samtools-flagstat/samtools-flagstat.done")
 
 localrules: samtools_flagstat_collect
 
@@ -62,76 +75,26 @@ localrules: samtools_flagstat_collect
 #     qualimap
 # =================================================================================================
 
-# We might want to run qualimap on either each bam file per sample-unit individually,
-# or on a merged bam file for a whole sample, merging all its units.
-# The merging rule here is duplicated from pileup.smk and from HAF-pipe in frequency.smk,
-# but for now, we keep it that way, in order to be more flexible with the specifics.
-rule qualimap_merge_unit_bams:
+# Rule for running qualimap for each bam file of a sample, with its units merged.
+rule qualimap_sample:
     input:
-        get_sample_bams_wildcards # provided in mapping.smk
-    output:
-        # Need to pick a different directory than the future output directory
-        # of the main qualimap rule here, so as not to confuse snakemake...
-        temp("qc/qualimap-bams/{sample}.merged.bam"),
-        touch("qc/qualimap-bams/{sample}.merged.done")
-    params:
-        config["params"]["samtools"]["merge"]
-    threads:
-        config["params"]["samtools"]["merge-threads"]
-    log:
-        "logs/samtools/qualimap/merge-{sample}.log"
-    group:
-        "qualimap"
-    wrapper:
-        "0.74.0/bio/samtools/merge"
-
-# Rule for running qualimap on each bam file of a sample and its units separately.
-# If things of how qualimap is run need to be adjusted here, they will probably also need to be
-# adjusted below in the rule that runs per sample with merged units.
-rule qualimap_sample_unit:
-    input:
-        get_mapping_result()
+        bam_qc_input("qualimap", "bams")
     output:
         # The output of this rule (for now) is a directory, so we have no way of telling whether
         # the rule succeeded by that. We hence add the `done` file here as well, which (according
         # to the snakemake docs) will only be created after the successful execution of the rule.
         # We had instances in the past where cluster jobs of this rule failed, and left a
         # half-finished directory behind; let's hope that this avoids that.
-        outdir=directory("qc/qualimap/{sample}-{unit}"),
-        done=touch("qc/qualimap/{sample}-{unit}.done")
+        outdir=directory("qc/qualimap/{sample}"),
+        done=touch("qc/qualimap/{sample}.done")
 
         # Alternatively, specify all individual files, which gives more control,
         # but also more spammed output
-        # "qc/qualimap/{sample}-{unit}/genome_results.txt",
-        # "qc/qualimap/{sample}-{unit}/qualimapReport.html",
-        # "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/coverage_histogram.txt",
-        # "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/genome_fraction_coverage.txt",
-        # "qc/qualimap/{sample}-{unit}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt",
-    params:
-        extra=config["params"]["qualimap"]["extra"],
-        outdir="qc/qualimap/{sample}-{unit}"
-    threads:
-        config["params"]["qualimap"]["threads"]
-    log:
-        "logs/qualimap/{sample}-{unit}_qualimap.log"
-    group:
-        "qualimap"
-    conda:
-        "../envs/qualimap.yaml"
-    shell:
-        "unset DISPLAY; qualimap bamqc -bam {input} -nt {threads} "
-        "-outdir {params.outdir} -outformat HTML "
-        "{params.extra} > {log} 2>&1"
-
-# Rule for running qualimap for each bam file of a sample, merging its units.
-# This is basically the same as above, but using the merged one instead.
-# We are not repeating all comments of above here, to keep it simple. See above for details.
-rule qualimap_sample_merged:
-    input:
-        "qc/qualimap-bams/{sample}.merged.bam"
-    output:
-        outdir=directory("qc/qualimap/{sample}"),
-        done=touch("qc/qualimap/{sample}.done")
+        # "qc/qualimap/{sample}/genome_results.txt",
+        # "qc/qualimap/{sample}/qualimapReport.html",
+        # "qc/qualimap/{sample}/raw_data_qualimapReport/coverage_histogram.txt",
+        # "qc/qualimap/{sample}/raw_data_qualimapReport/genome_fraction_coverage.txt",
+        # "qc/qualimap/{sample}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt",
     params:
         extra=config["params"]["qualimap"]["extra"],
         outdir="qc/qualimap/{sample}"
@@ -150,16 +113,12 @@ rule qualimap_sample_merged:
 
 rule qualimap_collect:
     input:
-        # Get either the merged per-sample qualimap files, or the per-sample and per-unit ones.
         expand(
             "qc/qualimap/{sample}.done",
             sample=config["global"]["sample-names"]
-        ) if config["params"]["qualimap"].get("merge-units", True) else
-        expand(
-            "qc/qualimap/{u.sample}-{u.unit}.done",
-            u=config["global"]["samples"].itertuples()
         )
 
+        # Old, explicitly request each output file. Also still uses units...
         # expand(
         #     "qc/qualimap/{u.sample}-{u.unit}/genome_results.txt",
         #     u=config["global"]["samples"].itertuples()
@@ -221,14 +180,14 @@ def picard_collectmultiplemetrics_exts():
 
 rule picard_collectmultiplemetrics:
     input:
-        bam=get_mapping_result(),
+        bam=bam_qc_input("picard", "CollectMultipleMetrics-bams"),
         ref=config["data"]["reference-genome"]
     output:
-        expand( "qc/picard/{{sample}}-{{unit}}{ext}", ext=picard_collectmultiplemetrics_exts())
+        expand( "qc/picard/{{sample}}{ext}", ext=picard_collectmultiplemetrics_exts())
     log:
-        "logs/picard/multiple_metrics/{sample}-{unit}.log"
+        "logs/picard/multiple_metrics/{sample}.log"
     params:
-        config["params"]["picard"]["CollectMultipleMetrics"]["extra"] + (
+        config["params"]["picard"]["CollectMultipleMetrics-extra"] + (
             " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
             if platform.system() == "Darwin"
             else ""
@@ -245,8 +204,8 @@ rule picard_collectmultiplemetrics:
 rule picard_collectmultiplemetrics_collect:
     input:
         expand(
-            "qc/picard/{u.sample}-{u.unit}{ext}",
-            u=config["global"]["samples"].itertuples(),
+            "qc/picard/{sample}{ext}",
+            sample=config["global"]["sample-names"],
             ext=picard_collectmultiplemetrics_exts()
         )
     output:
@@ -264,9 +223,9 @@ localrules: picard_collectmultiplemetrics_collect
 def get_dedup_report():
     # Switch to the chosen duplicate marker tool
     if config["settings"]["duplicates-tool"] == "picard":
-        return "qc/dedup/{u.sample}-{u.unit}.metrics.txt"
+        return "qc/dedup/{sample}.metrics.txt"
     elif config["settings"]["duplicates-tool"] == "dedup":
-        return "dedup/{u.sample}-{u.unit}.dedup.json"
+        return "dedup/{sample}.dedup.json"
     else:
         raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
 
@@ -283,7 +242,7 @@ rule dedup_reports_collect:
     input:
         expand(
             get_dedup_report(),
-            u=config["global"]["samples"].itertuples()
+            sample=config["global"]["sample-names"]
         )
     output:
         touch( get_dedup_done() )

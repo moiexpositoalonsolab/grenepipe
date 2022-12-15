@@ -23,10 +23,10 @@ rule multiqc:
 
         # Mapping QC tools
         "qc/samtools-stats/samtools-stats.done",
-        "qc/samtools-flagstats/samtools-flagstats.done",
+        "qc/samtools-flagstat/samtools-flagstat.done",
         "qc/qualimap/qualimap.done",
         "qc/picard/collectmultiplemetrics.done",
-        get_dedup_done(),
+        get_dedup_done() if config["settings"]["remove-duplicates"] else [],
 
         # VCF QC tools, if requested
         # We only need the stats.vchk file of bcftools stats, but request the pdf here as well,

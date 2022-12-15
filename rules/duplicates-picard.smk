@@ -9,21 +9,22 @@ import platform
 rule mark_duplicates:
     input:
         # Get either the normal mapping output, or, if additional filtering via `samtools view`
-        # is set in the config settings: filter-mapped-reads, use the filtered output instead.
+        # is set in the config settings: filter-mapped-reads, use the filtered output instead,
+        # or the clipped ones, if those were requested.
+        # We always use the merged units per sample here.
         get_mapped_reads
-        # "mapped/{sample}-{unit}.sorted.bam"
     output:
         bam=(
-            "dedup/{sample}-{unit}.bam"
+            "dedup/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("dedup/{sample}-{unit}.bam")
+            else temp("dedup/{sample}.bam")
         ),
-        metrics="qc/dedup/{sample}-{unit}.metrics.txt",
-        done=touch("dedup/{sample}-{unit}.done")
+        metrics="qc/dedup/{sample}.metrics.txt",
+        done=touch("dedup/{sample}.done")
     log:
-        "logs/picard/dedup/{sample}-{unit}.log"
+        "logs/picard/dedup/{sample}.log"
     benchmark:
-        "benchmarks/picard/dedup/{sample}-{unit}.bench.log"
+        "benchmarks/picard/dedup/{sample}.bench.log"
     params:
         # Take the params from the config.
         # On MacOS (we experienced it with 10.16, 11, and 12 so far), there is an issue between Java

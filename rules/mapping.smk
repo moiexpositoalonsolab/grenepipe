@@ -1,5 +1,3 @@
-from itertools import chain
-
 # =================================================================================================
 #     Read Group and Helper Functions
 # =================================================================================================
@@ -70,19 +68,52 @@ else:
     raise Exception("Unknown mapping-tool: " + config["settings"]["mapping-tool"])
 
 # =================================================================================================
+#     Merge per-sample bam files
+# =================================================================================================
+
+# We need a helper function to expand based on wildcards.
+# The file names used here is what all the above mappers are expected to produce.
+def get_sorted_sample_bams(wildcards):
+    return expand(
+        "mapped/{{sample}}-{unit}.sorted.bam",
+        unit=get_sample_units(wildcards.sample)
+    )
+
+# This is where all units are merged together.
+# We changed this behaviour. grenepipe v0.11.1 and before did _all_ the steps in this file
+# individually per unit. After that, we changed to merge here, and then run every subsequent
+# step on the samples with all their units merged. This makes the processing faster, and ensures
+# that all tools properly understand that these files are supposed to be a single sample each,
+# instead of potentially accidentally considering the different units as individual samples.
+rule merge_sample_unit_bams:
+    input:
+        get_sorted_sample_bams
+    output:
+        "mapped/{sample}.merged.bam",
+        touch("mapped/{sample}.merged.done")
+    params:
+        config["params"]["samtools"]["merge"]
+    threads:
+        config["params"]["samtools"]["merge-threads"]
+    log:
+        "logs/samtools/merge/merge-{sample}.log"
+    wrapper:
+        "0.74.0/bio/samtools/merge"
+
+# =================================================================================================
 #     Filtering and Clipping Mapped Reads
 # =================================================================================================
 
 rule filter_mapped_reads:
     input:
-        "mapped/{sample}-{unit}.sorted.bam"
+        "mapped/{sample}.merged.bam"
     output:
         (
-            "mapped/{sample}-{unit}.filtered.bam"
+            "mapped/{sample}.filtered.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("mapped/{sample}-{unit}.filtered.bam")
+            else temp("mapped/{sample}.filtered.bam")
         ),
-        touch("mapped/{sample}-{unit}.filtered.done")
+        touch("mapped/{sample}.filtered.done")
     params:
         extra=config["params"]["samtools"]["view"] + " -b"
     conda:
@@ -94,43 +125,44 @@ rule filter_mapped_reads:
 rule clip_read_overlaps:
     input:
         # Either get the mapped reads directly, or if we do filtering before, take that instead.
-        "mapped/{sample}-{unit}.filtered.bam" if (
+        "mapped/{sample}.filtered.bam" if (
             config["settings"]["filter-mapped-reads"]
         ) else (
-            "mapped/{sample}-{unit}.sorted.bam"
+            "mapped/{sample}.merged.bam"
         )
     output:
         (
-            "mapped/{sample}-{unit}.clipped.bam"
+            "mapped/{sample}.clipped.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("mapped/{sample}-{unit}.clipped.bam")
+            else temp("mapped/{sample}.clipped.bam")
         ),
-        touch("mapped/{sample}-{unit}.clipped.done")
+        touch("mapped/{sample}.clipped.done")
     params:
         extra=config["params"]["bamutil"]["extra"]
     log:
-        "logs/bamutil/{sample}-{unit}.log"
+        "logs/bamutil/{sample}.log"
     benchmark:
-        "benchmarks/bamutil/{sample}-{unit}.bench.log"
+        "benchmarks/bamutil/{sample}.bench.log"
     conda:
         "../envs/bamutil.yaml"
     shell:
         "bam clipOverlap --in {input[0]} --out {output[0]} {params.extra} &> {log}"
 
 def get_mapped_reads(wildcards):
-    """Get mapped reads of given sample-unit, either unfiltered, filtered, and/or clipped."""
+    """Get mapped reads of given sample (with merged units),
+    either unfiltered, filtered, and/or clipped."""
 
     # Default case: just the mapped and sorted reads.
-    result = "mapped/{sample}-{unit}.sorted.bam".format(**wildcards)
+    result = "mapped/{sample}.merged.bam".format(**wildcards)
 
     # If we want filtering, do that instead.
     if config["settings"]["filter-mapped-reads"]:
-        result = "mapped/{sample}-{unit}.filtered.bam".format(**wildcards)
+        result = "mapped/{sample}.filtered.bam".format(**wildcards)
 
     # If we want clipping, do that. The clipping rule above also might already use the
     # filtered reads, so that is taking into account as well.
     if config["settings"]["clip-read-overlaps"]:
-        result = "mapped/{sample}-{unit}.clipped.bam".format(**wildcards)
+        result = "mapped/{sample}.clipped.bam".format(**wildcards)
 
     return result
 
@@ -142,7 +174,7 @@ def get_mapped_reads(wildcards):
 # notice, and adapt this function as well.
 def get_mapped_read_infix():
     # Same logic as the function above.
-    result = "sorted"
+    result = "merged"
     if config["settings"]["filter-mapped-reads"]:
         result = "filtered"
     if config["settings"]["clip-read-overlaps"]:
@@ -192,6 +224,8 @@ if config["settings"]["recalibrate-base-qualities"]:
 #     Indexing
 # =================================================================================================
 
+# Generic rule for all bai files.
+# Bit weird as it produces log files with nested paths, but that's okay for now.
 rule bam_index:
     input:
         "{prefix}.bam"
@@ -217,23 +251,23 @@ rule bam_index:
 
 def get_mapping_result(bai=False):
     # case 1: no duplicate removal
-    f = "mapped/{sample}-{unit}.sorted.bam"
+    f = "mapped/{sample}.merged.bam"
 
     # case 2: filtering via samtools view
     if config["settings"]["filter-mapped-reads"]:
-        f = "mapped/{sample}-{unit}.filtered.bam"
+        f = "mapped/{sample}.filtered.bam"
 
     # case 3: clipping reads with BamUtil
     if config["settings"]["clip-read-overlaps"]:
-        f = "mapped/{sample}-{unit}.clipped.bam"
+        f = "mapped/{sample}.clipped.bam"
 
     # case 4: remove duplicates
     if config["settings"]["remove-duplicates"]:
-        f = "dedup/{sample}-{unit}.bam"
+        f = "dedup/{sample}.bam"
 
     # case 5: recalibrate base qualities
     if config["settings"]["recalibrate-base-qualities"]:
-        f = "recal/{sample}-{unit}.bam"
+        f = "recal/{sample}.bam"
 
     # Additionally, this function is run for getting bai files as well
     if bai:
@@ -241,27 +275,22 @@ def get_mapping_result(bai=False):
 
     return f
 
-# Return the bam file(s) for a given sample.
-# Get all aligned reads of given sample, with all its units.
-# This is where all units are merged together. The function also automatically gets
-# which of the mapping results to use, depending on the config setting (whether to remove
-# duplicates, and whether to recalibrate the base qualities), by using the get_mapping_result
-# function, that gives the respective files depending on the config.
+# Return the bam file for a given sample.
+# Get all aligned reads of given sample, with all its units merged.
+# The function automatically gets which of the mapping results to use, depending on the config
+# setting (whether to remove duplicates, and whether to recalibrate the base qualities),
+# by using the get_mapping_result function, that gives the respective files depending on the config.
 def get_sample_bams(sample):
     return expand(
         get_mapping_result(),
-        sample=sample,
-        unit=get_sample_units(sample)
-        # unit=config["global"]["samples"].loc[sample].unit
+        sample=sample
     )
 
 # Return the bai file(s) for a given sample
 def get_sample_bais(sample):
     return expand(
         get_mapping_result(True),
-        sample=sample,
-        unit=get_sample_units(sample)
-        # unit=config["global"]["samples"].loc[sample].unit
+        sample=sample
     )
 
 # Return the bam file(s) for a sample, given a wildcard param from a rule.
@@ -276,58 +305,28 @@ def get_sample_bais_wildcards(wildcards):
 def get_all_bams():
     # Make a list of all bams in the order as the samples list.
     res = list()
-    for su in config["global"]["sample-units"]:
-        res.append( get_mapping_result().format( sample=su[0], unit=su[1] ))
+    for smp in config["global"]["sample-names"]:
+        res.append( get_mapping_result().format( sample=smp ))
     return res
-
-    # The below approach gives the bams in sample-first order, which we do not want.
-    # return list(chain.from_iterable( [
-    #     get_sample_bams(sample) for sample in config["global"]["sample-names"]
-    # ] ))
 
 # Return the bai file(s) for all samples
 def get_all_bais():
     res = list()
-    for su in config["global"]["sample-units"]:
-        res.append( get_mapping_result(True).format( sample=su[0], unit=su[1] ))
+    for smp in config["global"]["sample-names"]:
+        res.append( get_mapping_result(True).format( sample=smp ))
     return res
-
-    # return list(chain.from_iterable( [
-    #     get_sample_bais(sample) for sample in config["global"]["sample-names"]
-    # ] ))
 
 # =================================================================================================
 #     All bams, but not SNP calling
 # =================================================================================================
 
-rule mapping_merge_unit_bams:
-    input:
-        get_sample_bams_wildcards
-    output:
-        "mapping-merged/{sample}.merged.bam",
-        touch("mapping-merged/{sample}.merged.done")
-    params:
-        config["params"]["samtools"]["merge"]
-    threads:
-        config["params"]["samtools"]["merge-threads"]
-    log:
-        "logs/samtools/merge/merge-{sample}.log"
-    wrapper:
-        "0.74.0/bio/samtools/merge"
-
 # This alternative target rule executes all steps up to th mapping, and yields the final bam
 # files that would otherwise be used for variant calling in the downstream process.
-# That is, depending on the config, these are the sorted, filtered, remove duplicates, or
+# That is, depending on the config, these are the sorted+merged, filtered, remove duplicates, or
 # recalibrated base qualities bam files.
-# Furthermore, we also create merged bam files per sample (merging all its units),
-# as this is likely something that the user wants when using this feature.
 rule all_bams:
     input:
-        get_all_bams(),
-        expand(
-            "mapping-merged/{sample}.merged.bam",
-            sample=config["global"]["sample-names"]
-        )
+        get_all_bams()
 
 # The `all_bams` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.

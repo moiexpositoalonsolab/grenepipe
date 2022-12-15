@@ -1,3 +1,6 @@
 duplicates-tool: "picard"	duplicates-tool: "dedup"
 mapping: true	mapping: false
-merge-units: true	merge-units: false
+stats-bams: "processed"	stats-bams: "merged"
+flagstat-bams: "processed"	flagstat-bams: "merged"
+CollectMultipleMetrics-bams: "processed"	CollectMultipleMetrics-bams: "merged"
+bams: "processed"	bams: "merged"
