@@ -108,7 +108,7 @@ if [ ! -f "${HAFPIPE_BIN}" ] ; then
     # Our improved version
     HAFPIPE_USER="lczech"
     HAFPIPE_REPO="HAF-pipe"
-    HAFPIPE_HASH="2152748a28a1b6eb570cdec8f985a2c765dd1ca1"
+    HAFPIPE_HASH="ef09729327bd305bdc36cb9e34462a9c85da4f75"
 
     # Somehow, curl from GitHub works differently - the output is already put into a file,
     # and we get a warning "Warning: Got more output options than URLs" when specifying `-o`,

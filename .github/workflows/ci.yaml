@@ -108,6 +108,16 @@ jobs:
           - os: macos-11
             case: base
 
+          # For now, let's also test hafpipe on macos. Will remove later.
+          - os: macos-latest
+            case: hafpipe-1
+          - os: macos-latest
+            case: hafpipe-2
+          - os: macos-latest
+            case: hafpipe-3
+          - os: macos-latest
+            case: hafpipe-4
+
     # -------------------------------------------------------
     #     Steps
     # -------------------------------------------------------
@@ -143,6 +153,7 @@ jobs:
       - name: File Inventory
         if: always()
         run: |
+          mkdir -p test/out-${{ matrix.case }}/logs
           ls -alFR test/out-${{ matrix.case }} >  test/out-${{ matrix.case }}/logs/files.txt
           ls -alFR test/reference/             >> test/out-${{ matrix.case }}/logs/files.txt
 
