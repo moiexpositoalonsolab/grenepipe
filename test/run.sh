@@ -101,7 +101,7 @@ fi
 
 # Update the test cases in the GitHub Actions workflow.
 if [[ -f ./.github/workflows/update-cases.sh ]]; then
-    ./.github/workflows/update-cases.sh > /dev/null
+    ./.github/workflows/update-cases.sh > /dev/null 2>&1
 fi
 
 # ==================================================================================================

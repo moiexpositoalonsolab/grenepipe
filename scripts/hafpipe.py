@@ -8,6 +8,7 @@
 
 import os
 import sys
+import glob
 from snakemake.shell import shell
 
 # Log everything, and append, to allow us easily to call shell() multiple times
@@ -140,6 +141,11 @@ if snakemake.params.get("tasks") == "1":
         not os.path.exists( numbgz ) or
         os.path.getsize( numbgz ) < 100
     ):
+        # Debugging for the CI env, which otherwise deletes the snp tables when failing
+        filelist = glob.glob(snakemake.output.get("snptable") + "*")
+        print("snptable files: " + str(filelist))
+        for f in filelist:
+            print(f + " --> " + str(os.path.getsize( f )))
         raise Exception(
             "The HAF-pipe Task 1 step to convert the SNP table file to a numeric format failed. "
             "It is likely that this is caused by an out-of-memory (OOM) error, as the HAF-pipe "
