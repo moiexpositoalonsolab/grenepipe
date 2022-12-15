@@ -6,7 +6,7 @@
 
 # Host-dependend settings:
 #  - Threads to use. In the GitHub Actions env, we only have two cores.
-#  - For GitHub Actions, we want to full snakemake output, instead of redirecting it to a file,
+#  - For GitHub Actions, we want the full snakemake output, instead of redirecting it to a file,
 #    in order to make it easier to debug CI runs. Locally, we don't want the clutter though,
 #    as we can easily access the log file.
 #  This is a crude test for whether we run locally or on GitHub, but should work.
@@ -82,14 +82,21 @@ list_descendants()
 # as this greatly decreases runtime when installing packages.
 # The below version comparison works as long as snakemake uses a three (or four) numbering scheme,
 # dot separated, without any letters or other things after the major-minor-patch versions.
+# As we currently control which snakemake version we run our tests with, that should be fine...
+# but it's fragile, as always with these things...
 CONDA_FRONTEND=""
 CONDA_PREFIX="conda-envs"
 function version {
     echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'
 }
 if [ $(version `snakemake --version`) -ge $(version "5.18.0") ]; then
-    CONDA_FRONTEND="--conda-frontend mamba"
-    CONDA_PREFIX="mamba-envs"
+    # We also check for the existence of an env var that prevents us from using mamba.
+    # This is useful to test with normal conda without having to change this script,
+    # for example when running in a CI environment.
+    if [[ -n "${GRENEPIPE_NO_MAMBA}" ]]; then
+        CONDA_FRONTEND="--conda-frontend mamba"
+        CONDA_PREFIX="mamba-envs"
+    fi
 fi
 
 # Update the test cases in the GitHub Actions workflow.
