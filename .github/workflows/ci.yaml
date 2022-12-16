@@ -39,8 +39,8 @@ jobs:
 
       matrix:
         os:
-          - ubuntu-latest
-          # - macos-latest
+          # - ubuntu-latest
+          - macos-latest
           # - ubuntu-22.04
           # - ubuntu-20.04
           # - macos-12
@@ -66,10 +66,10 @@ jobs:
           - calling-haplotypecaller-4
           - duplicates-dedup-1
           - duplicates-dedup-2
-          - hafpipe-1
-          - hafpipe-2
-          - hafpipe-3
-          - hafpipe-4
+          # - hafpipe-1
+          # - hafpipe-2
+          # - hafpipe-3
+          # - hafpipe-4
           - mapping-bowtie2-1
           - mapping-bowtie2-2
           - mapping-bwaaln-1
@@ -94,19 +94,19 @@ jobs:
           - trimming-skewer-2
           # CASES_END
 
-        include:
-          # Also test with other operating systems.
-          # For now, we just test the base case to see if it's generally working.
-          # This repeats one of the Ubuntu runs for the base case, but that's okay
-          # to keep it future proof when the default ubuntu-latest changes.
-          - os: ubuntu-22.04
-            case: base
-          - os: ubuntu-20.04
-            case: base
-          - os: macos-12
-            case: base
-          - os: macos-11
-            case: base
+        # include:
+        #   # Also test with other operating systems.
+        #   # For now, we just test the base case to see if it's generally working.
+        #   # This repeats one of the Ubuntu runs for the base case, but that's okay
+        #   # to keep it future proof when the default ubuntu-latest changes.
+        #   - os: ubuntu-22.04
+        #     case: base
+        #   - os: ubuntu-20.04
+        #     case: base
+        #   - os: macos-12
+        #     case: base
+        #   - os: macos-11
+        #     case: base
 
     # -------------------------------------------------------
     #     Steps
@@ -167,7 +167,7 @@ jobs:
   # ==========================================================================
 
   example:
-    # if: ${{ false }} # disable for now
+    if: ${{ false }} # disable for now
     runs-on: ${{ matrix.os }}
 
     defaults:
