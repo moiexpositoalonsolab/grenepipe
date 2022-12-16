@@ -3,3 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - skewer ==0.2.2
+
+  # We also need a non-default gzip for MacOS, see https://github.com/relipmoc/skewer/issues/30
+  # Using this for both linux and macos though, for simplicity.
+  - gzip

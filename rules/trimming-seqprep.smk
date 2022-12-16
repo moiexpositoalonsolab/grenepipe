@@ -1,6 +1,13 @@
+import platform
+
 # =================================================================================================
 #     Trimming
 # =================================================================================================
+
+if platform.system() == "Darwin":
+    raise Exception(
+        "Trimming tool seqprep is not available for MacOS. Please use a different trimming tool."
+    )
 
 rule trim_reads_pe:
     input:
@@ -39,7 +46,7 @@ rule trim_reads_pe:
     benchmark:
         "benchmarks/seqprep/{sample}-{unit}.bench.log"
     conda:
-        "../envs/seqprep.yaml"
+        "../envs/seqprep-linux.yaml"
     shell:
         "SeqPrep "
         "-f {input.r1} -r {input.r2} "

@@ -268,7 +268,23 @@ jobs:
         run: |
           cd envs
           for env in `ls *.yaml` ; do
-            name=${env%.yaml}
-            echo -e "\n${name}\n"
-            ${{ matrix.installer }} env create -f ${env} -n ${name}
+              name=${env%.yaml}
+              printf "\n" ; printf '=%.0s' {1..100}
+              printf "\n    ${name}\n"
+              printf '=%.0s' {1..100} ; printf "\n\n"
+
+              if [[ "$name" = "grenepipe" ]]; then
+                  echo "Skipping grenepipe"
+                  continue
+              fi
+              if [[ $os == macos* ]] && [[ "${name}" == *-linux ]]; then
+                  echo "Skipping linux env on macos"
+                  continue
+              fi
+              if [[ $os == ubuntu* ]] && [[ "${name}" == *-macos ]]; then
+                  echo "Skipping macos env on linux"
+                  continue
+              fi
+
+              ${{ matrix.installer }} env create -f ${env} -n ${name}
           done
