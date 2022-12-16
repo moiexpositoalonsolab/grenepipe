@@ -165,6 +165,10 @@ rule hafpipe_snp_table:
         tasks="1",
         chrom="{chrom}",
         extra=config["params"]["hafpipe"]["snp-table-extra"]
+    # We give this rule a bit higher priority, as it might run for a while.
+    # On clusters, after this rule is started, remaining capacity can then be filled
+    # with per-sample jobs, which usually run faster.
+    priority: 5
     log:
         "logs/hafpipe/snp-table/{chrom}.log"
     conda:
@@ -234,6 +238,8 @@ if impmethod in ["simpute", "npute"]:
             tasks="2",
             impmethod=impmethod,
             extra=config["params"]["hafpipe"]["impute-extra"]
+        # Same logic as above, let's accelarate the workflow.
+        priority: 5
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}.log"
         conda:
@@ -260,6 +266,8 @@ elif impmethod != "":
             # Unnamed output, as this is implicit in the user script
             get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
             touch(get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done")
+        # Same logic as above, let's accelarate the workflow.
+        priority: 5
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}.log"
         conda:
@@ -325,6 +333,8 @@ else:
             #     if os.path.exists( get_packages_dir() + "/hafpipe/scripts" )
             #     else get_packages_dir() + "/hafpipe"
             # )
+        # Same logic as above, let's accelarate the workflow.
+        priority: 5
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}-indices.log"
         conda:
