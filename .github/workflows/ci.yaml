@@ -171,12 +171,14 @@ jobs:
             test/out-${{ matrix.case }}/.snakemake/log/
             test/reference/logs/
             test/reference/TAIR10_chr_all.dict
+            test/snp-tables
 
   # ==========================================================================
   #     example
   # ==========================================================================
 
   example:
+    if: ${{ false }} # disable for now
     runs-on: ${{ matrix.os }}
 
     defaults:
