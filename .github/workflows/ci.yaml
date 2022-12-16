@@ -21,6 +21,7 @@ jobs:
   # ==========================================================================
 
   test:
+    if: ${{ false }} # disable for now
     runs-on: ${{ matrix.os }}
 
     defaults:
@@ -39,8 +40,8 @@ jobs:
 
       matrix:
         os:
-          # - ubuntu-latest
-          - macos-latest
+          - ubuntu-latest
+          # - macos-latest
           # - ubuntu-22.04
           # - ubuntu-20.04
           # - macos-12
@@ -66,10 +67,10 @@ jobs:
           - calling-haplotypecaller-4
           - duplicates-dedup-1
           - duplicates-dedup-2
-          # - hafpipe-1
-          # - hafpipe-2
-          # - hafpipe-3
-          # - hafpipe-4
+          - hafpipe-1
+          - hafpipe-2
+          - hafpipe-3
+          - hafpipe-4
           - mapping-bowtie2-1
           - mapping-bowtie2-2
           - mapping-bwaaln-1
@@ -94,19 +95,19 @@ jobs:
           - trimming-skewer-2
           # CASES_END
 
-        # include:
-        #   # Also test with other operating systems.
-        #   # For now, we just test the base case to see if it's generally working.
-        #   # This repeats one of the Ubuntu runs for the base case, but that's okay
-        #   # to keep it future proof when the default ubuntu-latest changes.
-        #   - os: ubuntu-22.04
-        #     case: base
-        #   - os: ubuntu-20.04
-        #     case: base
-        #   - os: macos-12
-        #     case: base
-        #   - os: macos-11
-        #     case: base
+        include:
+          # Also test with other operating systems.
+          # For now, we just test the base case to see if it's generally working.
+          # This repeats one of the Ubuntu runs for the base case, but that's okay
+          # to keep it future proof when the default ubuntu-latest changes.
+          - os: ubuntu-22.04
+            case: base
+          - os: ubuntu-20.04
+            case: base
+          - os: macos-12
+            case: base
+          - os: macos-11
+            case: base
 
     # -------------------------------------------------------
     #     Steps
@@ -136,9 +137,9 @@ jobs:
 
       # Run the test case.
       # Add the following line to test with conda instead of mamba.
+      # export GRENEPIPE_TESTS_NO_MAMBA=1
       - name: Run Test
         run: |
-          export GRENEPIPE_TESTS_NO_MAMBA=1
           ./test/run.sh ${{ matrix.case }}
 
       # Store a list of all files and sizes, for debugging.
@@ -217,3 +218,57 @@ jobs:
             example/run.log
             example/logs/
             example/.snakemake/log/
+
+  # ==========================================================================
+  #     envs
+  # ==========================================================================
+
+  envs:
+    # if: ${{ false }} # disable for now
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    # -------------------------------------------------------
+    #     Matrix
+    # -------------------------------------------------------
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-20.04
+          - macos-12
+          - macos-11
+
+        installer:
+          - conda
+          - mamba
+
+    # -------------------------------------------------------
+    #     Steps
+    # -------------------------------------------------------
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v2.2.0
+        with:
+          mamba-version: "*"
+          environment-file: envs/grenepipe.yaml
+          activate-environment: grenepipe
+
+      - name: Install Envs
+        run: |
+          cd envs
+          for env in `ls *.yaml` ; do
+            name=${env%.yaml}
+            echo -e "\n${name}\n"
+            ${{ matrix.installer }} env create -f ${env} -n ${name}
+          done
