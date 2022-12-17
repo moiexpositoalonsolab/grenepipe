@@ -21,7 +21,7 @@ jobs:
   # ==========================================================================
 
   test:
-    if: ${{ false }} # disable for now
+    # if: ${{ false }} # disable for now
     runs-on: ${{ matrix.os }}
 
     defaults:
@@ -96,8 +96,8 @@ jobs:
           # CASES_END
 
         installer:
-          - mamba
           # - conda
+          - mamba
 
         include:
           # Also test with other operating systems.
@@ -140,10 +140,12 @@ jobs:
       # conda activate grenepipe
 
       # Run the test case.
-      # Add the following line to test with conda instead of mamba.
-      # export GRENEPIPE_TESTS_NO_MAMBA=1
       - name: Run Test
         run: |
+          if [[ "${{ matrix.installer }}" == "conda" ]]; then
+            export GRENEPIPE_TESTS_NO_MAMBA=1
+          fi
+
           ./test/run.sh ${{ matrix.case }}
 
       # Store a list of all files and sizes, for debugging.
@@ -172,7 +174,7 @@ jobs:
   # ==========================================================================
 
   example:
-    if: ${{ false }} # disable for now
+    # if: ${{ false }} # disable for now
     runs-on: ${{ matrix.os }}
 
     defaults:
