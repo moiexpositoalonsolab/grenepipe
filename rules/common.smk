@@ -374,7 +374,7 @@ for sn in config["global"]["sample-names"]:
 if numeric_sample_names > 0:
     logger.warning(
         str(numeric_sample_names) + " of the " + str(len(config["global"]["sample-names"])) +
-        " input samples listed in the input files table " + config["data"]["samples-table"] +
+        " input sample names listed in the input files table " + config["data"]["samples-table"] +
         " are just numbers, or can be converted to numbers. We generally advise to avoid this, "
         "as it might confuse downstream processing such as Excel and R. The same applies for names "
         "that can be converted to dates (\"Dec21\"), but we do not check this here. "
@@ -383,24 +383,3 @@ if numeric_sample_names > 0:
     )
 
 del numeric_sample_names
-
-# =================================================================================================
-#     Common File Access Functions
-# =================================================================================================
-
-# Get the fastq files for a sample, either single or paired end, as a dictionary.
-def get_fastq(wildcards):
-    """Get fastq files of given sample-unit."""
-    smps = config["global"]["samples"]
-    fastqs = smps.loc[(wildcards.sample, wildcards.unit), ["fq1", "fq2"]].dropna()
-    if len(fastqs) == 2:
-        return {"r1": fastqs.fq1, "r2": fastqs.fq2}
-    else:
-        return {"r1": fastqs.fq1}
-
-# Determine whether a sample is single or paired end.
-# We use args to be able to call this function from functions that contain more wildcards
-# than just sample and unit, such as the bwa aln rules.
-def is_single_end( sample, unit, **kargs ):
-    """Return True if sample-unit is single end."""
-    return pd.isnull(config["global"]["samples"].loc[(sample, unit), "fq2"])
