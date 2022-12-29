@@ -17,7 +17,12 @@ def get_read_group_tags( wildcards ):
         pl = config["params"]["gatk"]["platform"]
     if 'platform' in config["global"]["samples"]:
         s = config["global"]["samples"].loc[(wildcards.sample, wildcards.unit), ["platform"]].dropna()
-        pl = s.platform
+        # We catch the case that the platform column is present, but empty for a given row.
+        # This would lead to an error, see https://stackoverflow.com/q/610883/4184258
+        try:
+            pl = s.platform
+        except:
+            pl = ""
     if pl:
         res.append( "PL:" + pl )
     return res
