@@ -191,6 +191,7 @@ rule picard_collectmultiplemetrics:
     log:
         "logs/picard/multiple_metrics/{sample}.log"
     params:
+        config["params"]["picard"]["CollectMultipleMetrics-java-opts"] + " " +
         config["params"]["picard"]["CollectMultipleMetrics-extra"] + (
             " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
             if platform.system() == "Darwin"

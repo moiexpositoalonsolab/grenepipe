@@ -65,9 +65,10 @@ if config["settings"].get("contig-group-size"):
                 " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
                 if platform.system() == "Darwin"
                 else ""
-            )
+            ),
+            java_opts=config["params"]["picard"]["SortVcf-java-opts"]
         log:
-            "logs/vcflib/sort-genotyped.log"
+            "logs/picard/sort-genotyped.log"
         benchmark:
             "benchmarks/picard/sort-genotyped.bench.log"
         conda:
@@ -75,6 +76,7 @@ if config["settings"].get("contig-group-size"):
         shell:
             # Weird new picard syntax...
             "picard SortVcf "
+            "{params.java_opts} "
             "INPUT={input.vcf} "
             "OUTPUT={output.vcf} "
             "SEQUENCE_DICTIONARY={input.refdict} "

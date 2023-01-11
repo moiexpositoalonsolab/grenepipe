@@ -562,6 +562,14 @@ params:
     # Valid values: "processed", "merged"
     CollectMultipleMetrics-bams: "processed"
 
+    # For some specific error cases, it might be necessary to adjust java settings for the tools,
+    # such as `-Xmx10g` to increase the available memory within the Java virtual machine
+    # (because it limits itself otherwise, instead of using the available memory...).
+    # The last option, SortVcf-java-opts, is used by bcftools when using contig-group-size > 0.
+    MarkDuplicates-java-opts: ""
+    CollectMultipleMetrics-java-opts: ""
+    SortVcf-java-opts: ""
+
   # ----------------------------------------------------------------------
   #     dedup
   # ----------------------------------------------------------------------
