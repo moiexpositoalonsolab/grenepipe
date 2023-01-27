@@ -77,8 +77,19 @@ settings:
   # using BamUtil clipOverlap.
   # Using the base calls from both forward and backward reads of paired end files might violate the
   # implicit assumption of genotype likelihood models of downstream callers: that each read
-  # represents unique insert information.
-  # This might bias the genotype likelihoods, particularly in low coverage settings.
+  # represents unique insert information. This might bias the genotype likelihoods, particularly
+  # in low coverage settings.
+  #
+  # In other words, from Lou et al. 2021 (DOI:10.22541/au.160689616.68843086/v4):
+  # > If the DNA insert in a library fragment is shorter than the combined length of paired reads,
+  # > there will be a section of overlap between the forward and reverse reads. While some variant
+  # > callers (e.g., gatk) account for the pseudoreplication in overlapping ends of read pairs,
+  # > the current implementation of angsd treats each end of a read pair as independent (this may
+  # > change in a future release (T. Korneliussen, personal communication)).
+  # > When treated as independent, read support for overlapping sections will be “double counted,”
+  # > which may bias genotype likelihoods. A conservative approach is to soft-clip one of the
+  # > overlapping read ends.
+  #
   # We hence offer this clipping step, to remove any potential overlap between paired reads.
   # If set to `true`, use `params: bamutil` below to set additional parameters for this step.
   # Using this option can lead to one of the read mates being fully soft clipped (if the respective
