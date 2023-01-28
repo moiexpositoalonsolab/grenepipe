@@ -126,7 +126,11 @@ jobs:
         with:
           # We need mamba here already, otherwise we run into
           # https://github.com/conda-incubator/setup-miniconda/issues/262
-          mamba-version: "*"
+          # mamba-version: "*"
+          # We need to replace the above, at least for now, due to instabilities in the action,
+          # see https://github.com/conda-incubator/setup-miniconda/issues/274#issue-1531425010
+          # If that changes again in the future, also change it below in the other jobs.
+          miniforge-variant: Mambaforge
           environment-file: envs/grenepipe.yaml
           activate-environment: grenepipe
 
@@ -206,7 +210,9 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2.2.0
         with:
-          mamba-version: "*"
+          # mamba-version: "*"
+          # Need to use a different setup to get mamba to work, see above.
+          miniforge-variant: Mambaforge
           environment-file: envs/grenepipe.yaml
           activate-environment: grenepipe
 
@@ -266,7 +272,9 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2.2.0
         with:
-          mamba-version: "*"
+          # mamba-version: "*"
+          # Need to use a different setup now to get mamba to work, see above.
+          miniforge-variant: Mambaforge
           environment-file: envs/grenepipe.yaml
           activate-environment: grenepipe
 
