@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+authors:
+- family-names: "Czech"
+  given-names: "Lucas"
+  orcid: "https://orcid.org/0000-0002-1340-9644"
+- family-names: "Exposito-Alonso"
+  given-names: "Moises"
+  orcid: "https://orcid.org/0000-0001-5711-0700"
+title: "grenepipe: a flexible, scalable and reproducible pipeline to automate variant calling from sequence reads"
+doi: 10.1093/bioinformatics/btac600
+url: "https://github.com/moiexpositoalonsolab/grenepipe"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Czech"
+    given-names: "Lucas"
+    orcid: "https://orcid.org/0000-0002-1340-9644"
+  - family-names: "Exposito-Alonso"
+    given-names: "Moises"
+    orcid: "https://orcid.org/0000-0001-5711-0700"
+  doi: "10.1093/bioinformatics/btac600"
+  journal: "Bioinformatics"
+  start: 4809 # First page number
+  end: 4811 # Last page number
+  title: "grenepipe: a flexible, scalable and reproducible pipeline to automate variant calling from sequence reads"
+  volume: 38
+  issue: 20
+  year: 2022
