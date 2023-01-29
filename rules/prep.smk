@@ -129,14 +129,25 @@ rule sequence_dictionary:
         genome
     output:
         genome_dict()
-    # params:
+    params:
+        # See duplicates-picard.smk for the reason whe need this on MacOS.
+        extra = (
+            " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
+            if platform.system() == "Darwin"
+            else ""
+        )
     #     base= lambda wc: os.path.splitext(genome)[0],
     log:
         os.path.join( genome_logdir, genomename + ".sequence_dictionary.log" )
     conda:
-        "../envs/prep.yaml"
+        "../envs/picard.yaml"
+    # We used GATK here for a while, but for whatever reason, in our GitHub Actions tests,
+    # this just randomly failed to produce a valid dict file, with no indication as to why,
+    # so we had to re-start CI jobs until it randomly worked... Trying Picard now, hoping to fix it.
     shell:
-        "gatk CreateSequenceDictionary -R {input} -O {output} --VERBOSITY DEBUG > {log} 2>&1"
+        "picard CreateSequenceDictionary REFERENCE={input} OUTPUT={output} {params.extra} > {log} 2>&1"
+    # shell:
+    #     "gatk CreateSequenceDictionary -R {input} -O {output} --VERBOSITY DEBUG > {log} 2>&1"
 
 # Get some statistics about the reference genome
 rule reference_seqkit:
