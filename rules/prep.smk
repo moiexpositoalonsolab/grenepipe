@@ -145,18 +145,16 @@ rule sequence_dictionary:
     # this just randomly failed to produce a valid dict file, with no indication as to why,
     # so we had to re-start CI jobs until it randomly worked... Trying Picard now, hoping to fix it.
     # Update: Nope, did not work, Picard also randomly fails to produce a valid file.
-    # Trying a loop now, until it works...
+    # Trying a (limited) loop now, until it works...
     shell:
-        # Awesome, the picard command has to be one line, otherwise we get the very helpful error
-        #    ERROR: Invalid argument ' '.
-        # What a tool!
         "for ITERATION in `seq 1 10` ; do "
         "    echo -e \"\\nAttempt $ITERATION\\n\" >> {log} 2>&1 ; "
         "    rm -f {output} ; "
-        "    picard CreateSequenceDictionary REFERENCE={input} OUTPUT={output} {params.extra} >> {log} 2>&1 ; "
+        "    picard CreateSequenceDictionary "
+        "        REFERENCE={input} OUTPUT={output} {params.extra} >> {log} 2>&1 ; "
         "    LENGTH=`cat {output} | wc -l` ; "
         "    if [ \"$LENGTH\" -gt 1 ]; then "
-        "        echo \"\\n{output} has $LENGTH lines \" >> {log} 2>&1 ; "
+        "        echo -e \"\\n{output} has $LENGTH lines \" >> {log} 2>&1 ; "
         "        break ; "
         "    fi ; "
         "done"
