@@ -143,8 +143,13 @@ if snakemake.params.get("tasks") == "1":
     ):
         raise Exception(
             "The HAF-pipe Task 1 step to convert the SNP table file to a numeric format failed. "
-            "It is likely that this is caused by an out-of-memory (OOM) error, as the HAF-pipe "
-            "R script `numeric_SNPtable.R` reads in the whole SNP table at once. This can be quite "
-            "big if your founder VCF has many samples. Please check all log files for errors, "
-            "and try to increase the amount of memory for our grenepipe rule `hafpipe_snp_table`."
+            "Please check all log files for errors."
         )
+        # The following is not true any more with our new improved script!
+        # raise Exception(
+        #     "The HAF-pipe Task 1 step to convert the SNP table file to a numeric format failed. "
+        #     "It is likely that this is caused by an out-of-memory (OOM) error, as the HAF-pipe "
+        #     "R script `numeric_SNPtable.R` reads in the whole SNP table at once. This can be quite "
+        #     "big if your founder VCF has many samples. Please check all log files for errors, "
+        #     "and try to increase the amount of memory for our grenepipe rule `hafpipe_snp_table`."
+        # )
