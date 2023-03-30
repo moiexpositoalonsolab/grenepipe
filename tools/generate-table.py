@@ -2,17 +2,18 @@
 
 import sys, os
 import re
-from glob import glob
-from termcolor import colored
-from collections import namedtuple
 import gzip
+import argparse
+from glob import glob
+from collections import namedtuple
+from termcolor import colored
 
 # =================================================================================================
 #     Usage and Description
 # =================================================================================================
 
 # Generate the samples table to be used as grenepipe input that lists paired end read samples.
-# Usage: ./generate-table.py <directory-with-fastq-files> [<samples.tsv>]
+# Usage: ./generate-table.py [--single] <directory-with-fastq-files> [<samples.tsv>]
 
 # =================================================================================================
 #     Settings
@@ -165,6 +166,15 @@ def get_mates(seqfiles):
 
     return mates
 
+def get_singles(seqfiles):
+    # Walk through the list of fastq files, but treat all of them as single end.
+    singles = []
+    for seq in seqfiles:
+        match = Match(seq1=seq, seq2="", pos=-1, idx1=0, idx2=None)
+        singles.append(match)
+
+    return singles
+
 def get_sample_name(match):
     # Expects one element of the get_mates function output list,
     # and cleans up the beginning and end of the file names to get a clean sample name.
@@ -302,24 +312,41 @@ def yes_or_no(question):
 # =================================================================================================
 
 if __name__ == "__main__":
-    # Need at least input dir, and maybe output file name as command line args.
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        sys.exit("Need directory path as input, and optionally output file name")
-    indir = sys.argv[1]
-    if len(sys.argv) == 3:
-        outfile = sys.argv[2]
+
+    # Set up the command line interface and parse the user provided options
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dir", help="Input directory to recursively scan for fastq files")
+    parser.add_argument(
+        "table", nargs='?', default=outfile,
+        help="Output table name, optional, defaults to " + outfile
+    )
+    parser.add_argument(
+        "--single",
+        action='store_true',
+        help="If set, all fastq files are considered to be single-end, " +
+        "and no attempt to match their names is performed"
+        )
+    args = parser.parse_args()
 
     # Output file check.
-    if os.path.exists(outfile):
-        if not yes_or_no("Output file `" + outfile + "` exists. Do you want to overwrite?"):
+    if os.path.exists(args.table):
+        if not yes_or_no("Output file `" + args.table + "` exists. Do you want to overwrite?"):
             sys.exit()
 
-    print("We will now process the directory and look for paired end mates.")
-    print("Please use the provided output to check that the mates are correctly assigned to each other,")
-    print("and that the extracted sample names make sense!")
-    print("(If not, this script here has to be adapted accordingly.)")
+    # Some output for the user
+    if args.single:
+        print("We will now process the directory and look for fastq files,")
+        print("treating them as single-ended read files.")
+    else:
+        print("We will now process the directory and look for paired end mates.")
+        print("Please use the provided output to check that the mates are correctly")
+        print("assigned to each other, and that the extracted sample names make sense!")
+        print("(If not, this script here has to be adapted accordingly.)")
 
     # Get the read mate pairs and write them to a table.
-    seqfiles = get_fastq_files( indir )
-    mates = get_mates( seqfiles )
-    write_table( mates, outfile )
+    seqfiles = get_fastq_files( args.dir )
+    if args.single:
+        mates = get_singles( seqfiles )
+    else:
+        mates = get_mates( seqfiles )
+    write_table( mates, args.table )
