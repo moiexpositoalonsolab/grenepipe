@@ -258,7 +258,9 @@ jobs:
           - macos-11
 
         installer:
-          - conda
+          # Conda is just waaaay to slow... some runs even exceed the GitHub Actions
+          # max runtime of 6h, so we have to deactivate it for now.
+          # - conda
           - mamba
 
     # -------------------------------------------------------
