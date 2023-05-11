@@ -575,7 +575,9 @@ params:
 
     # For some specific error cases, it might be necessary to adjust java settings for the tools,
     # such as `-Xmx10g` to increase the available memory within the Java virtual machine
-    # (because it limits itself otherwise, instead of using the available memory...).
+    # (because it limits itself otherwise, instead of using the available memory...),
+    # or `-Djava.io.tmpdir=/path/to/tmp` to set a directory for temporary data, in case that the
+    # system-provided tmp dir is too small (which can happen on clusters).
     # The last option, SortVcf-java-opts, is used by bcftools when using contig-group-size > 0.
     MarkDuplicates-java-opts: ""
     CollectMultipleMetrics-java-opts: ""
