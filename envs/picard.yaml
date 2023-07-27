@@ -22,4 +22,4 @@ dependencies:
   # We are now using the version that gets installed when specifying no version,
   # in the hope that this can be solved more easilty by conda then.
   - r-tidyverse ==1.3.2
-  - snakemake-wrapper-utils
+  - snakemake-wrapper-utils >=0.3.1,<0.6.2
