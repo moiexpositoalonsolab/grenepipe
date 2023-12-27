@@ -239,7 +239,7 @@ settings:
   # MultiQC report. Note that this requires the variant calling step - if you are working with
   # ancient DNA, you might want to deactivate this step, so that you can get the MultiQC report
   # for all other tools, without having to run the variant calling.
-  bcftools-stats: true
+  bcftools-stats: false
 
   # Set to true in order to run mapDamage.
   # See below `params: mapdamage` for additional settings.
