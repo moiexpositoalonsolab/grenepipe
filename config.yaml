@@ -461,7 +461,7 @@ params:
     # Extra parameters for bwa mem.
     # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM",
     # and potentially "PL".
-    extra: ""
+    extra: "-M" # Recommended with Picard and GATK to avoid false positive SNP calls
 
     # Extra parameters for samtools sort, which we use after bwa mem for sorting its output,
     # can be set via `samtools: sort` below.
