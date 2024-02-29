@@ -119,10 +119,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.0.0
+        uses: actions/checkout@v4
 
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2.2.0
+        uses: conda-incubator/setup-miniconda@v3.0.3
         with:
           # We need mamba here already, otherwise we run into
           # https://github.com/conda-incubator/setup-miniconda/issues/262
@@ -163,7 +163,7 @@ jobs:
       # Upload the log files as a GitHub Actions artifact
       - name: Upload Logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-test-${{ matrix.os }}-${{ matrix.case }}
           path: |
@@ -205,10 +205,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v4
 
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2.2.0
+        uses: conda-incubator/setup-miniconda@v3.0.3
         with:
           # mamba-version: "*"
           # Need to use a different setup to get mamba to work, see above.
@@ -223,7 +223,7 @@ jobs:
 
       - name: Upload Logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-example-${{ matrix.os }}
           path: |
@@ -269,10 +269,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v4
 
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2.2.0
+        uses: conda-incubator/setup-miniconda@v3.0.3
         with:
           # mamba-version: "*"
           # Need to use a different setup now to get mamba to work, see above.
