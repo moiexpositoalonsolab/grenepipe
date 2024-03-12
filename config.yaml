@@ -2,8 +2,9 @@
 #     Input Data
 # =================================================================================================
 
-# Set the input data, using absolute file paths (relative paths do not work well with some
+# Settings for the input data, using absolute file paths (relative paths do not work well with some
 # of the snakemake tools we are using in the pipeline, such as shadow directories).
+# Adjust the below file paths and other options as needed.
 data:
 
   # Needed. Samples table that lists all samples with their units (re-sequencing runs) and fastq files.
@@ -15,7 +16,7 @@ data:
   # Needed. Path to the reference genome in fasta format.
   # Path needs to be absolute! No relative path (e.g., `../ref`), and no paths using shortcuts
   # such as `~`.
-  # We expect that each sequence in the file represents a chromsome, contig, or scaffold.
+  # We expect that each sequence in the file represents a chromosome, contig, or scaffold.
   # For genomes that are not fully assembled but consist of many small scaffolds,
   # see the `contig-group-size` option below to help increase computational speed.
   reference-genome: "/path/to/data/genome.fa"
@@ -43,6 +44,9 @@ data:
 #     Pipeline Settings
 # =================================================================================================
 
+# Settings for the tools to use and steps to perform.
+# These are meant for selecting the overall workflow of the pipeline.
+# See later in the "params" category for the parameters of each tool.
 settings:
 
   # ----------------------------------------------------------------------
@@ -300,6 +304,9 @@ settings:
 #     Tool Parameters
 # =================================================================================================
 
+# Parameter choices for each of the tools offered in grenepipe. Only the params are used
+# from here that belong to tools that are actually used during the pipeline run, i.e.,
+# based on the selection above.
 params:
 
   # ----------------------------------------------------------------------
@@ -1009,7 +1016,7 @@ params:
     # However, as the SNP tables only have to be computed once per founder VCF,
     # this directory can be specified to allow re-using the tables (also with Task 2, see below).
     # If the respective tables are found in that directory, Task 1 is not executed again;
-    # the tables are named `{chrom}.csv`, for the chromsomes as provided above.
+    # the tables are named `{chrom}.csv`, for the chromosomes as provided above.
     # We recommend to set this to a sub-directory of where the above `founder-vcf` is located,
     # e.g., a subdirectory called "hafpipe-snp-tables".
     snp-table-dir: ""
@@ -1090,7 +1097,7 @@ params:
 
     # HAF-pipe by default produces individual files per sample and per chromosome, which can be a
     # bit hard to work with, in particular as the only way to determine the chromosome is from
-    # the file name. So here we offer to concatenate the per-sample files for all chromsomes,
+    # the file name. So here we offer to concatenate the per-sample files for all chromosomes,
     # making it easier to work with downstream. The files will be stored in `hafpipe/samples`.
     # See also below for an option to compress these files to save disk space.
     make-sample-tables: true
