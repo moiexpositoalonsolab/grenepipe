@@ -128,7 +128,6 @@ jobs:
           # https://github.com/conda-incubator/setup-miniconda/issues/262
           mamba-version: "*"
           channels: conda-forge
-          channels: conda-forge
           # We need to replace the above, at least for now, due to instabilities in the action,
           # see https://github.com/conda-incubator/setup-miniconda/issues/274#issue-1531425010
           # If that changes again in the future, also change it below in the other jobs.
