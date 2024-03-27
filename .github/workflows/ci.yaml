@@ -153,6 +153,9 @@ jobs:
       # Run the test case.
       - name: Run Test
         run: |
+          conda info
+          mamba info
+
           if [[ "${{ matrix.installer }}" == "conda" ]]; then
             export GRENEPIPE_TESTS_NO_MAMBA=1
           fi
