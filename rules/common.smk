@@ -3,7 +3,7 @@
 # =================================================================================================
 
 import pandas as pd
-import os, sys, pwd
+import os, sys, pwd, re
 import socket, platform
 import subprocess
 from datetime import datetime
@@ -183,6 +183,25 @@ try:
 except:
     conda_ver = "n/a"
 
+# Same for mamba. This somehow can also give a differing conda version.
+# Who knows what that means. I'm sick of conda. Just reporting the version here,
+# and have someone else deal with it.
+try:
+    process = subprocess.Popen(['mamba', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = process.communicate()
+    out = out.decode('ascii')
+    mamba_ver = re.findall("mamba *(.*) *", out)[0]
+    conda_ver_mamba = re.findall("conda *(.*) *", out)[0]
+    del process, out, err
+    if not mamba_ver:
+        mamba_ver = "n/a"
+        conda_ver_mamba = ""
+except:
+    mamba_ver = "n/a"
+    conda_ver_mamba = ""
+if conda_ver_mamba and conda_ver_mamba != conda_ver:
+    conda_ver += " (conda), " + conda_ver_mamba + " (mamba)"
+
 # Get the conda env name, if available.
 # See https://stackoverflow.com/a/42660674/4184258
 conda_env = os.environ['CONDA_DEFAULT_ENV'] + " (" + os.environ["CONDA_PREFIX"] + ")"
@@ -224,6 +243,7 @@ logger.info("    Platform:           " + pltfrm)
 logger.info("    Host:               " + hostname)
 logger.info("    User:               " + username)
 logger.info("    Conda:              " + str(conda_ver))
+logger.info("    Mamba:              " + str(mamba_ver))
 logger.info("    Python:             " + str(sys.version.split(' ')[0]))
 logger.info("    Snakemake:          " + str(snakemake.__version__))
 logger.info("    Grenepipe:          " + str(grenepipe_version))
