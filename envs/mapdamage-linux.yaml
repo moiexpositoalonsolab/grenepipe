@@ -3,7 +3,8 @@ channels:
   - conda-forge
   - zegami
 dependencies:
-  - mapdamage2=2.2.1=pyr40_0
+  - mapdamage2=2.2.2
+  # - mapdamage2=2.2.1=pyr40_0
   # - mapdamage2=2.2.1
   # Somehow, not all dependencies of mapdamage2 are properly resolved on some machines...
   # We got
@@ -15,3 +16,4 @@ dependencies:
   - libssl-libcryptso6
   - pysam =0.19.1
   - r-rcppgsl
+  # - r-base
