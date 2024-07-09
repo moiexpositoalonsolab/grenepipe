@@ -122,15 +122,22 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2.2.0
+        uses: conda-incubator/setup-miniconda@v3.0.3
         with:
           # We need mamba here already, otherwise we run into
           # https://github.com/conda-incubator/setup-miniconda/issues/262
           # mamba-version: "*"
+          # channels: conda-forge
           # We need to replace the above, at least for now, due to instabilities in the action,
           # see https://github.com/conda-incubator/setup-miniconda/issues/274#issue-1531425010
           # If that changes again in the future, also change it below in the other jobs.
-          miniforge-variant: Mambaforge
+          # miniforge-variant: Mambaforge
+          miniforge-version: latest
+          # New workaround suggestion:
+          # https://github.com/conda-incubator/setup-miniconda/issues/292#issuecomment-1767669652
+          # Why is this stuff so broken all the time?
+          use-mamba: true
+          channels: conda-forge
           environment-file: envs/grenepipe.yaml
           activate-environment: grenepipe
 
@@ -146,6 +153,9 @@ jobs:
       # Run the test case.
       - name: Run Test
         run: |
+          conda info
+          mamba info
+
           if [[ "${{ matrix.installer }}" == "conda" ]]; then
             export GRENEPIPE_TESTS_NO_MAMBA=1
           fi
@@ -208,11 +218,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2.2.0
+        uses: conda-incubator/setup-miniconda@v3.0.3
         with:
           # mamba-version: "*"
+          # channels: conda-forge
           # Need to use a different setup to get mamba to work, see above.
-          miniforge-variant: Mambaforge
+          # miniforge-variant: Mambaforge
+          miniforge-version: latest
+          use-mamba: true
+          channels: conda-forge
           environment-file: envs/grenepipe.yaml
           activate-environment: grenepipe
 
@@ -272,11 +286,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v2.2.0
+        uses: conda-incubator/setup-miniconda@v3.0.3
         with:
           # mamba-version: "*"
+          # channels: conda-forge
           # Need to use a different setup now to get mamba to work, see above.
-          miniforge-variant: Mambaforge
+          # miniforge-variant: Mambaforge
+          miniforge-version: latest
+          use-mamba: true
+          channels: conda-forge
           environment-file: envs/grenepipe.yaml
           activate-environment: grenepipe
 
