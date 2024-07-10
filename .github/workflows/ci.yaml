@@ -116,6 +116,8 @@ jobs:
             case: base
           - os: macos-13
             case: base
+          - os: macos-13
+            case: base
 
     # -------------------------------------------------------
     #     Steps
@@ -130,13 +132,13 @@ jobs:
         with:
           # We need mamba here already, otherwise we run into
           # https://github.com/conda-incubator/setup-miniconda/issues/262
-          mamba-version: "*"
-          python-version: 3.12
-          channels: conda-forge,defaults
-          channel-priority: true
-          use-mamba: true
-          environment-file: envs/grenepipe.yaml
-          activate-environment: grenepipe
+          # mamba-version: "*"
+          # python-version: 3.12
+          # channels: conda-forge,defaults
+          # channel-priority: true
+          # use-mamba: true
+          # environment-file: envs/grenepipe.yaml
+          # activate-environment: grenepipe
 
           # We might need to replace the above, at least for now, due to instabilities in the action,
           # see https://github.com/conda-incubator/setup-miniconda/issues/274#issue-1531425010
@@ -146,6 +148,12 @@ jobs:
           # New workaround suggestion:
           # https://github.com/conda-incubator/setup-miniconda/issues/292#issuecomment-1767669652
           # Why is this stuff so broken all the time?
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          use-mamba: true
+          channels: conda-forge,defaults
+          environment-file: envs/grenepipe.yaml
+          activate-environment: grenepipe
 
       # Manually create the conda env.
       # Not needed at the moment, as the above setup works (if it works).
@@ -211,10 +219,12 @@ jobs:
 
       matrix:
         os:
-          - ubuntu-22.04
           - ubuntu-20.04
+          - ubuntu-22.04
+          - ubuntu-24.04
           - macos-12
-          - macos-11
+          - macos-13
+          - macos-14
 
     # -------------------------------------------------------
     #     Steps
@@ -278,7 +288,7 @@ jobs:
           - ubuntu-24.04
           - macos-12
           - macos-13
-          - macos-14
+          # - macos-14
 
         installer:
           # Conda is just waaaay to slow... some runs even exceed the GitHub Actions
