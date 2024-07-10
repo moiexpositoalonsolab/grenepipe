@@ -151,6 +151,7 @@ rule called_vcf_index:
 rule merge_variants:
     input:
         ref=get_fai,
+        contig_groups=contigs_groups_input,
         vcfs=merge_variants_vcfs_input,
         tbis=merge_variants_tbis_input
     output:

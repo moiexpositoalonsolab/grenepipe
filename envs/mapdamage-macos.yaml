@@ -1,8 +1,8 @@
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - zegami
 dependencies:
-  - mapdamage2=2.2.1=pyr40_0
-  - pysam =0.19.1
+  - mapdamage2=2.2.2
+  - pysam #=0.19.1
   - r-rcppgsl

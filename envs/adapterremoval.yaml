@@ -1,5 +1,5 @@
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
 dependencies:
-  - adapterremoval ==2.3.1
+  - adapterremoval ==2.3.3

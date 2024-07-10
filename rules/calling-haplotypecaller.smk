@@ -211,6 +211,7 @@ rule merge_variants:
         # The get_fai() function uses a snakemake checkpoint to make sure that the fai is
         # produced before we use it here to get its content.
         ref=get_fai,
+        contig_groups=contigs_groups_input,
 
         # vcfs=lambda w: expand("genotyped/all.{contig}.vcf.gz", contig=get_contigs())
         vcfs=merge_variants_vcfs_input

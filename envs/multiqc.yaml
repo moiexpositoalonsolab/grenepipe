@@ -1,13 +1,23 @@
 channels:
   # Use anaconda as first channel to fix issue #25
-  - anaconda
-  - bioconda
+  # Somehow only works with the channels in this order...
+  # Changed now, seems to work, but keeping the above for reference.
+  # - anaconda
   - conda-forge
+  - bioconda
 dependencies:
   # Python
-  - python ==3.7.10
-  - pandas ==1.3.1
-  - numpy ==1.21.2
+  # - python ==3.12
+  # - numpy  ==2.0.0
+  - pandas ==2.2.2
+  #
+  # MultiQC does not install with the above versions....
+  # Hopefully, that won't lead to conflicts down the line.
+  # In a test env, it is using the following versions instead,
+  # which we hence here pin for reproducibility.
+  - python ==3.11.9
+  - numpy  ==2.0.0
+
   # Tools
-  - multiqc ==1.10.1
+  - bioconda::multiqc ==1.22.3
   # - urllib3 ==1.24

@@ -97,13 +97,13 @@ rule merge_sample_unit_bams:
         "mapped/{sample}.merged.bam",
         touch("mapped/{sample}.merged.done")
     params:
-        config["params"]["samtools"]["merge"]
+        extra=config["params"]["samtools"]["merge"]
     threads:
         config["params"]["samtools"]["merge-threads"]
     log:
         "logs/samtools/merge/merge-{sample}.log"
     wrapper:
-        "0.74.0/bio/samtools/merge"
+        "v3.13.6/bio/samtools/merge"
 
 # =================================================================================================
 #     Filtering and Clipping Mapped Reads

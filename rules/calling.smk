@@ -94,6 +94,12 @@ if config["settings"].get("contig-group-size", 0) > 0:
     # Rule is not submitted as a job to the cluster.
     localrules: contig_groups
 
+    # Due to a new bug in Snakemake after our update to 8.15.2, we now need the following
+    # function to be called as input whenever the above checkpoint is needed.
+    # See https://github.com/snakemake/snakemake/issues/2958 for details.
+    def contigs_groups_input(wildcards):
+        return checkpoints.contig_groups.get().output[0]
+
     # Make the contig-group list files that contain the names of the contigs/scaffolds
     # that have been bin-packed above.
     rule contigs_group_list:
@@ -140,6 +146,11 @@ if config["settings"].get("contig-group-size", 0) > 0:
     #         "https://github.com/lczech/grenepipe/issues and we will see what we can do."
     #     )
 
+else:
+    # Dummy definition of the above rule for when we are not using contig groups.
+    def contigs_groups_input(wildcards):
+        return []
+
 # =================================================================================================
 #     Get Contigs
 # =================================================================================================
@@ -151,9 +162,9 @@ if "contigs" in config["global"]:
 # Get the list of chromosome names that are present in the fai file.
 # This is just the first column of the file.
 def get_chromosomes( fai ):
-    return list( pd.read_csv(
-        fai, sep='\t', header=None, usecols=[0], squeeze=True, dtype=str
-    ))
+    return list(
+        pd.read_csv( fai, sep='\t', header=None, usecols=[0], dtype=str ).squeeze()
+    )
 
 # Contigs in reference genome. This function gives the list of contig names that we want to
 # use for calling, that is, either all contigs of the reference genome, or, if contig grouping

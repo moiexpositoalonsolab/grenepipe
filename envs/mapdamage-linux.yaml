@@ -1,7 +1,7 @@
 channels:
-  - bioconda
   - conda-forge
-  - zegami
+  - bioconda
+  # - zegami
 dependencies:
   - mapdamage2=2.2.2
   # - mapdamage2=2.2.1=pyr40_0
@@ -13,7 +13,7 @@ dependencies:
   # and solve it here as described in https://unix.stackexchange.com/a/283609
   # This only applies to Linux - on MacOS, this library does not exist on conda.
   # So, we have an extra env yaml file for that case, which is being used for MacOS.
-  - libssl-libcryptso6
-  - pysam =0.19.1
-  - r-rcppgsl
+  # - libssl-libcryptso6
+  # - pysam #=0.19.1
+  # - r-rcppgsl
   # - r-base

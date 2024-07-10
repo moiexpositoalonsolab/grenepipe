@@ -37,7 +37,7 @@ rule snpeff_db:
         # So let's provide a working combination of versions of these tools.
         "../envs/snpeff.yaml"
     wrapper:
-        "0.74.0/bio/snpeff/download"
+        "v3.13.6/bio/snpeff/download"
 
 # Rule is not submitted as a job to the cluster.
 localrules: snpeff_db
@@ -87,13 +87,14 @@ rule snpeff:
     group:
         "snpeff"
     params:
-        # optional parameters (e.g., max memory 4g)
         # For finding the chromosome names used by snpeff, add `-v` here
         extra=config["params"]["snpeff"]["extra"]
+    resources:
+        mem_mb=config["params"]["snpeff"]["mem"]
     conda:
         "../envs/snpeff.yaml"
     wrapper:
-        "0.74.0/bio/snpeff/annotate"
+        "v3.13.6/bio/snpeff/annotate"
 
 # =================================================================================================
 #     VEP Downloads
@@ -147,6 +148,7 @@ rule vep_cache:
     script:
         "../scripts/vep-cache.py"
     # wrapper:
+    #     "v3.13.6/bio/vep/cache"
     #     "0.74.0/bio/vep/cache"
 
 rule vep_plugins:
@@ -169,6 +171,7 @@ rule vep_plugins:
         # the output directory was already created and hence the python mkdir failed...
         "../scripts/vep-plugins.py"
     # wrapper:
+    #     "v3.13.6/bio/vep/plugins"
     #     "0.74.0/bio/vep/plugins"
 
 # Rules are not submitted as a job to the cluster.
@@ -224,4 +227,4 @@ rule vep:
     # It wants there to be one file in the database, when the vep cache wrapper also can produce
     # multiple files/directories in the cache du to also downloading the fasta reference files.
     wrapper:
-        "0.74.0/bio/vep/annotate"
+        "v3.13.6/bio/vep/annotate"

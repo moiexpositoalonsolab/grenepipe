@@ -1,4 +1,5 @@
 channels:
+  # Somehow only works with the channels in this order...
   - bioconda
   - conda-forge
 dependencies:

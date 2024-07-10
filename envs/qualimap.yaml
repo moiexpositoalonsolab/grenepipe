@@ -6,7 +6,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - qualimap ==2.2.2d
+  - qualimap ==2.3.0
   # - qualimap
   # - qualimap ==2.2.2a
   # - qualimap ==2.2.2d

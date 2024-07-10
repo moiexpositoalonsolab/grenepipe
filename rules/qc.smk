@@ -43,7 +43,8 @@ rule multiqc:
         "damageprofiler/damageprofiler.done" if config["settings"]["damageprofiler"] else []
 
     output:
-        report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control")
+        report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control"),
+        "qc/multiqc.zip",
     params:
         config["params"]["multiqc"]["extra"],
     log:
@@ -53,7 +54,7 @@ rule multiqc:
         # issues with missing python modules and mismatching program versions and stuff...
         "../envs/multiqc.yaml"
     wrapper:
-        "0.74.0/bio/multiqc"
+        "v3.13.6/bio/multiqc"
     # script:
     #     # We use our own version of the wrapper here, to troubleshoot dependecy issues...
     #     "../scripts/multiqc.py"

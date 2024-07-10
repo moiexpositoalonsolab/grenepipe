@@ -149,6 +149,7 @@ rule combine_all:
         # The get_fai() function uses a snakemake checkpoint to make sure that the fai is
         # produced before we use it here to get its content.
         ref=get_fai,
+        contig_groups=contigs_groups_input,
         gvcfs=combined_contig_gvcfs
     output:
         # vcf="genotyped/all.vcf.gz",

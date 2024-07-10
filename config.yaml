@@ -4,7 +4,7 @@
 
 # Settings for the input data, using absolute file paths (relative paths do not work well with some
 # of the snakemake tools we are using in the pipeline, such as shadow directories).
-# Adjust the below file paths and other options as needed.
+# Adjust the below dummy file paths and other options as needed.
 data:
 
   # Needed. Samples table that lists all samples with their units (re-sequencing runs) and fastq files.
@@ -586,7 +586,7 @@ params:
     # or `-Djava.io.tmpdir=/path/to/tmp` to set a directory for temporary data, in case that the
     # system-provided tmp dir is too small (which can happen on clusters).
     # The last option, SortVcf-java-opts, is used by bcftools when using contig-group-size > 0.
-    MarkDuplicates-java-opts: ""
+    MarkDuplicates-java-opts: "-Xmx10g"
     CollectMultipleMetrics-java-opts: ""
     SortVcf-java-opts: ""
 
@@ -847,8 +847,11 @@ params:
     # this local path is used, which is expected to contain a valid snpEff database.
     custom-db-dir: ""
 
+    # Memory (in MB) to be given to SnpEFF. Increase this if the command fails.
+    mem: 4000
+
     # Additional parameters for snpeff, see https://pcingola.github.io/SnpEff/se_commandline/
-    extra: "-Xmx4g"
+    extra: ""
 
   # ----------------------------------------------------------------------
   #     VEP

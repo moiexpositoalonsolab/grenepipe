@@ -119,6 +119,7 @@ rule merge_variants:
         # The get_fai() function uses a snakemake checkpoint to make sure that the fai is
         # produced before we use it here to get its content.
         ref=get_fai,
+        contig_groups=contigs_groups_input,
 
         # The wrapper expects input to be called `vcfs`, but we can use `vcf.gz` as well.
         # vcfs=lambda w: expand("called/{contig}.vcf.gz", contig=get_contigs())

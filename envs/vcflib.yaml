@@ -1,7 +1,7 @@
 channels:
-  - bioconda
   # Somehow, vcflib needs tabixpp, which needs bc, which is not on bioconda, it seems...
   - conda-forge
+  - bioconda
   - defaults
 dependencies:
   # With vcflib 1.0.3, we now suddenly get:
@@ -12,6 +12,5 @@ dependencies:
   # Trying again with 1.0.3, but also specify freebayes, to see if that helps...
   # Also add tabixpp, as that might fix the above error as well...
   - vcflib ==1.0.3
-  - samtools ==1.16.1
   - freebayes ==1.3.1
   - tabixpp ==1.1.0

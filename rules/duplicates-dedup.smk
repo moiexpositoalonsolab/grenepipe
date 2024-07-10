@@ -72,5 +72,7 @@ rule sort_reads_dedup:
         "logs/samtools/sort/{sample}-dedup.log"
     group:
         "mapping_extra"
+    conda:
+        "../envs/samtools.yaml"
     wrapper:
         "0.80.0/bio/samtools/sort"

@@ -10,7 +10,7 @@ rule mpileup_merge_all:
         touch("mpileup/all.merged.done")
     params:
         # Need file overwrite flag, see above.
-        config["params"]["samtools"]["merge"] + " -f"
+        extra=config["params"]["samtools"]["merge"] + " -f"
     threads:
         # Samtools takes additional threads through its option -@
         # This value - 1 will be sent to -@
@@ -18,7 +18,7 @@ rule mpileup_merge_all:
     log:
         "logs/samtools/mpileup/merge-all.log"
     wrapper:
-        "0.74.0/bio/samtools/merge"
+        "v3.13.6/bio/samtools/merge"
 
 # =================================================================================================
 #     Sample Names
@@ -62,7 +62,7 @@ rule mpileup_individual_sample:
     log:
         "logs/samtools/mpileup/samples-{sample}.log"
     wrapper:
-        "0.74.0/bio/samtools/mpileup"
+        "v3.13.6/bio/samtools/mpileup"
 
 rule mpileup_all_samples:
     input:
@@ -76,7 +76,7 @@ rule mpileup_all_samples:
     log:
         "logs/samtools/mpileup/all-merged-units.log"
     wrapper:
-        "0.74.0/bio/samtools/mpileup"
+        "v3.13.6/bio/samtools/mpileup"
 
 rule mpileup_all_merged_samples:
     input:
@@ -89,7 +89,7 @@ rule mpileup_all_merged_samples:
     log:
         "logs/samtools/mpileup/all-merged-samples.log"
     wrapper:
-        "0.74.0/bio/samtools/mpileup"
+        "v3.13.6/bio/samtools/mpileup"
 
 # =================================================================================================
 #     All pileups, but not SNP calling

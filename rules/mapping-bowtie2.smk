@@ -102,5 +102,7 @@ rule sort_reads:
         "logs/samtools/sort/{sample}-{unit}.log"
     group:
         "mapping"
+    conda:
+        "../envs/samtools.yaml"
     wrapper:
         "0.80.0/bio/samtools/sort"

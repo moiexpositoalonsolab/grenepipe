@@ -1,7 +1,7 @@
 name: hafpipe
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - r
   # - defaults
   # - anaconda
@@ -9,13 +9,13 @@ channels:
 dependencies:
   # Include git so that we can use it for the submodule init,
   # and unzip in case it's not there on linux
-  - git ==2.37.1
+  - git #==2.37.1
   - unzip
 
   # We need samtools for indexing bam files.
   # Also, tabix and bgzip are dependencies of hafpipe,
   # which both seem to be provided via samtools as well.
-  - samtools ==1.16.1
+  - samtools ==1.20
   # - htslib ==1.16
   # - tabix ==1.10
 
@@ -28,8 +28,9 @@ dependencies:
 
   # We use our new python script for making the numeric snp table,
   # and need numpy for the npute scripts.
-  - python ==3.7.10
-  - numpy ==1.21.2
+  - python ==3.12
+  - pandas ==2.2.2
+  - numpy  ==2.0.0
 
   # We first tried to build harp on our own, which did not work,
   # due to boost paths not being found when using conda to install it,

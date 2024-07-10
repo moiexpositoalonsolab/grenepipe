@@ -27,7 +27,7 @@ rule trim_reads_se:
         # yet another missing dependency in the original wrapper...
         "../envs/trimmomatic.yaml"
     wrapper:
-        "0.74.0/bio/trimmomatic/se"
+        "v3.13.6/bio/trimmomatic/se"
 
 rule trim_reads_pe:
     input:
@@ -69,7 +69,7 @@ rule trim_reads_pe:
         # yet another missing dependency in the original wrapper...
         "../envs/trimmomatic.yaml"
     wrapper:
-        "0.74.0/bio/trimmomatic/pe"
+        "v3.13.6/bio/trimmomatic/pe"
 
 # =================================================================================================
 #     Trimming Results
