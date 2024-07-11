@@ -137,7 +137,7 @@ jobs:
           # channels: conda-forge,defaults
           # channel-priority: true
           # use-mamba: true
-          # environment-file: envs/grenepipe.yaml
+          # environment-file: workflow/envs/grenepipe.yaml
           # activate-environment: grenepipe
 
           # We might need to replace the above, at least for now, due to instabilities in the action,
@@ -152,7 +152,7 @@ jobs:
           miniforge-version: latest
           use-mamba: true
           channels: conda-forge,defaults
-          environment-file: envs/grenepipe.yaml
+          environment-file: workflow/envs/grenepipe.yaml
           activate-environment: grenepipe
 
       # Manually create the conda env.
@@ -161,7 +161,7 @@ jobs:
       # - name: Install Conda Env
       #   shell: bash -el {0}
       #   run: |
-      #     mamba env create -f envs/grenepipe.yaml -n grenepipe
+      #     mamba env create -f workflow/envs/grenepipe.yaml -n grenepipe
       # Then in the run step:
       # conda activate grenepipe
 
@@ -244,7 +244,7 @@ jobs:
           miniforge-version: latest
           use-mamba: true
           channels: conda-forge,defaults
-          environment-file: envs/grenepipe.yaml
+          environment-file: workflow/envs/grenepipe.yaml
           activate-environment: grenepipe
 
       - name: Run Example
@@ -312,7 +312,7 @@ jobs:
           # and to test if both mamba and micromamba work for all envs.
           # Any version from https://github.com/mamba-org/micromamba-releases
           micromamba-version: '1.5.8-0'
-          environment-file: envs/grenepipe.yaml
+          environment-file: workflow/envs/grenepipe.yaml
           environment-name: grenepipe
           init-shell: bash
           post-cleanup: 'all'
@@ -320,7 +320,7 @@ jobs:
       - name: Install Envs
         shell: bash -el {0}
         run: |
-          cd envs
+          cd workflow/envs
           for env in `ls *.yaml` ; do
               name=${env%.yaml}
               printf "\n" ; printf '=%.0s' {1..100}
