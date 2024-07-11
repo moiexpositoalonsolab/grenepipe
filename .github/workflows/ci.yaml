@@ -116,8 +116,8 @@ jobs:
             case: base
           - os: macos-13
             case: base
-          - os: macos-13
-            case: base
+          # - os: macos-14
+          #   case: base
 
     # -------------------------------------------------------
     #     Steps
@@ -224,7 +224,7 @@ jobs:
           - ubuntu-24.04
           - macos-12
           - macos-13
-          - macos-14
+          # - macos-14
 
     # -------------------------------------------------------
     #     Steps
@@ -308,7 +308,8 @@ jobs:
       - name: Setup Conda
         uses: mamba-org/setup-micromamba@v1.9.0
         with:
-          # Trying another installer, see if that one finally works...
+          # Trying another installer, see if that one finally works,
+          # and to test if both mamba and micromamba work for all envs.
           # Any version from https://github.com/mamba-org/micromamba-releases
           micromamba-version: '1.5.8-0'
           environment-file: envs/grenepipe.yaml

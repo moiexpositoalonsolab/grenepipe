@@ -2,5 +2,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - rust-bio-tools =0.42.2
-  - bcftools ==1.20
+  # Not specifying versions here for now, as we are not really using
+  # this env anyway, but want to keep it around for testing.
+  - bioconda::rust-bio-tools #==0.40.0
+  - bcftools #==1.20
