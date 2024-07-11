@@ -2,21 +2,26 @@
 #     Read Group and Helper Functions
 # =================================================================================================
 
+
 # We here get the read group tags list that is used per sample for the reads in the bam file.
 # This differs a bit depending on whether the `platform` field is properly set in the samples table.
 # We do not construct a full string here, as mapping tools take this information in different ways.
-def get_read_group_tags( wildcards ):
+def get_read_group_tags(wildcards):
     # We need the @RG read group tags, including `ID` and `SM`, as downstream tools use these.
     # Potentially, we also set the PL platform. Also add the config extra settings.
-    res = [ "ID:" + wildcards.sample + "-" + wildcards.unit, "SM:" + wildcards.sample ]
+    res = ["ID:" + wildcards.sample + "-" + wildcards.unit, "SM:" + wildcards.sample]
     # TODO Add LD? LB? field as well for the unit?! http://www.htslib.org/workflow/
 
     # Add platform information, if available, giving precedence to the table over the config.
     pl = ""
-    if 'platform' in config["params"]["gatk"] and config["params"]["gatk"]["platform"]:
+    if "platform" in config["params"]["gatk"] and config["params"]["gatk"]["platform"]:
         pl = config["params"]["gatk"]["platform"]
-    if 'platform' in config["global"]["samples"]:
-        s = config["global"]["samples"].loc[(wildcards.sample, wildcards.unit), ["platform"]].dropna()
+    if "platform" in config["global"]["samples"]:
+        s = (
+            config["global"]["samples"]
+            .loc[(wildcards.sample, wildcards.unit), ["platform"]]
+            .dropna()
+        )
         # We catch the case that the platform column is present, but empty for a given row.
         # This would lead to an error, see https://stackoverflow.com/q/610883/4184258
         try:
@@ -24,7 +29,7 @@ def get_read_group_tags( wildcards ):
         except:
             pl = ""
     if pl:
-        res.append( "PL:" + pl )
+        res.append("PL:" + pl)
     return res
 
     # For reference: https://github.com/snakemake-workflows/dna-seq-gatk-variant-calling/blob/cffa77a9634801152971448bd41d0687cf765723/workflow/rules/common.smk#L60
@@ -32,6 +37,7 @@ def get_read_group_tags( wildcards ):
     #     sample=wildcards.sample,
     #     platform=units.loc[(wildcards.sample, wildcards.unit), "platform"],
     # )
+
 
 # Helper function needed by some of the GATK tools, here and in the calling.
 def get_gatk_regions_param(regions=config["settings"].get("restrict-regions"), default=""):
@@ -44,45 +50,57 @@ def get_gatk_regions_param(regions=config["settings"].get("restrict-regions"), d
         return params
     return default
 
+
 # =================================================================================================
 #     Read Mapping
 # =================================================================================================
 
 # Switch to the chosen mapper
+mapping_tool_good = False
 if config["settings"]["mapping-tool"] == "bwaaln":
 
     # Use `bwa aln`
     include: "mapping-bwa-aln.smk"
+
+    mapping_tool_good = True
 
 elif config["settings"]["mapping-tool"] == "bwamem":
 
     # Use `bwa mem`
     include: "mapping-bwa-mem.smk"
 
+    mapping_tool_good = True
+
 elif config["settings"]["mapping-tool"] == "bwamem2":
 
     # Use `bwa mem2`
     include: "mapping-bwa-mem2.smk"
+
+    mapping_tool_good = True
 
 elif config["settings"]["mapping-tool"] == "bowtie2":
 
     # Use `bowtie2`
     include: "mapping-bowtie2.smk"
 
-else:
+    mapping_tool_good = True
+
+
+# Weird syntax instead of just using an else branch here, due to
+# https://github.com/snakemake/snakefmt/issues/239#issuecomment-2223276169
+if not mapping_tool_good:
     raise Exception("Unknown mapping-tool: " + config["settings"]["mapping-tool"])
 
 # =================================================================================================
 #     Merge per-sample bam files
 # =================================================================================================
 
+
 # We need a helper function to expand based on wildcards.
 # The file names used here is what all the above mappers are expected to produce.
 def get_sorted_sample_bams(wildcards):
-    return expand(
-        "mapped/{{sample}}-{unit}.sorted.bam",
-        unit=get_sample_units(wildcards.sample)
-    )
+    return expand("mapped/{{sample}}-{unit}.sorted.bam", unit=get_sample_units(wildcards.sample))
+
 
 # This is where all units are merged together.
 # We changed this behaviour. grenepipe v0.11.1 and before did _all_ the steps in this file
@@ -92,66 +110,67 @@ def get_sorted_sample_bams(wildcards):
 # instead of potentially accidentally considering the different units as individual samples.
 rule merge_sample_unit_bams:
     input:
-        get_sorted_sample_bams
+        get_sorted_sample_bams,
     output:
         "mapped/{sample}.merged.bam",
-        touch("mapped/{sample}.merged.done")
+        touch("mapped/{sample}.merged.done"),
     params:
-        extra=config["params"]["samtools"]["merge"]
-    threads:
-        config["params"]["samtools"]["merge-threads"]
+        extra=config["params"]["samtools"]["merge"],
+    threads: config["params"]["samtools"]["merge-threads"]
     log:
-        "logs/samtools/merge/merge-{sample}.log"
+        "logs/samtools/merge/merge-{sample}.log",
     wrapper:
         "v3.13.6/bio/samtools/merge"
+
 
 # =================================================================================================
 #     Filtering and Clipping Mapped Reads
 # =================================================================================================
 
+
 rule filter_mapped_reads:
     input:
-        "mapped/{sample}.merged.bam"
+        "mapped/{sample}.merged.bam",
     output:
         (
             "mapped/{sample}.filtered.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapped/{sample}.filtered.bam")
         ),
-        touch("mapped/{sample}.filtered.done")
+        touch("mapped/{sample}.filtered.done"),
     params:
-        extra=config["params"]["samtools"]["view"] + " -b"
+        extra=config["params"]["samtools"]["view"] + " -b",
     conda:
         # Need our own env again, because of conflicting numpy and pandas version...
         "../envs/samtools.yaml"
     wrapper:
         "0.85.0/bio/samtools/view"
 
+
 rule clip_read_overlaps:
     input:
         # Either get the mapped reads directly, or if we do filtering before, take that instead.
-        "mapped/{sample}.filtered.bam" if (
-            config["settings"]["filter-mapped-reads"]
-        ) else (
-            "mapped/{sample}.merged.bam"
-        )
+        "mapped/{sample}.filtered.bam"
+        if (config["settings"]["filter-mapped-reads"])
+        else ("mapped/{sample}.merged.bam"),
     output:
         (
             "mapped/{sample}.clipped.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapped/{sample}.clipped.bam")
         ),
-        touch("mapped/{sample}.clipped.done")
+        touch("mapped/{sample}.clipped.done"),
     params:
-        extra=config["params"]["bamutil"]["extra"]
+        extra=config["params"]["bamutil"]["extra"],
     log:
-        "logs/bamutil/{sample}.log"
+        "logs/bamutil/{sample}.log",
     benchmark:
         "benchmarks/bamutil/{sample}.bench.log"
     conda:
         "../envs/bamutil.yaml"
     shell:
         "bam clipOverlap --in {input[0]} --out {output[0]} {params.extra} &> {log}"
+
 
 def get_mapped_reads(wildcards):
     """Get mapped reads of given sample (with merged units),
@@ -171,6 +190,7 @@ def get_mapped_reads(wildcards):
 
     return result
 
+
 # We need to get a bit dirty here, as dedup names output files based on input file names,
 # so that depending on what kind of input (mapped, filtered, clipped) we give it,
 # we get differently named output files, which does not work well with snakemake.
@@ -186,11 +206,13 @@ def get_mapped_read_infix():
         result = "clipped"
     return result
 
+
 # =================================================================================================
 #     Mark Duplicates
 # =================================================================================================
 
 # Switch to the chosen duplicate marker tool
+duplicates_tool_good = False
 if config["settings"]["duplicates-tool"] == "picard":
 
     # Bioinformatics tools are messed up...
@@ -210,12 +232,18 @@ if config["settings"]["duplicates-tool"] == "picard":
     # Use `picard`
     include: "duplicates-picard.smk"
 
+    duplicates_tool_good = True
+
 elif config["settings"]["duplicates-tool"] == "dedup":
 
     # Use `dedup`
     include: "duplicates-dedup.smk"
 
-else:
+    duplicates_tool_good = True
+
+
+# Again, fix for https://github.com/snakemake/snakefmt/issues/239#issuecomment-2223276169
+if not duplicates_tool_good:
     raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
 
 # =================================================================================================
@@ -223,25 +251,29 @@ else:
 # =================================================================================================
 
 if config["settings"]["recalibrate-base-qualities"]:
+
     include: "mapping-recalibrate.smk"
+
 
 # =================================================================================================
 #     Indexing
 # =================================================================================================
 
+
 # Generic rule for all bai files.
 # Bit weird as it produces log files with nested paths, but that's okay for now.
 rule bam_index:
     input:
-        "{prefix}.bam"
+        "{prefix}.bam",
     output:
-        "{prefix}.bam.bai"
+        "{prefix}.bam.bai",
     log:
-        "logs/samtools/index/{prefix}.log"
+        "logs/samtools/index/{prefix}.log",
     group:
         "mapping_extra"
     wrapper:
         "0.51.3/bio/samtools/index"
+
 
 # =================================================================================================
 #     Final Mapping Result
@@ -253,6 +285,7 @@ rule bam_index:
 # overwrites the previous setting, until we have the final file that we want to use downstream.
 # As each of these optional steps itself also takes care of using previous optional steps
 # (see above), what we get here is the file name of the last step that we want to apply.
+
 
 def get_mapping_result(bai=False):
     # case 1: no duplicate removal
@@ -280,50 +313,52 @@ def get_mapping_result(bai=False):
 
     return f
 
+
 # Return the bam file for a given sample.
 # Get all aligned reads of given sample, with all its units merged.
 # The function automatically gets which of the mapping results to use, depending on the config
 # setting (whether to remove duplicates, and whether to recalibrate the base qualities),
 # by using the get_mapping_result function, that gives the respective files depending on the config.
 def get_sample_bams(sample):
-    return expand(
-        get_mapping_result(),
-        sample=sample
-    )
+    return expand(get_mapping_result(), sample=sample)
+
 
 # Return the bai file(s) for a given sample
 def get_sample_bais(sample):
-    return expand(
-        get_mapping_result(True),
-        sample=sample
-    )
+    return expand(get_mapping_result(True), sample=sample)
+
 
 # Return the bam file(s) for a sample, given a wildcard param from a rule.
 def get_sample_bams_wildcards(wildcards):
-    return get_sample_bams( wildcards.sample )
+    return get_sample_bams(wildcards.sample)
+
 
 # Return the bai file(s) for a sample, given a wildcard param from a rule.
 def get_sample_bais_wildcards(wildcards):
-    return get_sample_bais( wildcards.sample )
+    return get_sample_bais(wildcards.sample)
+
 
 # Return the bam file(s) for all samples
 def get_all_bams():
     # Make a list of all bams in the order as the samples list.
     res = list()
     for smp in config["global"]["sample-names"]:
-        res.append( get_mapping_result().format( sample=smp ))
+        res.append(get_mapping_result().format(sample=smp))
     return res
+
 
 # Return the bai file(s) for all samples
 def get_all_bais():
     res = list()
     for smp in config["global"]["sample-names"]:
-        res.append( get_mapping_result(True).format( sample=smp ))
+        res.append(get_mapping_result(True).format(sample=smp))
     return res
+
 
 # =================================================================================================
 #     All bams, but not SNP calling
 # =================================================================================================
+
 
 # This alternative target rule executes all steps up to th mapping, and yields the final bam
 # files that would otherwise be used for variant calling in the downstream process.
@@ -331,8 +366,10 @@ def get_all_bais():
 # recalibrated base qualities bam files.
 rule all_bams:
     input:
-        get_all_bams()
+        get_all_bams(),
+
 
 # The `all_bams` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.
-localrules: all_bams
+localrules:
+    all_bams,

@@ -2,30 +2,31 @@
 #     Variant Calling
 # =================================================================================================
 
+
 rule call_variants:
     input:
         # Need the ref genome, as well as its indices.
         ref=config["data"]["reference-genome"],
         refidcs=expand(
             config["data"]["reference-genome"] + ".{ext}",
-            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+            ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
-
         # Get the bam and bai files for all files. If this is too slow, we need to split,
         # similar to what our GATK HaplotypeCaller rule does.
         samples=get_all_bams(),
         indices=get_all_bais(),
-
         # If we use restricted regions, set them here. If not, empty, which will propagate to the
         # get_mpileup_params function as well. Same for small contig groups.
         # regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
-        regions="called/{contig}.regions.bed" if (
-            config["settings"].get("restrict-regions")
-        ) else (
-            "contig-groups/{contig}.bed" if (
-                config["settings"].get("contig-group-size")
-            ) else []
-        )
+        regions=(
+            "called/{contig}.regions.bed"
+            if (config["settings"].get("restrict-regions"))
+            else (
+                "contig-groups/{contig}.bed"
+                if (config["settings"].get("contig-group-size"))
+                else []
+            )
+        ),
     output:
         vcf=(
             "called/{contig}.vcf.gz"
@@ -33,21 +34,19 @@ rule call_variants:
             else temp("called/{contig}.vcf.gz")
         ),
         # vcf=protected("called/{contig}.vcf.gz")
-        done=touch("called/{contig}.done")
+        done=touch("called/{contig}.done"),
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
         mpileup=get_mpileup_params,
-
         # Optional parameters for bcftools call (except -v, -o, -m).
-        call=config["params"]["bcftools"]["call"]
+        call=config["params"]["bcftools"]["call"],
     log:
-        "logs/bcftools/call-{contig}.log"
+        "logs/bcftools/call-{contig}.log",
     benchmark:
         "benchmarks/bcftools/call-{contig}.bench.log"
     conda:
         "../envs/bcftools.yaml"
-    threads:
-        config["params"]["bcftools"]["threads"]
+    threads: config["params"]["bcftools"]["threads"]
     shell:
         # We run an additional norm step after the calling, in order to clear any calls that
         # contain ambiguity chars. As always, no idea how they end up in the vcf in the first place.
@@ -58,11 +57,12 @@ rule call_variants:
         "bcftools norm --check-ref ws --fasta-ref {input.ref} --output-type z --output {output.vcf} - "
         ") 2> {log}"
 
-    # Cannot use the wrapper, as we need `bcftools mpileup` instead of `samtools mpileup` (as used
-    # by the wrapper), in order to have the `--annotate` option, which we need so that our
-    # stats rules can work. Man... what a mess! Again!
-    # wrapper:
-    #     "0.55.1/bio/bcftools/call"
+
+# Cannot use the wrapper, as we need `bcftools mpileup` instead of `samtools mpileup` (as used
+# by the wrapper), in order to have the `--annotate` option, which we need so that our
+# stats rules can work. Man... what a mess! Again!
+# wrapper:
+#     "0.55.1/bio/bcftools/call"
 
 # Alternative to parallelization over contigs would be to parallelize over equally sized chunks of
 # the reference genome, see e.g., http://dmnfarrell.github.io/bioinformatics/mpileup-parallel
@@ -76,34 +76,38 @@ rule call_variants:
 # but with different individuals)... But tools tend to name these things differently, so let's
 # call it merging here...
 
+
 # Need an input function to work with the fai checkpoint
 def merge_variants_vcfs_input(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]
-    return expand("called/{contig}.vcf.gz", contig=get_contigs( fai ))
+    return expand("called/{contig}.vcf.gz", contig=get_contigs(fai))
+
 
 # Need index files for some of the downstream tools.
 # Rational for the fai: see merge_variants_vcfs_input()
 def merge_variants_tbis_input(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]
-    return expand("called/{contig}.vcf.gz.tbi", contig=get_contigs( fai ))
+    return expand("called/{contig}.vcf.gz.tbi", contig=get_contigs(fai))
+
 
 # bcftools does not automatically create vcf index files, so we need a rule for that...
 # ... but picard does! So, if we continue using the below picard mergevcfs tool, we don't need tabix
 # ...... buuuuut vcflib does not! So, we reactivate it again!
 rule called_vcf_index:
     input:
-        "called/{contig}.vcf.gz"
+        "called/{contig}.vcf.gz",
     output:
-        "called/{contig}.vcf.gz.tbi"
+        "called/{contig}.vcf.gz.tbi",
     params:
         # pass arguments to tabix (e.g. index a vcf)
-        "-p vcf"
+        "-p vcf",
     log:
-        "logs/tabix/called/{contig}.log"
+        "logs/tabix/called/{contig}.log",
     conda:
         "../envs/tabix.yaml"
     wrapper:
         "0.55.1/bio/tabix"
+
 
 # Cannot use bcftools concat, as it does not except vcf/bcf files without any calls in them.
 # rule merge_variants:
@@ -143,6 +147,7 @@ rule called_vcf_index:
 #     wrapper:
 #         "0.51.3/bio/picard/mergevcfs"
 
+
 # Let's try vcflib instead, hoping that it can handle both of the above use cases.
 # See above for comments on the input files.
 # This is not the safest option, as vcflib does little to no checks for file integrity,
@@ -153,19 +158,23 @@ rule merge_variants:
         ref=get_fai,
         contig_groups=contigs_groups_input,
         vcfs=merge_variants_vcfs_input,
-        tbis=merge_variants_tbis_input
+        tbis=merge_variants_tbis_input,
     output:
         # With small contigs, we also need sorting, see below.
         # Unfortunately, we cannot pipe here, as Picard fails with that, so temp file it is...
         # If we do not use small contigs, we directly output the final file.
-        vcf = temp("genotyped/merged-all.vcf.gz") if (
-            config["settings"].get("contig-group-size")
-        ) else "genotyped/all.vcf.gz",
-        done = touch("genotyped/merged-all.done") if (
-            config["settings"].get("contig-group-size")
-        ) else touch("genotyped/all.done")
+        vcf=(
+            temp("genotyped/merged-all.vcf.gz")
+            if (config["settings"].get("contig-group-size"))
+            else "genotyped/all.vcf.gz"
+        ),
+        done=(
+            touch("genotyped/merged-all.done")
+            if (config["settings"].get("contig-group-size"))
+            else touch("genotyped/all.done")
+        ),
     log:
-        "logs/vcflib/merge-genotyped.log"
+        "logs/vcflib/merge-genotyped.log",
     benchmark:
         "benchmarks/vcflib/merge-genotyped.bench.log"
     conda:

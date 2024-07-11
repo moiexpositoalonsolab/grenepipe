@@ -4,10 +4,12 @@ import json
 #     Get Fai
 # =================================================================================================
 
+
 def get_fai(wildcards):
     # Stop at the snakemake checkpoint first to ensure that the fai file is available.
     return checkpoints.samtools_faidx.get().output[0]
     # return config["data"]["reference-genome"] + ".fai"
+
 
 # =================================================================================================
 #     Grouping of (Small) Contigs
@@ -18,10 +20,10 @@ if config["settings"].get("contig-group-size", 0) > 0:
     # Simple greedy solver for the bin packing problem, here used to make bins of roughly equal
     # size for the contigs. We expect the input values to be tuples or pairs, where the index [1]
     # element is the weight that we use for packing (index[0] here is used for the contig name itself).
-    def solve_bin_packing( values, max_bin_size ):
+    def solve_bin_packing(values, max_bin_size):
         # First, sort by length, large ones first, decreasing.
         # This helps to get closer to an optimal solution.
-        values.sort(key = lambda x: x[1], reverse=True)
+        values.sort(key=lambda x: x[1], reverse=True)
 
         # Fill the bins as needed, using first-fit on the sorted list, and keeping track of
         # how much we already put in each of them. We can have at most as many bins as elements,
@@ -31,9 +33,9 @@ if config["settings"].get("contig-group-size", 0) > 0:
         for cont in values:
             # Find the first bin where the contig fits in.
             j = 0
-            while( j < len(bins) ):
-                if( sums[j] + cont[1] <= max_bin_size ):
-                    bins[j].append( cont )
+            while j < len(bins):
+                if sums[j] + cont[1] <= max_bin_size:
+                    bins[j].append(cont)
                     sums[j] += cont[1]
                     break
                 j += 1
@@ -43,7 +45,7 @@ if config["settings"].get("contig-group-size", 0) > 0:
             # if some chromosomes are fully assembled and are hence not in scaffolds of small size.
             if j == len(bins):
                 bins.append([])
-                bins[j].append( cont )
+                bins[j].append(cont)
                 sums[j] += cont[1]
 
         # Log output
@@ -56,13 +58,13 @@ if config["settings"].get("contig-group-size", 0) > 0:
 
     checkpoint contig_groups:
         input:
-            fai = get_fai
+            fai=get_fai,
         output:
-            "contig-groups/contigs.json"
+            "contig-groups/contigs.json",
         log:
-            "logs/contig-groups/contigs.log"
+            "logs/contig-groups/contigs.log",
         params:
-            contig_group_size = config["settings"].get("contig-group-size", 0)
+            contig_group_size=config["settings"].get("contig-group-size", 0),
         run:
             # Read fai to get all contigs and their sizes.
             contig_list = []
@@ -71,12 +73,12 @@ if config["settings"].get("contig-group-size", 0) > 0:
                     contig, length_str = line.split("\t")[:2]
                     contig = contig.strip()
                     length = int(length_str.strip())
-                    contig_list.append(( contig, length ))
+                    contig_list.append((contig, length))
 
-            # Solve the bin packing for the contigs, to get a close to optimal solution
-            # for putting them in groups. Large contigs (e.g., whole chromosomes) that are larger
-            # than the bin size will simply get their own (overflowing...) bin.
-            contig_bins = solve_bin_packing( contig_list, params.contig_group_size )
+                    # Solve the bin packing for the contigs, to get a close to optimal solution
+                    # for putting them in groups. Large contigs (e.g., whole chromosomes) that are larger
+                    # than the bin size will simply get their own (overflowing...) bin.
+            contig_bins = solve_bin_packing(contig_list, params.contig_group_size)
 
             # Now turn the contig bins into groups for the result of this function.
             # We store our resulting list of contigs containing all contigs,
@@ -87,12 +89,15 @@ if config["settings"].get("contig-group-size", 0) > 0:
                 groupname = "contig-group-" + str(len(contigs))
                 contigs[groupname] = bin
 
-            # We need to store the result in a file, so that the rule that creates the per-contig
-            # files can access it.
-            json.dump( contigs, open( output[0], 'w' ))
+                # We need to store the result in a file, so that the rule that creates the per-contig
+                # files can access it.
+            json.dump(contigs, open(output[0], "w"))
 
-    # Rule is not submitted as a job to the cluster.
-    localrules: contig_groups
+            # Rule is not submitted as a job to the cluster.
+
+
+    localrules:
+        contig_groups,
 
     # Due to a new bug in Snakemake after our update to 8.15.2, we now need the following
     # function to be called as input whenever the above checkpoint is needed.
@@ -100,32 +105,35 @@ if config["settings"].get("contig-group-size", 0) > 0:
     def contigs_groups_input(wildcards):
         return checkpoints.contig_groups.get().output[0]
 
-    # Make the contig-group list files that contain the names of the contigs/scaffolds
-    # that have been bin-packed above.
+        # Make the contig-group list files that contain the names of the contigs/scaffolds
+        # that have been bin-packed above.
     rule contigs_group_list:
         input:
-            contigs="contig-groups/contigs.json"
+            contigs="contig-groups/contigs.json",
         output:
-            "contig-groups/{contig}.bed"
+            "contig-groups/{contig}.bed",
         log:
-            "logs/contig-groups/{contig}.log"
+            "logs/contig-groups/{contig}.log",
         run:
             # Get the contigs file that we created above.
-            contigs = json.load( open( input.contigs ))
+            contigs = json.load(open(input.contigs))
 
             # Same for the group name itself: This rule is only executed
             # for group names that we actually have made.
             if wildcards.contig not in contigs:
-                raise Exception( "Internal error: contig " + wildcards.contig + " not found." )
+                raise Exception("Internal error: contig " + wildcards.contig + " not found.")
 
-            # Write the output list file, using the contig names and lengths from the group.
-            # In bed files, the first three columns are the chrom name, start (incluse, zero-based),
-            # and end (exclusive). Hence, we can simply use 0 and length as start and end here.
+                # Write the output list file, using the contig names and lengths from the group.
+                # In bed files, the first three columns are the chrom name, start (incluse, zero-based),
+                # and end (exclusive). Hence, we can simply use 0 and length as start and end here.
             with open(output[0], "w") as f:
-                f.writelines( f"{c[0]}\t0\t{c[1]}\n" for c in contigs[wildcards.contig] )
+                f.writelines(f"{c[0]}\t0\t{c[1]}\n" for c in contigs[wildcards.contig])
 
-    # Rule is not submitted as a job to the cluster.
-    localrules: contigs_group_list
+                # Rule is not submitted as a job to the cluster.
+
+
+    localrules:
+        contigs_group_list,
 
     # Conflicts of interest:
     if config["settings"].get("restrict-regions"):
@@ -136,20 +144,25 @@ if config["settings"].get("contig-group-size", 0) > 0:
             "https://github.com/lczech/grenepipe/issues and we will see what we can do."
         )
 
-    # We now extended the rules for bcftools and freebayes to also work with small contig groups.
-    # The following check is no longer needed - just kept here for reference.
-    # if config["settings"]["calling-tool"] != "haplotypecaller":
-    #     raise Exception(
-    #         "Can only use setting contig-group-size with calling-tool haplotypecaller "
-    #         "at the moment, as we have not implemented this for other calling tools yet. "
-    #         "If you need this combination of settings, please submit an issue to "
-    #         "https://github.com/lczech/grenepipe/issues and we will see what we can do."
-    #     )
+        # We now extended the rules for bcftools and freebayes to also work with small contig groups.
+        # The following check is no longer needed - just kept here for reference.
+        # if config["settings"]["calling-tool"] != "haplotypecaller":
+        #     raise Exception(
+        #         "Can only use setting contig-group-size with calling-tool haplotypecaller "
+        #         "at the moment, as we have not implemented this for other calling tools yet. "
+        #         "If you need this combination of settings, please submit an issue to "
+        #         "https://github.com/lczech/grenepipe/issues and we will see what we can do."
+        #     )
 
-else:
-    # Dummy definition of the above rule for when we are not using contig groups.
+
+# Dummy definition of the above rule for when we are not using contig groups.
+# We cannot do this as an else branch of the above, due to an issue in the
+# formatting of snakemfmt: https://github.com/snakemake/snakefmt/issues/115#issuecomment-986860293
+if config["settings"].get("contig-group-size", 0) == 0:
+
     def contigs_groups_input(wildcards):
         return []
+
 
 # =================================================================================================
 #     Get Contigs
@@ -159,17 +172,17 @@ else:
 if "contigs" in config["global"]:
     raise Exception("Config key 'global:contigs' already defined. Someone messed with our setup.")
 
+
 # Get the list of chromosome names that are present in the fai file.
 # This is just the first column of the file.
-def get_chromosomes( fai ):
-    return list(
-        pd.read_csv( fai, sep='\t', header=None, usecols=[0], dtype=str ).squeeze()
-    )
+def get_chromosomes(fai):
+    return list(pd.read_csv(fai, sep="\t", header=None, usecols=[0], dtype=str).squeeze())
+
 
 # Contigs in reference genome. This function gives the list of contig names that we want to
 # use for calling, that is, either all contigs of the reference genome, or, if contig grouping
 # is activated, the names for the contig groups that are sent as one job combining multiple contigs.
-def get_contigs( fai ):
+def get_contigs(fai):
     # This function might be called multiple times in different invocations of rules.
     # To avoid re-computing the contigs, we cache them in the global config dict.
     global config
@@ -187,15 +200,16 @@ def get_contigs( fai ):
         # pickling issue occurs downstream when snakemake tries to pickle the config for usage
         # in other rules...
         contig_group_file = checkpoints.contig_groups.get().output[0]
-        contigs = json.load( open( contig_group_file ))
+        contigs = json.load(open(contig_group_file))
         config["global"]["contigs"] = list(contigs.keys())
         return config["global"]["contigs"]
 
     # Without contig groups, just read the fai and return its first column,
     # which contains the ref sequence names (our contigs). Store it in the global variable
     # first to not have to do the reading each time.
-    config["global"]["contigs"] = get_chromosomes( fai )
+    config["global"]["contigs"] = get_chromosomes(fai)
     return config["global"]["contigs"]
+
 
 # =================================================================================================
 #     Restrict Regions
@@ -204,20 +218,23 @@ def get_contigs( fai ):
 # Intersect the restict regions file with a given contig (chromosome), so that we can use the
 # resulting bed file for parallelization over contigs.
 if "restrict-regions" in config["settings"]:
+
     rule compose_regions:
         input:
-            config["settings"].get("restrict-regions")
+            config["settings"].get("restrict-regions"),
         output:
-            "called/{contig}.regions.bed"
+            "called/{contig}.regions.bed",
         log:
-            "logs/bedextract/{contig}.regions.log"
+            "logs/bedextract/{contig}.regions.log",
         conda:
             "../envs/bedops.yaml"
         shell:
             "bedextract {wildcards.contig} {input} > {output}"
 
     # Rule is not submitted as a job to the cluster.
-    localrules: compose_regions
+    localrules:
+        compose_regions,
+
 
 # =================================================================================================
 #     Variant Calling

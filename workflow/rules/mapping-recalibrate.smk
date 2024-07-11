@@ -12,23 +12,24 @@ if config["settings"]["recalibrate-base-qualities"]:
             "Setting recalibrate-base-qualities can only be activated if a known-variants "
             "file is also provided, as GATK BaseRecalibrator needs this."
         )
-    if 'platform' not in config["global"]["samples"] and not config["params"]["gatk"]["platform"]:
+    if "platform" not in config["global"]["samples"] and not config["params"]["gatk"]["platform"]:
         raise Exception(
             "Setting recalibrate-base-qualities can only be activated if either a `platform` column "
-            "is provided in the input samples table (" + config["global"]["samples"] +
-            ") or if a platform for all samples is given in the `params: gatk: platform` setting "
+            "is provided in the input samples table ("
+            + config["global"]["samples"]
+            + ") or if a platform for all samples is given in the `params: gatk: platform` setting "
             "in the config file."
         )
-    if 'platform' in config["global"]["samples"] and config["params"]["gatk"]["platform"]:
+    if "platform" in config["global"]["samples"] and config["params"]["gatk"]["platform"]:
         logger.warning(
             "The samples table contains a column `platform` for each sample, "
             "but the `params: gatk: platform` setting is also provided. "
             "We will use the table, as this is more specific."
         )
     if config["params"]["gatk"]["platform"]:
-        platforms = set( config["params"]["gatk"]["platform"] )
-    if 'platform' in config["global"]["samples"]:
-        platforms = set( config["global"]["samples"]["platform"] )
+        platforms = set(config["params"]["gatk"]["platform"])
+    if "platform" in config["global"]["samples"]:
+        platforms = set(config["global"]["samples"]["platform"])
     for p in ["CAPILLARY", "LS454", "ILLUMINA", "SOLID", "HELICOS", "IONTORRENT", "ONT", "PACBIO"]:
         if p in platforms:
             platforms.remove(p)
@@ -38,6 +39,7 @@ if config["settings"]["recalibrate-base-qualities"]:
             "`params: gatk: platform` setting) contains values that might not be recognized by "
             "GATK BaseRecalibrator, and hence might lead to errors: " + str(platforms)
         )
+
 
 def get_recal_input(bai=False):
     # case 1: no duplicate removal
@@ -66,6 +68,7 @@ def get_recal_input(bai=False):
     else:
         return f
 
+
 rule recalibrate_base_qualities:
     input:
         bam=get_recal_input(),
@@ -73,22 +76,22 @@ rule recalibrate_base_qualities:
         ref=config["data"]["reference-genome"],
         refidcs=expand(
             config["data"]["reference-genome"] + ".{ext}",
-            ext=[ "amb", "ann", "bwt", "pac", "sa", "fai" ]
+            ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
         refdict=genome_dict(),
-        known=config["data"]["known-variants"]
+        known=config["data"]["known-variants"],
     output:
         bam=(
             "recal/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("recal/{sample}.bam")
         ),
-        done=touch("recal/{sample}.done")
+        done=touch("recal/{sample}.done"),
         # bam=protected("recal/{sample}.bam")
     params:
-        extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"]
+        extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"],
     log:
-        "logs/gatk/bqsr/{sample}.log"
+        "logs/gatk/bqsr/{sample}.log",
     benchmark:
         "benchmarks/gatk/bqsr/{sample}.bench.log"
     group:

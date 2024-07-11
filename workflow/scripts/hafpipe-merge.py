@@ -33,7 +33,7 @@ from snakemake.shell import shell
 if not snakemake.log:
     log = ""
 else:
-    log = " >> {0} 2>&1".format( os.path.abspath(str(snakemake.log)) )
+    log = " >> {0} 2>&1".format(os.path.abspath(str(snakemake.log)))
 
 # -------------------------------------------------------------------------
 #     File access
@@ -41,15 +41,17 @@ else:
 
 # We actually change to the directory of the files, to keep it simple,
 # and to potentially avoid issues with too long paths when doing our hundreds of concats.
-os.chdir( snakemake.params.get("base_path", "hafpipe/frequencies") )
+os.chdir(snakemake.params.get("base_path", "hafpipe/frequencies"))
+
 
 # Helper function to get the file path for a HAFpipe afSite file.
-def get_afsite_path( sample, chrom ):
+def get_afsite_path(sample, chrom):
     if sample not in snakemake.params.samples:
-        raise Exception( "Invalid sample " + sample )
+        raise Exception("Invalid sample " + sample)
     if chrom not in snakemake.params.chroms:
-        raise Exception( "Invalid chrom " + chrom )
+        raise Exception("Invalid chrom " + chrom)
     return sample + ".merged.bam." + chrom + ".afSite"
+
 
 # -------------------------------------------------------------------------
 #     Set up and checks
@@ -71,16 +73,16 @@ else:
 # Some stupid assertions, just in case, so that we can rely on this downstream.
 # Cannot really happen (I think), as the rules would never be executed, but better safe than sorry.
 if len(snakemake.params.samples) < 1:
-    raise Exception( "No samples provided for HAFpipe merging" )
+    raise Exception("No samples provided for HAFpipe merging")
 if len(snakemake.params.chroms) < 1:
-    raise Exception( "No chromosomes provided for HAFpipe merging" )
+    raise Exception("No chromosomes provided for HAFpipe merging")
 
 # We are combining all files into larger tables first, and then combine these tables again.
 # But we do not do that recursively, so we might hit a limit if there are more of these combined
 # tables than we can process in their merging step...
 # For a typical system with a `ulimit -n` of 1024, this will happen at ~1mio samples.
 # batch_cnt = int(( len(snakemake.params.samples) - 1 ) / max_files) + 1
-batch_cnt = int(math.ceil( float(len(snakemake.params.samples)) / float(max_files) ))
+batch_cnt = int(math.ceil(float(len(snakemake.params.samples)) / float(max_files)))
 if batch_cnt >= max_files:
     raise Exception(
         "Congratulations! You are using incredibly many files (or a very small batch size)! "
@@ -100,26 +102,27 @@ if batch_cnt >= max_files:
 for chrom in snakemake.params.chroms:
     lc = 0
     for sample in snakemake.params.samples:
-        fn=get_afsite_path(sample, chrom)
+        fn = get_afsite_path(sample, chrom)
 
         # We use the full speed of unix here, instead of the slow python way...
-        lines=int(subprocess.check_output("/usr/bin/wc -l " + fn, shell=True).split()[0])
+        lines = int(subprocess.check_output("/usr/bin/wc -l " + fn, shell=True).split()[0])
         if lc == 0:
             lc = lines
         if lc != lines:
             raise Exception(
-                "Cannot merge HAFpipe afSite files for chromosome " + chrom +
-                ", as the per-sample files have different number of positions."
+                "Cannot merge HAFpipe afSite files for chromosome "
+                + chrom
+                + ", as the per-sample files have different number of positions."
             )
 
 # Some log output
 shell(
-    "echo -e \"In `pwd` \\n\" {log} ; "
-    "echo -e \"Started `date` \\n\" {log} ; "
-    "echo \"Merging HAFpipe afSite files\" {log} ; "
-    "echo \"Samples: {snakemake.params.samples}\" {log} ; "
-    "echo \"Chromosomes: {snakemake.params.chroms}\" {log} ; "
-    "echo -e \"Batches: {batch_cnt} \\n\" {log} ; "
+    'echo -e "In `pwd` \\n" {log} ; '
+    'echo -e "Started `date` \\n" {log} ; '
+    'echo "Merging HAFpipe afSite files" {log} ; '
+    'echo "Samples: {snakemake.params.samples}" {log} ; '
+    'echo "Chromosomes: {snakemake.params.chroms}" {log} ; '
+    'echo -e "Batches: {batch_cnt} \\n" {log} ; '
 )
 # print(snakemake.params.samples)
 # print(snakemake.params.chroms)
@@ -144,28 +147,23 @@ chrom_files = ""
 for chrom in snakemake.params.chroms:
     # Make a deep copy of the samples list, so that we can delete the ones that we have processed
     # on this chromosome from it... Python and its shallow references...
-    samples=list(snakemake.params.samples)
+    samples = list(snakemake.params.samples)
 
     # Get the first column of the first file, without the header line.
     # This will be the positions column that we use for all, assuming that they all have
     # the same positions (see above).
-    sample_0 = get_afsite_path( samples[0], chrom )
+    sample_0 = get_afsite_path(samples[0], chrom)
     pos_file = "../all-" + chrom + ".pos"
-    shell( "cut -d\",\" -f1 {sample_0} | tail -n +2 > {pos_file}" )
-    lines=int(subprocess.check_output("/usr/bin/wc -l " + pos_file, shell=True).split()[0])
+    shell('cut -d"," -f1 {sample_0} | tail -n +2 > {pos_file}')
+    lines = int(subprocess.check_output("/usr/bin/wc -l " + pos_file, shell=True).split()[0])
 
     # We also need to build a file of the same length that over and over repeats the chromosome,
     # so that we can paste it in front of the chromosome table.
     chr_file = "../all-" + chrom + ".chrom"
-    shell(
-        "touch {chr_file} ; "
-        "for l in `seq 1 {lines}` ; do echo {chrom} >> {chr_file}; done"
-    )
+    shell("touch {chr_file} ; " "for l in `seq 1 {lines}` ; do echo {chrom} >> {chr_file}; done")
 
     # Some nice user output
-    shell(
-        "echo \"Processing chromosome {chrom} with {lines} positions\" {log} ; "
-    )
+    shell('echo "Processing chromosome {chrom} with {lines} positions" {log} ; ')
 
     # We process in batches of our max_files size, so that we never have (much) more files open
     # at the same time that than. The output of course as well, but that should work.
@@ -179,15 +177,15 @@ for chrom in snakemake.params.chroms:
         # We stream each file, using pipe redirections, while at the same time filtering:
         # For each sample, get the frequency column without the head line.
         # We here build a string with all these instructions, and then exectute it.
-        sample_paste_files=""
+        sample_paste_files = ""
         for sample in batch_smps:
-            sn = get_afsite_path( sample, chrom )
-            sample_paste_files += " <( cut -d\",\" -f2 " + sn + " | tail -n +2 )"
+            sn = get_afsite_path(sample, chrom)
+            sample_paste_files += ' <( cut -d"," -f2 ' + sn + " | tail -n +2 )"
 
         # Get just the af column without header of each of the files in the batch.
         batch_file = "../all-" + chrom + "-" + str(batch_num) + ".af"
         shell(
-            "echo \" - Batch {batch_num} with {batch_smps_cnt} samples\" {log} ; "
+            'echo " - Batch {batch_num} with {batch_smps_cnt} samples" {log} ; '
             "paste -d, {sample_paste_files} > {batch_file} ; "
         )
         batch_num += 1
@@ -196,7 +194,7 @@ for chrom in snakemake.params.chroms:
     # Now we have the batch files, and need to merge them, including the pos column.
     chrom_file = "../all-" + chrom + ".af"
     shell(
-        "echo \" - Merging {batch_num} batch(es)\" {log} ; "
+        'echo " - Merging {batch_num} batch(es)" {log} ; '
         "paste -d, {chr_file} {pos_file} {batch_files} > {chrom_file} ; "
         "rm {chr_file} {pos_file} {batch_files} ; "
     )
@@ -213,21 +211,21 @@ for chrom in snakemake.params.chroms:
 # If we want to compress the table, just add a pipe here. Luckily, appending gzip files to each
 # other is a valid thing to do with the format, so we can just build the file chrom by chrom.
 if snakemake.params.get("compress", False):
-    gzip=" | gzip "
+    gzip = " | gzip "
 else:
-    gzip=""
+    gzip = ""
 
 # Make a header line with all sample names.
-header="chrom,pos"
+header = "chrom,pos"
 for sample in snakemake.params.samples:
     header += "," + sample + ".af"
 
 # Write the table by pasting all chromsome tables.
 all_file = "../all.csv" + (".gz" if gzip else "")
 shell(
-    "echo \"Merging final table\" {log} ; "
+    'echo "Merging final table" {log} ; '
     "echo {header} {gzip} > {all_file} ; "
     "cat {chrom_files} {gzip} >> {all_file} ; "
     "rm {chrom_files} ; "
-    "echo -e \"\\nFinished `date`\" {log} ; "
+    'echo -e "\\nFinished `date`" {log} ; '
 )

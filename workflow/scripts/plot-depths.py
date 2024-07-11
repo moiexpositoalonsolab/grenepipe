@@ -3,6 +3,7 @@
 # =================================================================================================
 
 import matplotlib
+
 matplotlib.use("agg")
 
 import matplotlib.pyplot as plt
@@ -14,7 +15,7 @@ import seaborn as sns
 #     Process Data
 # =================================================================================================
 
-calls = pd.read_csv(snakemake.input[0], sep='\t', header=[0, 1])
+calls = pd.read_csv(snakemake.input[0], sep="\t", header=[0, 1])
 samples = [name for name in calls.columns.levels[0] if name != "VARIANT"]
 sample_info = calls.loc[:, samples].stack([0, 1]).unstack().reset_index(1, drop=False)
 sample_info = sample_info.rename({"level_1": "sample"}, axis=1)

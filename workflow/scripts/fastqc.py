@@ -20,6 +20,7 @@ from snakemake.shell import shell
 
 log = snakemake.log_fmt_shell(stdout=True, stderr=True, append=True)
 
+
 def basename_without_ext(file_path):
     """Returns basename of file path, without the file extension."""
 
@@ -36,15 +37,16 @@ def basename_without_ext(file_path):
     # Proper solution that follows the actual fastqc code.
     # Proposed for the snakemake wrapper that this script is based on:
     # https://github.com/snakemake/snakemake-wrappers/issues/288
-    base = re.sub('\\.gz$', '', base)
-    base = re.sub('\\.bz2$', '', base)
-    base = re.sub('\\.txt$', '', base)
-    base = re.sub('\\.fastq$', '', base)
-    base = re.sub('\\.fq$', '', base)
-    base = re.sub('\\.sam$', '', base)
-    base = re.sub('\\.bam$', '', base)
+    base = re.sub("\\.gz$", "", base)
+    base = re.sub("\\.bz2$", "", base)
+    base = re.sub("\\.txt$", "", base)
+    base = re.sub("\\.fastq$", "", base)
+    base = re.sub("\\.fq$", "", base)
+    base = re.sub("\\.sam$", "", base)
+    base = re.sub("\\.bam$", "", base)
 
     return base
+
 
 # =================================================================================================
 #     Main Call
@@ -59,10 +61,10 @@ with TemporaryDirectory() as tempdir:
     # More verbose output than the wrapper, for debugging
     shell(
         # "echo \"{tempdir:q}\" ; "
-        "echo \"Input:       {snakemake.input[0]:q}\" {log} ; "
-        "echo \"Output zip:  {snakemake.output.zip:q}\" {log} ; "
-        "echo \"Output html: {snakemake.output.html:q}\" {log} ; "
-        "echo -e \"\n--\n\" {log} ; "
+        'echo "Input:       {snakemake.input[0]:q}" {log} ; '
+        'echo "Output zip:  {snakemake.output.zip:q}" {log} ; '
+        'echo "Output html: {snakemake.output.html:q}" {log} ; '
+        'echo -e "\n--\n" {log} ; '
         "fastqc {snakemake.params} -t {snakemake.threads} "
         "    --outdir {tempdir:q} {snakemake.input[0]:q} {log} ;"
         # "ls {tempdir:q}"

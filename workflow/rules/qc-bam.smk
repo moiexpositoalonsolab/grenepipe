@@ -1,11 +1,12 @@
 import platform
 
+
 # The bam QC rules can either be run on the samples right after merging their units,
 # or after the further downstream processing steps (filtering, clipping, dedup, recal etc)
 # have been run. Here, we offer a simple function to switch between these inputs,
 # in order to avoid duplicating thise code below.
 # It expects the tool and key from the config.yaml
-def bam_qc_input( tool, key ):
+def bam_qc_input(tool, key):
     if key not in config["params"][tool]:
         raise Exception("config key " + key + " not found for tool " + tool)
     if config["params"][tool][key] == "processed":
@@ -17,17 +18,19 @@ def bam_qc_input( tool, key ):
             "Unknown setting for " + tool + " " + key + ": " + config["params"][tool][key]
         )
 
+
 # =================================================================================================
 #     samtools stats and flagstat
 # =================================================================================================
 
+
 rule samtools_stats:
     input:
-        bam_qc_input("samtools", "stats-bams")
+        bam_qc_input("samtools", "stats-bams"),
     output:
-        "qc/samtools-stats/{sample}.txt"
+        "qc/samtools-stats/{sample}.txt",
     log:
-        "logs/samtools-stats/{sample}.log"
+        "logs/samtools-stats/{sample}.log",
     benchmark:
         "benchmarks/samtools-stats/{sample}.bench.log"
     group:
@@ -37,24 +40,25 @@ rule samtools_stats:
     wrapper:
         "0.27.1/bio/samtools/stats"
 
+
 rule samtools_stats_collect:
     input:
-        expand(
-            "qc/samtools-stats/{sample}.txt",
-            sample=config["global"]["sample-names"]
-        )
+        expand("qc/samtools-stats/{sample}.txt", sample=config["global"]["sample-names"]),
     output:
-        touch("qc/samtools-stats/samtools-stats.done")
+        touch("qc/samtools-stats/samtools-stats.done"),
 
-localrules: samtools_stats_collect
+
+localrules:
+    samtools_stats_collect,
+
 
 rule samtools_flagstat:
     input:
-        bam_qc_input("samtools", "flagstat-bams")
+        bam_qc_input("samtools", "flagstat-bams"),
     output:
-        "qc/samtools-flagstat/{sample}.txt"
+        "qc/samtools-flagstat/{sample}.txt",
     log:
-        "logs/samtools-flagstat/{sample}.log"
+        "logs/samtools-flagstat/{sample}.log",
     benchmark:
         "benchmarks/samtools-flagstat/{sample}.bench.log"
     group:
@@ -64,25 +68,27 @@ rule samtools_flagstat:
     wrapper:
         "0.64.0/bio/samtools/flagstat"
 
+
 rule samtools_flagstat_collect:
     input:
-        expand(
-            "qc/samtools-flagstat/{sample}.txt",
-            sample=config["global"]["sample-names"]
-        )
+        expand("qc/samtools-flagstat/{sample}.txt", sample=config["global"]["sample-names"]),
     output:
-        touch("qc/samtools-flagstat/samtools-flagstat.done")
+        touch("qc/samtools-flagstat/samtools-flagstat.done"),
 
-localrules: samtools_flagstat_collect
+
+localrules:
+    samtools_flagstat_collect,
+
 
 # =================================================================================================
 #     qualimap
 # =================================================================================================
 
+
 # Rule for running qualimap for each bam file of a sample, with its units merged.
 rule qualimap_sample:
     input:
-        bam_qc_input("qualimap", "bams")
+        bam_qc_input("qualimap", "bams"),
     output:
         # The output of this rule (for now) is a directory, so we have no way of telling whether
         # the rule succeeded by that. We hence add the `done` file here as well, which (according
@@ -90,8 +96,7 @@ rule qualimap_sample:
         # We had instances in the past where cluster jobs of this rule failed, and left a
         # half-finished directory behind; let's hope that this avoids that.
         outdir=directory("qc/qualimap/{sample}"),
-        done=touch("qc/qualimap/{sample}.done")
-
+        done=touch("qc/qualimap/{sample}.done"),
         # Alternatively, specify all individual files, which gives more control,
         # but also more spammed output
         # "qc/qualimap/{sample}/genome_results.txt",
@@ -101,11 +106,10 @@ rule qualimap_sample:
         # "qc/qualimap/{sample}/raw_data_qualimapReport/mapped_reads_gc-content_distribution.txt",
     params:
         extra=config["params"]["qualimap"]["extra"],
-        outdir="qc/qualimap/{sample}"
-    threads:
-        config["params"]["qualimap"]["threads"]
+        outdir="qc/qualimap/{sample}",
+    threads: config["params"]["qualimap"]["threads"]
     log:
-        "logs/qualimap/{sample}_qualimap.log"
+        "logs/qualimap/{sample}_qualimap.log",
     group:
         "qualimap"
     conda:
@@ -115,13 +119,10 @@ rule qualimap_sample:
         "-outdir {params.outdir} -outformat HTML "
         "{params.extra} > {log} 2>&1"
 
+
 rule qualimap_collect:
     input:
-        expand(
-            "qc/qualimap/{sample}.done",
-            sample=config["global"]["sample-names"]
-        )
-
+        expand("qc/qualimap/{sample}.done", sample=config["global"]["sample-names"]),
         # Old, explicitly request each output file. Also still uses units...
         # expand(
         #     "qc/qualimap/{u.sample}-{u.unit}/genome_results.txt",
@@ -144,13 +145,17 @@ rule qualimap_collect:
         #     u=config["global"]["samples"].itertuples()
         # ),
     output:
-        touch("qc/qualimap/qualimap.done")
+        touch("qc/qualimap/qualimap.done"),
 
-localrules: qualimap_collect
+
+localrules:
+    qualimap_collect,
+
 
 # =================================================================================================
 #     Picard CollectMultipleMetrics
 # =================================================================================================
+
 
 # The snakemake wrapper for picard/collectmultiplemetrics uses output file extensions
 # to select the different tools for the metrics.
@@ -182,45 +187,51 @@ def picard_collectmultiplemetrics_exts():
     #     res.append(".rna_metrics")
     return res
 
+
 rule picard_collectmultiplemetrics:
     input:
         bam=bam_qc_input("picard", "CollectMultipleMetrics-bams"),
-        ref=config["data"]["reference-genome"]
+        ref=config["data"]["reference-genome"],
     output:
-        expand( "qc/picard/{{sample}}{ext}", ext=picard_collectmultiplemetrics_exts())
+        expand("qc/picard/{{sample}}{ext}", ext=picard_collectmultiplemetrics_exts()),
     log:
-        "logs/picard/multiple_metrics/{sample}.log"
+        "logs/picard/multiple_metrics/{sample}.log",
     params:
-        config["params"]["picard"]["CollectMultipleMetrics-java-opts"] + " " +
-        config["params"]["picard"]["CollectMultipleMetrics-extra"] + (
-            " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
-            if platform.system() == "Darwin"
-            else ""
-        )
+        config["params"]["picard"]["CollectMultipleMetrics-java-opts"]
+        + " "
+        + config["params"]["picard"]["CollectMultipleMetrics-extra"]
+        + (" USE_JDK_DEFLATER=true USE_JDK_INFLATER=true" if platform.system() == "Darwin" else ""),
     conda:
         "../envs/picard.yaml"
     script:
         # We use our own version of the wrapper here, which fixes issues with missing files in cases
         # where Picard does not have enough data for a specific metric to run.
         "../scripts/picard-collectmultiplemetrics.py"
-    # wrapper:
-    #     "0.72.0/bio/picard/collectmultiplemetrics"
+
+
+# wrapper:
+#     "0.72.0/bio/picard/collectmultiplemetrics"
+
 
 rule picard_collectmultiplemetrics_collect:
     input:
         expand(
             "qc/picard/{sample}{ext}",
             sample=config["global"]["sample-names"],
-            ext=picard_collectmultiplemetrics_exts()
-        )
+            ext=picard_collectmultiplemetrics_exts(),
+        ),
     output:
-        touch("qc/picard/collectmultiplemetrics.done")
+        touch("qc/picard/collectmultiplemetrics.done"),
 
-localrules: picard_collectmultiplemetrics_collect
+
+localrules:
+    picard_collectmultiplemetrics_collect,
+
 
 # =================================================================================================
 #     Deduplication
 # =================================================================================================
+
 
 # Different dedup tools produce different summary files. See above for details.
 # This function simply returns these file names as strings, without replacing the wildcards.
@@ -234,6 +245,7 @@ def get_dedup_report():
     else:
         raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
 
+
 def get_dedup_done():
     # Switch to the chosen duplicate marker tool
     if config["settings"]["duplicates-tool"] == "picard":
@@ -243,13 +255,13 @@ def get_dedup_done():
     else:
         raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
 
+
 rule dedup_reports_collect:
     input:
-        expand(
-            get_dedup_report(),
-            sample=config["global"]["sample-names"]
-        )
+        expand(get_dedup_report(), sample=config["global"]["sample-names"]),
     output:
-        touch( get_dedup_done() )
+        touch(get_dedup_done()),
 
-localrules: dedup_reports_collect
+
+localrules:
+    dedup_reports_collect,

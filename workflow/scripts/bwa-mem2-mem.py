@@ -19,7 +19,9 @@ __author__ = "Christopher Schröder, Johannes Köster, Julian de Ruiter, Lucas C
 __copyright__ = (
     "Copyright 2020, Christopher Schröder, Johannes Köster and Julian de Ruiter, 2022,  Lucas Czech"
 )
-__email__ = "christopher.schroeder@tu-dortmund.de koester@jimmy.harvard.edu, julianderuiter@gmail.com"
+__email__ = (
+    "christopher.schroeder@tu-dortmund.de koester@jimmy.harvard.edu, julianderuiter@gmail.com"
+)
 __license__ = "MIT"
 
 from os import path
@@ -116,6 +118,6 @@ shell_cmd = "(bwa-mem2 mem {extra} {index} {snakemake.input.reads} | " + pipe_cm
 # When using samtools, we create a temp dir.
 if sort == "samtools":
     with tempfile.TemporaryDirectory() as tmp:
-        shell( shell_cmd )
+        shell(shell_cmd)
 else:
-    shell( shell_cmd )
+    shell(shell_cmd)

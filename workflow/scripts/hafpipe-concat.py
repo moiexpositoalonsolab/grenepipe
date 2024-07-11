@@ -26,16 +26,18 @@ log = snakemake.log_fmt_shell(stdout=True, stderr=True, append=True)
 
 # User output.
 shell(
-    "echo \"Started `date`\" {log} ; "
-    "echo \"Sample: {snakemake.params.sample}\" {log} ; "
-    "echo \"Chromosomes: {snakemake.params.chroms}\" {log} ; "
+    'echo "Started `date`" {log} ; '
+    'echo "Sample: {snakemake.params.sample}" {log} ; '
+    'echo "Chromosomes: {snakemake.params.chroms}" {log} ; '
 )
 
+
 # Helper function to get the file path for a HAFpipe afSite file.
-def get_afsite_path( sample, chrom ):
+def get_afsite_path(sample, chrom):
     if chrom not in snakemake.params.chroms:
-        raise Exception( "Invalid chrom " + chrom )
+        raise Exception("Invalid chrom " + chrom)
     return "hafpipe/frequencies/" + sample + ".bam." + chrom + ".afSite"
+
 
 # -------------------------------------------------------------------------
 #     Concat chromosomes
@@ -44,26 +46,20 @@ def get_afsite_path( sample, chrom ):
 # If we want to compress the table, just add a pipe here. Luckily, appending gzip files to each
 # other is a valid thing to do with the format, so we can just build the file chrom by chrom.
 if snakemake.params.get("compress", False):
-    gzip=" | gzip "
+    gzip = " | gzip "
 else:
-    gzip=""
+    gzip = ""
 
 # Make a header line with the sample name, and write it to the output.
 sample_file = snakemake.output.table
-header="chrom,pos," + snakemake.params.sample + ".af"
-shell(
-    "echo {header} {gzip} > {sample_file} ; "
-)
+header = "chrom,pos," + snakemake.params.sample + ".af"
+shell("echo {header} {gzip} > {sample_file} ; ")
 
 # Go through all chromosomes in the specified order, and concat them to the output file,
 # while prepending the chromosome as a first column to the file, and leaving out its header.
 for chrom in snakemake.params.chroms:
-    sn = get_afsite_path( snakemake.params.sample, chrom )
-    shell(
-        "cat {sn} | tail -n +2 | sed 's/^/{chrom},/' {gzip} >> {sample_file} ; "
-    )
+    sn = get_afsite_path(snakemake.params.sample, chrom)
+    shell("cat {sn} | tail -n +2 | sed 's/^/{chrom},/' {gzip} >> {sample_file} ; ")
 
 # User output.
-shell(
-    "echo \"Finished `date`\" {log} ; "
-)
+shell('echo "Finished `date`" {log} ; ')

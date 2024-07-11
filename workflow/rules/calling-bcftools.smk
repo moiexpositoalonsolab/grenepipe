@@ -10,6 +10,7 @@ if config["data"]["known-variants"]:
         "as it does not support to call based on known variants."
     )
 
+
 def get_mpileup_params(wildcards, input):
     # Start with the user-specified params from the config file
     params = config["params"]["bcftools"]["mpileup"]
@@ -28,20 +29,28 @@ def get_mpileup_params(wildcards, input):
     params += " --annotate FORMAT/AD,FORMAT/DP"
     return params
 
+
 # =================================================================================================
 #     Variant Calling
 # =================================================================================================
 
 # Switch to the chosen caller mode
+bcftools_mode_good = False
 if config["params"]["bcftools"]["mode"] == "combined":
+
+    bcftools_mode_good = True
 
     include: "calling-bcftools-combined.smk"
 
 elif config["params"]["bcftools"]["mode"] == "individual":
 
+    bcftools_mode_good = True
+
     include: "calling-bcftools-individual.smk"
 
-else:
+
+# Stupid workaround for https://github.com/snakemake/snakefmt/issues/239
+if not bcftools_mode_good:
     raise Exception("Unknown bcftools mode: " + config["params"]["bcftools"]["mode"])
 
 # =================================================================================================
@@ -54,21 +63,21 @@ if config["settings"].get("contig-group-size"):
 
     rule sort_variants:
         input:
-            vcf = "genotyped/merged-all.vcf.gz",
-            refdict=genome_dict()
+            vcf="genotyped/merged-all.vcf.gz",
+            refdict=genome_dict(),
         output:
-            vcf = "genotyped/all.vcf.gz",
-            done = touch("genotyped/all.done")
+            vcf="genotyped/all.vcf.gz",
+            done=touch("genotyped/all.done"),
         params:
             # See duplicates-picard.smk for the reason whe need this on MacOS.
-            extra = (
+            extra=(
                 " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
                 if platform.system() == "Darwin"
                 else ""
             ),
-            java_opts=config["params"]["picard"]["SortVcf-java-opts"]
+            java_opts=config["params"]["picard"]["SortVcf-java-opts"],
         log:
-            "logs/picard/sort-genotyped.log"
+            "logs/picard/sort-genotyped.log",
         benchmark:
             "benchmarks/picard/sort-genotyped.bench.log"
         conda:

@@ -3,6 +3,7 @@
 # =================================================================================================
 
 import vcfpy
+
 # =================================================================================================
 #     Process Data
 # =================================================================================================
@@ -33,11 +34,11 @@ if len(fields_tmp) > 0:
 sample_fields = []
 for field in fields:
     for sample in reader.header.samples.names:
-        sample_fields.append( field + "." + sample )
+        sample_fields.append(field + "." + sample)
 
 # Print header
-header = ['CHROM', 'POS', 'REF', 'ALT'] + sample_fields
-tableout.write('\t'.join(header) + '\n')
+header = ["CHROM", "POS", "REF", "ALT"] + sample_fields
+tableout.write("\t".join(header) + "\n")
 
 # Process input vcf line by line
 for record in reader:
@@ -48,7 +49,7 @@ for record in reader:
     # Prepare fixed part
     line = [record.CHROM, record.POS, record.REF]
     line += [alt.value for alt in record.ALT]
-    tableout.write('\t'.join(map(str, line)))
+    tableout.write("\t".join(map(str, line)))
 
     # Prepare lists for results per sample
     covs = []
@@ -59,7 +60,7 @@ for record in reader:
     # Iterate samples and fill lists
     # line += [call.data.get('AD') or '0,0' for call in record.calls]
     for call in record.calls:
-        ad = call.data.get('AD')
+        ad = call.data.get("AD")
         if ad and len(ad) == 2:
             cov = ad[0] + ad[1]
             covs.append(str(cov))
@@ -79,12 +80,12 @@ for record in reader:
 
     # Write the lists per sample, in the order of the fields.
     if "COV" in fields:
-        tableout.write('\t' + '\t'.join( covs ))
+        tableout.write("\t" + "\t".join(covs))
     if "FREQ" in fields:
-        tableout.write('\t' + '\t'.join( freqs ))
+        tableout.write("\t" + "\t".join(freqs))
     if "REF_CNT" in fields:
-        tableout.write('\t' + '\t'.join( ref_cnts ))
+        tableout.write("\t" + "\t".join(ref_cnts))
     if "ALT_CNT" in fields:
-        tableout.write('\t' + '\t'.join( alt_cnts ))
-    tableout.write('\n')
+        tableout.write("\t" + "\t".join(alt_cnts))
+    tableout.write("\n")
 tableout.close()

@@ -24,7 +24,7 @@ if snakemake.log:
     sys.stderr = open(snakemake.log[0], "w")
 
 outdir = Path(snakemake.output[0])
-outdir.mkdir(exist_ok = True)
+outdir.mkdir(exist_ok=True)
 
 with NamedTemporaryFile() as tmp:
     urlretrieve(

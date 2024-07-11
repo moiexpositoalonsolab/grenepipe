@@ -2,13 +2,16 @@
 #     Common
 # =================================================================================================
 
+
 # We first need to load the common functionality, which gives us access to the config file,
 # generates the sample list, and prepares some other things for us that are needed below.
 include: "rules/init.smk"
 
+
 # =================================================================================================
 #     Default "All" Target Rule
 # =================================================================================================
+
 
 # The rule that is executed by default. We include the result files of different intermediate steps
 # here as well, for example, the genotyped vcf file from the "calling.smk" step, so that a nice
@@ -20,30 +23,29 @@ rule all:
         "filtered/all.vcf.gz" if not config["settings"]["filter-variants"] == "none" else [],
         "annotated/snpeff.vcf.gz" if config["settings"]["snpeff"] else [],
         "annotated/vep.vcf.gz" if config["settings"]["vep"] else [],
-
         # Quality control
         "qc/multiqc.html",
-
         # Reference genome statistics
         config["data"]["reference-genome"] + ".seqkit",
-
         # Pileup
         "mpileup/all-pileups.done" if len(config["settings"]["pileups"]) else [],
-
         # HAFpipe
-        "hafpipe/all.csv" + (
-            ".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""
-        ) if config["settings"]["hafpipe"] else [],
-
+        "hafpipe/all.csv"
+        + (".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else "")
+        if config["settings"]["hafpipe"]
+        else [],
         # Stats. Some deactivated for now.
-        "tables/frequencies.tsv" if config["settings"]["frequency-table"] else []
+        "tables/frequencies.tsv" if config["settings"]["frequency-table"] else [],
         # "plots/depths.svg",
         # "plots/allele-freqs.svg",
         # "tables/sample-sizes.tsv"
 
+
 # The main `all` rule is local. It does not do anything anyway,
 # except requesting the other rules to run.
-localrules: all
+localrules:
+    all,
+
 
 # =================================================================================================
 #     Rule Modules
@@ -51,6 +53,7 @@ localrules: all
 
 # These rules need to come after the `all` rule above, as Snakemake takes the first rule it finds
 # as the implicit target when no other target is specified, and we want that to be the `all` rule.
+
 
 include: "rules/prep.smk"
 include: "rules/trimming.smk"

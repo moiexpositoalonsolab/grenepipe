@@ -28,19 +28,17 @@ log = snakemake.log_fmt_shell(stdout=True, stderr=True, append=True)
 # For all these steps, we get the directory where this python script file is in,
 # and then work our way up from there through our grenepipe directory.
 script_path = os.path.dirname(os.path.realpath(__file__))
-packages_path = os.path.join( script_path, "../../packages" )
+packages_path = os.path.join(script_path, "../../packages")
 
-harp_path   = os.path.join( packages_path, "harp/bin/" )
-harp_bin    = os.path.join( packages_path, "harp/bin/harp" )
-hafpipe_bin = os.path.join( packages_path, "hafpipe/HAFpipe_wrapper.sh" )
+harp_path = os.path.join(packages_path, "harp/bin/")
+harp_bin = os.path.join(packages_path, "harp/bin/harp")
+hafpipe_bin = os.path.join(packages_path, "hafpipe/HAFpipe_wrapper.sh")
 
-if not os.path.exists( harp_bin ) or not os.path.exists( hafpipe_bin ):
+if not os.path.exists(harp_bin) or not os.path.exists(hafpipe_bin):
     print("Cannot find harp or HAFpipe in the grenepipe directory. Downloading them now.")
-    shell(
-        "{packages_path}/setup-hafpipe.sh {log}"
-    )
+    shell("{packages_path}/setup-hafpipe.sh {log}")
 
-if not os.path.exists( harp_bin ) or not os.path.exists( hafpipe_bin ):
+if not os.path.exists(harp_bin) or not os.path.exists(hafpipe_bin):
     print(
         "Still cannot find harp or HAFpipe in the grenepipe directory. "
         "Please see grenepipe/packages/README.md to download them manually."
@@ -75,13 +73,13 @@ else:
 # need to match them in our rule. Might want to change later, and rename the files to our liking.
 
 # Add potential inputs
-hafpipe_inputs = [ "vcf", "bamfile", "refseq" ]
+hafpipe_inputs = ["vcf", "bamfile", "refseq"]
 for arg in hafpipe_inputs:
     if snakemake.input.get(arg, ""):
         args += " --" + arg + " {snakemake.input." + arg + ":q}"
 
 # Add potential params, without the `:q`, as those are not files.
-hafpipe_params = [ "chrom", "impmethod", "outdir" ]
+hafpipe_params = ["chrom", "impmethod", "outdir"]
 for arg in hafpipe_params:
     if snakemake.params.get(arg, ""):
         args += " --" + arg + " {snakemake.params." + arg + "}"
@@ -90,7 +88,7 @@ for arg in hafpipe_params:
 # Should not happen with our rules, as they should only call this script for the two valid methods.
 impmethod = snakemake.params.get("impmethod", "")
 if impmethod != "" and impmethod not in ["simpute", "npute"]:
-    raise Exception( "Cannot use impmethod '" + impmethod + "' with HAFpipe directly" )
+    raise Exception("Cannot use impmethod '" + impmethod + "' with HAFpipe directly")
 
 # Arguments of HAFpipe that exist, but that we do not need to use above:
 # --logfile (directly provided below in the shell command)
@@ -108,8 +106,7 @@ if impmethod != "" and impmethod not in ["simpute", "npute"]:
 # and we finally also forward any extra params that the user might have provided.
 shell(
     "export PATH={harp_path}:$PATH ; "
-    "{hafpipe_bin} " + args + \
-    "    --logfile {snakemake.log:q} "
+    "{hafpipe_bin} " + args + "    --logfile {snakemake.log:q} "
     "    {snakemake.params.extra} {log}"
 )
 
@@ -118,10 +115,8 @@ shell(
 # and manually rename to the expected file for that particular case, so that our rule finds it.
 # We fixed that in our fork of HAF-pipe, but keep this check around here for completeness.
 if snakemake.params.get("tasks") == "2" and impmethod == "simpute":
-    if os.path.exists( snakemake.input.snptable + ".imputed" ):
-        shell(
-            "mv {snakemake.input.snptable:q}.imputed {snakemake.input.snptable:q}.simpute"
-        )
+    if os.path.exists(snakemake.input.snptable + ".imputed"):
+        shell("mv {snakemake.input.snptable:q}.imputed {snakemake.input.snptable:q}.simpute")
 
 # The `numeric_SNPtable.R` script is being run from within Task 1 and produces the `.numeric` file
 # of the SNP table. It can require an _insane_ amount of memory for larger founder VCF files,
@@ -135,12 +130,8 @@ if snakemake.params.get("tasks") == "1":
     # We check that both files exist and that the bgzipped one is not so small that it's likely
     # just a zipped empty file. Reading bgzip in python is tricky, so we don't do that as of now...
     numeric = snakemake.output.get("snptable") + ".numeric"
-    numbgz  = numeric + ".bgz"
-    if (
-        not os.path.exists( numeric ) or
-        not os.path.exists( numbgz ) or
-        os.path.getsize( numbgz ) < 100
-    ):
+    numbgz = numeric + ".bgz"
+    if not os.path.exists(numeric) or not os.path.exists(numbgz) or os.path.getsize(numbgz) < 100:
         raise Exception(
             "The HAF-pipe Task 1 step to convert the SNP table file to a numeric format failed. "
             "Please check all log files for errors."

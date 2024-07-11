@@ -27,10 +27,10 @@ extra = snakemake.params.get("extra", "")
 # Extra optional cache and fasta url
 cacheurl = snakemake.params.get("cacheurl", "")
 if cacheurl:
-    cacheurl = "--CACHEURL \"{}\"".format(cacheurl)
+    cacheurl = '--CACHEURL "{}"'.format(cacheurl)
 fastaurl = snakemake.params.get("fastaurl", "")
 if fastaurl:
-    fastaurl = "--FASTAURL \"{}\"".format(fastaurl)
+    fastaurl = '--FASTAURL "{}"'.format(fastaurl)
 
 log = snakemake.log_fmt_shell(stdout=True, stderr=True)
 

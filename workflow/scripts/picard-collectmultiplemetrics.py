@@ -86,9 +86,12 @@ shell(
 
 # Python does not yet have a touch function.
 import os
+
+
 def touch(fname, times=None):
-    with open(fname, 'a'):
+    with open(fname, "a"):
         os.utime(fname, times)
+
 
 # Here is our addition: Go thorugh all files again, and simply touch the any non-existing ones.
 # We only touch non-existing ones, to not mess with existing time stamps.

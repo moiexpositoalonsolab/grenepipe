@@ -83,7 +83,7 @@ with open(fai) as faif:
         chrom_name = fields[0]
         chrom_length = int(fields[1])
         if chrom_name == contig:
-            regions = "<(echo \"" + chrom_name + ":0-" + str(chrom_length) + "\")"
+            regions = '<(echo "' + chrom_name + ":0-" + str(chrom_length) + '")'
 
 # If we are here, we must have found the contig in the fai file,
 # otherwise that name would not have appeared in the "{contig}" wildcard of our snakemake rule -
@@ -108,12 +108,12 @@ if snakemake.input.get("regions", ""):
         # If there are no regions yet, we have the case that a small contig group was provided.
         # In this case, we just parse that file and turn its bed format into the freebayes
         # regions format.
-        regions = (
-            "<(cat {snakemake.input.regions} | sed 's/\\t/:/' | sed 's/\\t/-/')"
-        ).format(snakemake=snakemake)
+        regions = ("<(cat {snakemake.input.regions} | sed 's/\\t/:/' | sed 's/\\t/-/')").format(
+            snakemake=snakemake
+        )
 
 if snakemake.threads == 1:
-    freebayes = "freebayes --region <("+ regions + ")"
+    freebayes = "freebayes --region <(" + regions + ")"
 else:
     # Ideally, we'd be using bamtools coverage and coverage_to_regions.py here,
     # as suggsted in the freebayes-parallel script, but this runs a long time and had some errors

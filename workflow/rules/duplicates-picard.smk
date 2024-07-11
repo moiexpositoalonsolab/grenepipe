@@ -6,13 +6,14 @@ import platform
 
 # Used in `mapping.smk`
 
+
 rule mark_duplicates:
     input:
         # Get either the normal mapping output, or, if additional filtering via `samtools view`
         # is set in the config settings: filter-mapped-reads, use the filtered output instead,
         # or the clipped ones, if those were requested.
         # We always use the merged units per sample here.
-        get_mapped_reads
+        get_mapped_reads,
     output:
         bam=(
             "dedup/{sample}.bam"
@@ -20,9 +21,9 @@ rule mark_duplicates:
             else temp("dedup/{sample}.bam")
         ),
         metrics="qc/dedup/{sample}.metrics.txt",
-        done=touch("dedup/{sample}.done")
+        done=touch("dedup/{sample}.done"),
     log:
-        "logs/picard/dedup/{sample}.log"
+        "logs/picard/dedup/{sample}.log",
     benchmark:
         "benchmarks/picard/dedup/{sample}.bench.log"
     params:
@@ -31,12 +32,10 @@ rule mark_duplicates:
         # and some system libraries, leading the JRE to exit with fatal error SIGSEGV caused by
         # libgkl_compression, see https://github.com/broadinstitute/picard/issues/1329.
         # Hence, on MacOS, we add the two settings recommended by the github issue.
-        config["params"]["picard"]["MarkDuplicates-java-opts"] + " " +
-        config["params"]["picard"]["MarkDuplicates"] + (
-            " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
-            if platform.system() == "Darwin"
-            else ""
-        )
+        config["params"]["picard"]["MarkDuplicates-java-opts"]
+        + " "
+        + config["params"]["picard"]["MarkDuplicates"]
+        + (" USE_JDK_DEFLATER=true USE_JDK_INFLATER=true" if platform.system() == "Darwin" else ""),
     group:
         "mapping_extra"
     conda:

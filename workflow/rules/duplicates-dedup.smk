@@ -8,6 +8,7 @@ if len(config["params"]["samtools"]["temp-dir"]) > 0:
 
 # Used in `mapping.smk`
 
+
 # The dedup documentation says that -o is an output file, but the program then complains
 # that it needs a directory instead... and then litters the output directory with all kinds
 # of files that we do not want. So, let's use a shadow directory, and let's pray that the file naming
@@ -26,18 +27,18 @@ rule mark_duplicates:
         # is set in the config settings: filter-mapped-reads, use the filtered output instead,
         # or the clipped ones, if those were requested.
         # We always use the merged units per sample here.
-        get_mapped_reads
+        get_mapped_reads,
     output:
         bam=temp("dedup/{sample}_rmdup.bam"),
         metrics="dedup/{sample}.dedup.json",
-        done=touch("dedup/{sample}.dedup.done")
+        done=touch("dedup/{sample}.dedup.done"),
     log:
-        "logs/dedup/{sample}.log"
+        "logs/dedup/{sample}.log",
     benchmark:
         "benchmarks/dedup/{sample}.bench.log"
     params:
         extra=config["params"]["dedup"]["extra"],
-        out_dir="dedup"
+        out_dir="dedup",
     conda:
         "../envs/dedup.yaml"
     group:
@@ -53,23 +54,24 @@ rule mark_duplicates:
         "    dedup/{wildcards.sample}." + get_mapped_read_infix() + ".dedup.json"
         "    dedup/{wildcards.sample}.dedup.json"
 
+
 rule sort_reads_dedup:
     input:
-        "dedup/{sample}_rmdup.bam"
+        "dedup/{sample}_rmdup.bam",
     output:
         (
             "dedup/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("dedup/{sample}.bam")
         ),
-        touch("dedup/{sample}.done")
+        touch("dedup/{sample}.done"),
     params:
         extra=config["params"]["samtools"]["sort"],
-        tmp_dir=config["params"]["samtools"]["temp-dir"]
-    threads:  # Samtools takes additional threads through its option -@
-        1     # This value - 1 will be sent to -@. Weird flex, but okay.
+        tmp_dir=config["params"]["samtools"]["temp-dir"],
+    # Samtools takes additional threads through its option -@
+    threads: 1  # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
-        "logs/samtools/sort/{sample}-dedup.log"
+        "logs/samtools/sort/{sample}-dedup.log",
     group:
         "mapping_extra"
     conda:

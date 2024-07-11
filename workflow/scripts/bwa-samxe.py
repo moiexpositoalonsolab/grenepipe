@@ -32,15 +32,9 @@ else:
 
 # Check inputs
 fastq = (
-    snakemake.input.fastq
-    if isinstance(snakemake.input.fastq, list)
-    else [snakemake.input.fastq]
+    snakemake.input.fastq if isinstance(snakemake.input.fastq, list) else [snakemake.input.fastq]
 )
-sai = (
-    snakemake.input.sai
-    if isinstance(snakemake.input.sai, list)
-    else [snakemake.input.sai]
-)
+sai = snakemake.input.sai if isinstance(snakemake.input.sai, list) else [snakemake.input.sai]
 if len(fastq) == 1 and len(sai) == 1:
     alg = "samse"
 elif len(fastq) == 2 and len(sai) == 2:
@@ -87,9 +81,7 @@ log = snakemake.log_fmt_shell(stdout=True, stderr=True)
 if sort == "none":
 
     # Simply convert to output format using samtools view.
-    pipe_cmd = (
-        "samtools view -h --output-fmt " + out_ext + " -o {snakemake.output[0]} -"
-    )
+    pipe_cmd = "samtools view -h --output-fmt " + out_ext + " -o {snakemake.output[0]} -"
 
 elif sort == "samtools":
 
@@ -138,6 +130,6 @@ shell_cmd = "(bwa {alg} {extra} {index} {sai} {fastq} | " + pipe_cmd + ") {log}"
 # When using samtools, we create a temp dir.
 if sort == "samtools":
     with tempfile.TemporaryDirectory() as tmp:
-        shell( shell_cmd )
+        shell(shell_cmd)
 else:
-    shell( shell_cmd )
+    shell(shell_cmd)

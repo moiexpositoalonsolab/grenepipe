@@ -2,9 +2,10 @@
 #     Trimming
 # =================================================================================================
 
+
 rule trim_reads_se:
     input:
-        unpack(get_fastq)
+        unpack(get_fastq),
     output:
         (
             "trimmed/{sample}-{unit}.fastq.gz"
@@ -12,15 +13,14 @@ rule trim_reads_se:
             else temp("trimmed/{sample}-{unit}.fastq.gz")
         ),
         # trimlog="trimmed/{sample}-{unit}-se.trimlog.log"
-        touch("trimmed/{sample}-{unit}-se.done")
+        touch("trimmed/{sample}-{unit}-se.done"),
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
-        extra = config["params"]["trimmomatic"]["se"]["extra"],
-        trimmer = config["params"]["trimmomatic"]["se"]["trimmer"]
-    threads:
-        config["params"]["trimmomatic"]["threads"]
+        extra=config["params"]["trimmomatic"]["se"]["extra"],
+        trimmer=config["params"]["trimmomatic"]["se"]["trimmer"],
+    threads: config["params"]["trimmomatic"]["threads"]
     log:
-        "logs/trimmomatic/{sample}-{unit}.log"
+        "logs/trimmomatic/{sample}-{unit}.log",
     benchmark:
         "benchmarks/trimmomatic/{sample}-{unit}.bench.log"
     conda:
@@ -29,9 +29,10 @@ rule trim_reads_se:
     wrapper:
         "v3.13.6/bio/trimmomatic/se"
 
+
 rule trim_reads_pe:
     input:
-        unpack(get_fastq)
+        unpack(get_fastq),
     output:
         r1=(
             "trimmed/{sample}-{unit}.1.fastq.gz"
@@ -54,15 +55,14 @@ rule trim_reads_pe:
             else temp("trimmed/{sample}-{unit}.2.unpaired.fastq.gz")
         ),
         # trimlog="trimmed/{sample}-{unit}-pe.trimlog.log"
-        done=touch("trimmed/{sample}-{unit}-pe.done")
+        done=touch("trimmed/{sample}-{unit}-pe.done"),
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
-        extra = config["params"]["trimmomatic"]["se"]["extra"],
-        trimmer = config["params"]["trimmomatic"]["pe"]["trimmer"]
-    threads:
-        config["params"]["trimmomatic"]["threads"]
+        extra=config["params"]["trimmomatic"]["se"]["extra"],
+        trimmer=config["params"]["trimmomatic"]["pe"]["trimmer"],
+    threads: config["params"]["trimmomatic"]["threads"]
     log:
-        "logs/trimmomatic/{sample}-{unit}.log"
+        "logs/trimmomatic/{sample}-{unit}.log",
     benchmark:
         "benchmarks/trimmomatic/{sample}-{unit}.bench.log"
     conda:
@@ -71,17 +71,19 @@ rule trim_reads_pe:
     wrapper:
         "v3.13.6/bio/trimmomatic/pe"
 
+
 # =================================================================================================
 #     Trimming Results
 # =================================================================================================
+
 
 def get_trimmed_reads(wildcards):
     """Get trimmed reads of given sample-unit."""
     if is_single_end(wildcards.sample, wildcards.unit):
         # single end sample
-        return [ "trimmed/{sample}-{unit}.fastq.gz".format(
-            sample=wildcards.sample, unit=wildcards.unit
-        )]
+        return [
+            "trimmed/{sample}-{unit}.fastq.gz".format(sample=wildcards.sample, unit=wildcards.unit)
+        ]
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
         raise Exception(
@@ -89,9 +91,13 @@ def get_trimmed_reads(wildcards):
         )
     else:
         # paired-end sample
-        return expand("trimmed/{sample}-{unit}.{pair}.fastq.gz",
-            pair=[1, 2], sample=wildcards.sample, unit=wildcards.unit
+        return expand(
+            "trimmed/{sample}-{unit}.{pair}.fastq.gz",
+            pair=[1, 2],
+            sample=wildcards.sample,
+            unit=wildcards.unit,
         )
+
 
 # MultiQC expects the normal stdout log files from trimmomatic, but as we use a wrapper for the latter,
 # we cannot also declare the log files as output files, because snakemake...
@@ -99,13 +105,16 @@ def get_trimmed_reads(wildcards):
 rule trimmomatic_multiqc_log:
     input:
         # Take the trimming result as dummy input, so that this rule here is always executed afterwards
-        get_trimmed_reads
+        get_trimmed_reads,
     output:
-        "trimmed/{sample}-{unit}.trimlog.log"
+        "trimmed/{sample}-{unit}.trimlog.log",
     shell:
         "cp logs/trimmomatic/{wildcards.sample}-{wildcards.unit}.log {output}"
 
-localrules: trimmomatic_multiqc_log
+
+localrules:
+    trimmomatic_multiqc_log,
+
 
 def get_trimming_report(sample, unit):
     """Get the report needed for MultiQC."""
