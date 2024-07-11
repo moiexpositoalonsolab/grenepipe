@@ -55,7 +55,7 @@ cat ./test/samples.tsv | egrep -v "^S3" > ./test/samples-pe.tsv
 make_config() {
     local TARGET=$1
 
-    cp ./config.yaml ${TARGET}
+    cp ./config/config.yaml ${TARGET}
     # cat ./config.yaml | sed "s?#BASEPATH#?${BASEPATH}?g" > ${TARGET}
     sed -i.bak -e "s?/path/to/data/samples.tsv?${BASEPATH}/test/samples.tsv?g" ${TARGET}
     sed -i.bak -e "s?/path/to/data/genome.fa?${BASEPATH}/test/reference/TAIR10_chr_all.fa?g" ${TARGET}

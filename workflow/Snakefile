@@ -4,7 +4,7 @@
 
 # We first need to load the common functionality, which gives us access to the config file,
 # generates the sample list, and prepares some other things for us that are needed below.
-include: "rules/common.smk"
+include: "rules/init.smk"
 
 # =================================================================================================
 #     Default "All" Target Rule

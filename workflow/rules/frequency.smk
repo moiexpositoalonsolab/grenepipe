@@ -15,7 +15,7 @@ def get_packages_dir():
     # https://snakemake.readthedocs.io/en/stable/project_info/faq.html#how-does-snakemake-interpret-relative-paths
     # However, neither of them is working... So we use a different way of getting the path
     # to our Snakemake base directory: https://stackoverflow.com/a/73202976/4184258
-    return os.path.join( snakemake.workflow.basedir, "packages" )
+    return os.path.join( snakemake.workflow.basedir, "../packages" )
 
 def get_hafpipe_bins():
     harp_bin    = os.path.join( get_packages_dir(), "harp/bin/harp" )

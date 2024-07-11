@@ -28,7 +28,7 @@ log = snakemake.log_fmt_shell(stdout=True, stderr=True, append=True)
 # For all these steps, we get the directory where this python script file is in,
 # and then work our way up from there through our grenepipe directory.
 script_path = os.path.dirname(os.path.realpath(__file__))
-packages_path = os.path.join( script_path, "../packages" )
+packages_path = os.path.join( script_path, "../../packages" )
 
 harp_path   = os.path.join( packages_path, "harp/bin/" )
 harp_bin    = os.path.join( packages_path, "harp/bin/harp" )

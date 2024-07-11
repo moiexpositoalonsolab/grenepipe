@@ -6,7 +6,7 @@ rule vcf_to_tsv:
     input:
         "annotated/snpeff.vcf.gz"
     output:
-        report("tables/calls.tsv.gz", caption="../reports/calls.rst", category="Calls")
+        report("tables/calls.tsv.gz", caption="../report/calls.rst", category="Calls")
     log:
         "logs/vcf_to_tsv.log"
     conda:
@@ -30,8 +30,8 @@ rule plot_stats:
     input:
         "tables/calls.tsv.gz"
     output:
-        depths=report("plots/depths.svg", caption="../reports/depths.rst", category="Plots"),
-        freqs=report("plots/allele-freqs.svg", caption="../reports/freqs.rst", category="Plots")
+        depths=report("plots/depths.svg", caption="../report/depths.rst", category="Plots"),
+        freqs=report("plots/allele-freqs.svg", caption="../report/freqs.rst", category="Plots")
     log:
         "logs/plot-depths.log"
     conda:

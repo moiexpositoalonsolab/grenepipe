@@ -182,7 +182,7 @@ rule reference_seqkit:
 # =================================================================================================
 
 # We need the variants entry in the config to be either an empty list or a file path, which we
-# already ensure in common.smk. This is because snakemake does not accept empty strings as input
+# already ensure in init.smk. This is because snakemake does not accept empty strings as input
 # files - it has to be either a file path or an empty list. So here we need to do a bit of trickery
 # to allow for the case that no known variants file is given in the config:
 # We define a local variable that is always a string. If it is empty, that does not seem to matter

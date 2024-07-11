@@ -43,7 +43,7 @@ rule multiqc:
         "damageprofiler/damageprofiler.done" if config["settings"]["damageprofiler"] else []
 
     output:
-        report("qc/multiqc.html", caption="../reports/multiqc.rst", category="Quality control"),
+        report("qc/multiqc.html", caption="../report/multiqc.rst", category="Quality control"),
         "qc/multiqc.zip",
     params:
         config["params"]["multiqc"]["extra"],

@@ -70,7 +70,7 @@ rule snpeff:
         # annotated calls (vcf, bcf, or vcf.gz)
         calls=report(
             "annotated/snpeff.vcf.gz",
-            caption="../reports/vcf.rst",
+            caption="../report/vcf.rst",
             category="Calls"
         ),
 
