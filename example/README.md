@@ -35,7 +35,7 @@ Known Variants and Regions
 ==============
 
 For testing purposes, we here also include a `known-variants.vcf.gz` file that can be used
-to constrain the variant calling process. This file is based on the [1001 Genomes](https://www.1001genomes.org/) dataset, 
+to constrain the variant calling process. This file is based on the [1001 Genomes](https://www.1001genomes.org/) dataset,
 and subset to serve for exemplary and test purposes (see `known-variants.sh` for the subsetting steps if you are interested).
 
 Furthermore, for testing, we provide a simple `regions.bed` file that restricts the calling process
@@ -48,8 +48,8 @@ Pipeline
 
 To analyze this exemplary dataset, follow these steps:
 
- * First, copy the `config.yaml` for the main grenepipe directory into this example directory.
- * Then set the file paths in `config.yaml` and `samples.tsv` to fit with where grenepipe is located.
+ * First, copy the file `./config/config.yaml` into this example directory.
+ * Then set the file paths in `config.yaml` and `samples.tsv` to match where this `example` directory is located.
 
 Alternative to these two steps, simply call `prepare.sh`, which does these steps automatically.
 

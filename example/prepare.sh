@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 DIR=`pwd -P $(dirname "$0")`
 
 # Copy the config file
-cp ../config.yaml ./config.yaml
+cp ../config/config.yaml ./config.yaml
 
 # Replace paths in config file
 sed -i.bak -e "s?/path/to/data?${DIR}?g" config.yaml
