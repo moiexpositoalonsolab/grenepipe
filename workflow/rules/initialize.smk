@@ -62,13 +62,13 @@ if config["data"]["reference-genome"].endswith(".gz"):
 # So here, we check this, in order to provide some better error messages for users,
 # instead of having them run into cryptic log messages "File is not a supported reference file type".
 # Add `".fas", ".fas.gz"` later if we upgrade GATK.
-fastaexts = (".fasta", ".fasta.gz", ".fa", ".fa.gz", ".fna")
+fastaexts = (".fasta", ".fasta.gz", ".fa", ".fa.gz", ".fna", ".fas", ".fas.gz")
 if not config["data"]["reference-genome"].endswith(fastaexts):
     raise Exception(
         "Reference genome file path does not end in "
         + str(fastaexts)
-        + ", which unfortunately "
-        + "is needed by GATK. Please rename the file and change the path in the config.yaml"
+        + ", which unfortunately is needed by GATK to be able to find the file. "
+        + "Please rename the file and change the path in the config.yaml"
     )
 
 # =================================================================================================
