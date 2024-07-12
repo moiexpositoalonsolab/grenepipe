@@ -8,6 +8,7 @@ checked_fai_contig_names = False
 
 
 def check_fai_contig_names(fai_file):
+    global checked_fai_contig_names
     if checked_fai_contig_names:
         return
     with open(fai_file, "r") as fai_content:
@@ -37,7 +38,7 @@ def get_fai(wildcards):
     # At this point, we also check that all the chromosome/contig names in the reference genome
     # have names that are valid, see https://github.com/moiexpositoalonsolab/grenepipe/issues/44
     # Otherwise, as those names will be used downstream to create file names, we might fail.
-    checked_fai_contig_names(fai_file)
+    check_fai_contig_names(fai_file)
     return fai_file
     # return config["data"]["reference-genome"] + ".fai"
 
