@@ -5,6 +5,10 @@
 import sys
 from snakemake.shell import shell
 
+# ------------------------------------------------------------------
+#     Reference Genome
+# ------------------------------------------------------------------
+
 # We define some local variables for simplicity, and delete them later
 # in order to not spam the global scope by accident.
 
@@ -25,6 +29,47 @@ genome_logdir = os.path.join(genomedir, "logs")
 # of the rule, which hence would lead to log file paths containing the absolute file path
 # of our input genome. We do not want that - and as this whole prep script here only serves
 # one purpose (prepare one genome for a given config file), we just hard code for simplicity.
+
+# ------------------------------------------------------------------
+#     Known Variants
+# ------------------------------------------------------------------
+
+# We need the variants entry in the config to be either an empty list or a file path, which we
+# already ensure in initialize.smk. This is because snakemake does not accept empty strings as input
+# files - it has to be either a file path or an empty list. So here we need to do a bit of trickery
+# to allow for the case that no known variants file is given in the config:
+# We define a local variable that is always a string. If it is empty, that does not seem to matter
+# here, because those rules will never be invoked in that case, and so, snakemake does not seem to
+# fail then. Still, we make it even more fail safe by setting it to a dummy string then that
+# will just lead to rules that are never executed (in the case of no known variants file).
+variants = config["data"]["known-variants"]
+has_known_variants = True
+if isinstance(variants, list) or not variants:
+    if len(variants) > 0:
+        raise Exception("Known variants has to be either a file path or an empty list.")
+    variants = "dummyfile"
+    has_known_variants = False
+else:
+    # Somehow, some tool (was it GATK?) requires known variants to be in vcf.gz format,
+    # so let's ensure this, and overwrite the config. We then also set our local variants to
+    # the file _without_ the gz extension, so that we can set up the rules below correctly to
+    # compress the file and build an index for it.
+    if os.path.splitext(variants)[1] == ".vcf":
+        # Set the config, so that the rules that actually use this file request the correct one.
+        config["data"]["known-variants"] += ".gz"
+    elif variants.endswith(".vcf.gz"):
+        # Set the local one to without the extension, to keep our rules below simple.
+        variants = os.path.splitext(variants)[0]
+    else:
+        raise Exception(
+            "Invalid known variants file type: '"
+            + variants
+            + "'. Needs to be either .vcf or .vcf.gz for some of the tools to work."
+        )
+
+# We write the log file to where the known variants file is, so that this is independent
+# of the particular run, making the log files easier to find for users.
+variant_logdir = os.path.join(os.path.dirname(variants), "logs")
 
 # =================================================================================================
 #     Reference Genome Download
@@ -244,45 +289,113 @@ rule reference_seqkit:
 
 
 # =================================================================================================
-#     Known Variants
+#     Get Fai Helper
 # =================================================================================================
 
-# We need the variants entry in the config to be either an empty list or a file path, which we
-# already ensure in init.smk. This is because snakemake does not accept empty strings as input
-# files - it has to be either a file path or an empty list. So here we need to do a bit of trickery
-# to allow for the case that no known variants file is given in the config:
-# We define a local variable that is always a string. If it is empty, that does not seem to matter
-# here, because those rules will never be invoked in that case, and so, snakemake does not seem to
-# fail then. Still, we make it even more fail safe by setting it to a dummy string then that
-# will just lead to rules that are never executed (in the case of no known variants file).
-variants = config["data"]["known-variants"]
-has_known_variants = True
-if isinstance(variants, list) or not variants:
-    if len(variants) > 0:
-        raise Exception("Known variants has to be either a file path or an empty list.")
-    variants = "dummyfile"
-    has_known_variants = False
-else:
-    # Somehow, some tool (was it GATK?) requires known variants to be in vcf.gz format,
-    # so let's ensure this, and overwrite the config. We then also set our local variants to
-    # the file _without_ the gz extension, so that we can set up the rules below correctly to
-    # compress the file and build an index for it.
-    if os.path.splitext(variants)[1] == ".vcf":
-        # Set the config, so that the rules that actually use this file request the correct one.
-        config["data"]["known-variants"] += ".gz"
-    elif variants.endswith(".vcf.gz"):
-        # Set the local one to without the extension, to keep our rules below simple.
-        variants = os.path.splitext(variants)[0]
-    else:
-        raise Exception(
-            "Invalid known variants file type: '"
-            + variants
-            + "'. Needs to be either .vcf or .vcf.gz for some of the tools to work."
-        )
+checked_fai_contig_names = False
 
-# We write the log file to where the known variants file is, so that this is independent
-# of the particular run, making the log files easier to find for users.
-variant_logdir = os.path.join(os.path.dirname(variants), "logs")
+
+def check_fai_contig_names(fai_file):
+    global checked_fai_contig_names
+    if checked_fai_contig_names:
+        return
+    with open(fai_file, "r") as fai_content:
+        printed_warning_header = False
+        for line in fai_content:
+            contig = line.split("\t")[0]
+            if valid_filename(contig):
+                continue
+            if not printed_warning_header:
+                logger.warning(
+                    "In the reference genome, there are chromosome/contig names that contain "
+                    "problematic characters. As we use these names to create file names, "
+                    "this can lead to crashes later in the pipeline. We generally advise to "
+                    "only use alpha-numeric characters, dots, dashes, and underscores for the "
+                    "reference sequence names for this reason.\n"
+                    "Problematic reference genome names:"
+                )
+                printed_warning_header = True
+            logger.warning(" - " + contig)
+    checked_fai_contig_names = True
+
+
+def get_fai(wildcards):
+    # Stop at the snakemake checkpoint first to ensure that the fai file is available.
+    fai_file = checkpoints.samtools_faidx.get().output[0]
+
+    # At this point, we also check that all the chromosome/contig names in the reference genome
+    # have names that are valid, see https://github.com/moiexpositoalonsolab/grenepipe/issues/44
+    # Otherwise, as those names will be used downstream to create file names, we might fail.
+    check_fai_contig_names(fai_file)
+    return fai_file
+    # return config["data"]["reference-genome"] + ".fai"
+
+
+# =================================================================================================
+#     Known Variants Download
+# =================================================================================================
+
+# Interestingly, in our test case for the below automatic download of the official
+# Arabidopsis thaliana known reference VCF, we get an error by GATK telling us
+# that the INFO header of the VCF contains white spaces, which is not allowed
+# according to the VCF specification... So instead we test with freebayes,
+# which does seem to work with the file. Always such a mess...
+
+# We either want to use the fully specified URL for downloading the ref genome,
+# or the wrapper, due to https://github.com/snakemake/snakemake-wrappers/issues/3070
+# We use our own script here instead for the full download, because the wrapper is not working.
+if config["data"]["known-variants-download"]["full-url"]:
+
+    rule download_known_variants:
+        # Add fai as input to get VCF with annotated contig lengths
+        # (as required by GATK) and properly sorted VCFs.
+        # Need the above checkpoint for that.
+        input:
+            fai=get_fai,
+        output:
+            vcf=variants + ".gz",
+        params:
+            url=config["data"]["known-variants-download"]["full-url"],
+        log:
+            os.path.join(variant_logdir, os.path.basename(variants) + ".download.log"),
+        conda:
+            "../envs/bcftools.yaml"
+        script:
+            "../scripts/ensembl-variation.py"
+
+else:
+
+    rule download_known_variants:
+        # Add fai as input to get VCF with annotated contig lengths
+        # (as required by GATK) and properly sorted VCFs.
+        # Need the above checkpoint for that.
+        input:
+            fai=get_fai,
+        output:
+            vcf=variants + ".gz",
+        params:
+            species=config["data"]["known-variants-download"]["species"],
+            build=config["data"]["known-variants-download"]["build"],
+            release=config["data"]["known-variants-download"]["release"],
+            type="all",  # one of "all", "somatic", "structural_variation"
+            # chromosome="21", # optionally constrain to chromosome, only supported for homo_sapiens
+            branch=(
+                config["data"]["known-variants-download"]["branch"]
+                if "branch" in config["data"]["known-variants-download"]
+                else ""
+            ),
+            url=config["data"]["known-variants-download"]["base-url"],
+        log:
+            os.path.join(variant_logdir, os.path.basename(variants) + ".download.log"),
+        # save space and time with between workflow caching (see docs)
+        cache: "omit-software"
+        wrapper:
+            "v3.13.6/bio/reference/ensembl-variation"
+
+
+# =================================================================================================
+#     Known Variants Processing
+# =================================================================================================
 
 
 # Compress the known variants vcf file using gzip, as this seems needed for GATK.

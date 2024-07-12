@@ -1,49 +1,6 @@
 import json
 
 # =================================================================================================
-#     Get Fai
-# =================================================================================================
-
-checked_fai_contig_names = False
-
-
-def check_fai_contig_names(fai_file):
-    global checked_fai_contig_names
-    if checked_fai_contig_names:
-        return
-    with open(fai_file, "r") as fai_content:
-        printed_warning_header = False
-        for line in fai_content:
-            contig = line.split("\t")[0]
-            if valid_filename(contig):
-                continue
-            if not printed_warning_header:
-                logger.warning(
-                    "In the reference genome, there are chromosome/contig names that contain "
-                    "problematic characters. As we use these names to create file names, "
-                    "this can lead to crashes later in the pipeline. We generally advise to "
-                    "only use alpha-numeric characters, dots, dashes, and underscores for the "
-                    "reference sequence names for this reason.\n"
-                    "Problematic reference genome names:"
-                )
-                printed_warning_header = True
-            logger.warning(" - " + contig)
-    checked_fai_contig_names = True
-
-
-def get_fai(wildcards):
-    # Stop at the snakemake checkpoint first to ensure that the fai file is available.
-    fai_file = checkpoints.samtools_faidx.get().output[0]
-
-    # At this point, we also check that all the chromosome/contig names in the reference genome
-    # have names that are valid, see https://github.com/moiexpositoalonsolab/grenepipe/issues/44
-    # Otherwise, as those names will be used downstream to create file names, we might fail.
-    check_fai_contig_names(fai_file)
-    return fai_file
-    # return config["data"]["reference-genome"] + ".fai"
-
-
-# =================================================================================================
 #     Grouping of (Small) Contigs
 # =================================================================================================
 

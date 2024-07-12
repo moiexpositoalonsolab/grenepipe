@@ -18,3 +18,4 @@ dependencies:
 
   # https://github.com/moiexpositoalonsolab/grenepipe/issues/37
   - chardet
+  - curl

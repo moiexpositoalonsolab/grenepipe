@@ -10,6 +10,7 @@ dependencies:
   # Basics
   - mamba
   - git
+  - curl
 
   # Snakemake
   - snakemake ==8.15.2

@@ -1,5 +1,7 @@
 reference-genome: "(.*)/TAIR10_chr_all.fa"	reference-genome: "\\1/ensembl/TAIR10_chr_all.fa"
+known-variants: ""	known-variants: "#BASEPATH#/test/reference/ensembl/known-variants.vcf.gz"
 samples-count: 0	samples-count: 3
+calling-tool: "haplotypecaller"	calling-tool: "freebayes"
 snpeff: false	snpeff: true
 vep: false	vep: true
 mapdamage: false	mapdamage: true
