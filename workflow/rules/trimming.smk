@@ -70,6 +70,13 @@ elif config["settings"]["trimming-tool"] == "trimmomatic":
 
     trimming_tool_good = True
 
+elif config["settings"]["trimming-tool"] == "none":
+
+    # Use dummy implementation that just returns the original fastq files again
+    include: "trimming-none.smk"
+
+    trimming_tool_good = True
+
 
 # Another ugly workaround for https://github.com/snakemake/snakefmt/issues/239
 if not trimming_tool_good:

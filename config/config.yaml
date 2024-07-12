@@ -110,8 +110,9 @@ settings:
   # ----------------------------------------------------------------------
 
   # Select the tool used for read trimming.
-  # Valid values: "adapterremoval", "cutadapt", "fastp", "seqprep", "skewer", "trimmomatic".
-  # Note that seqprep can only handle paired end reads.
+  # Valid values: "adapterremoval", "cutadapt", "fastp", "seqprep", "skewer", "trimmomatic", "none".
+  # Note that seqprep can only handle paired end reads. If "none" is selected, no trimming is
+  # applied, and all fastq files are used unchanged for the mapping.
   trimming-tool: "trimmomatic"
 
   # Select whether to merge paired end reads into a single read while trimming.

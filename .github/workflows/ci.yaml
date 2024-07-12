@@ -92,6 +92,7 @@ jobs:
           - trimming-fastp-1
           - trimming-fastp-2
           - trimming-fastp-3
+          - trimming-none
           - trimming-seqprep-1
           - trimming-seqprep-2
           - trimming-skewer-1

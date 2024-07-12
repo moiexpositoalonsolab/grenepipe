@@ -26,7 +26,7 @@ properties:
     properties:
       trimming-tool:
         type: string
-        enum: ["adapterremoval", "cutadapt", "fastp", "trimmomatic", "seqprep", "skewer"]
+        enum: ["adapterremoval", "cutadapt", "fastp", "trimmomatic", "seqprep", "skewer", "none"]
       merge-paired-end-reads:
         type: boolean
       mapping-tool:
