@@ -1,0 +1,26 @@
+---
+name: Format Code Base
+
+on:
+  push:
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  build:
+    name: Format Code Base
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Lint Code Base
+        uses: github/super-linter@v3
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          VALIDATE_SNAKEMAKE_SNAKEFMT: true
