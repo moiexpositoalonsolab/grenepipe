@@ -5,7 +5,7 @@
 
 # We first need to load the common functionality, which gives us access to the config file,
 # generates the sample list, and prepares some other things for us that are needed below.
-include: "rules/init.smk"
+include: "rules/initialize.smk"
 
 
 # =================================================================================================
@@ -55,7 +55,7 @@ localrules:
 # as the implicit target when no other target is specified, and we want that to be the `all` rule.
 
 
-include: "rules/prep.smk"
+include: "rules/prepare-reference.smk"
 include: "rules/trimming.smk"
 include: "rules/mapping.smk"
 include: "rules/calling.smk"
