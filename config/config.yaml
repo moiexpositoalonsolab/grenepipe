@@ -11,14 +11,20 @@ data:
   # The path to the table file itself, as well as the paths to the fastq files within the table need
   # to be absolute! No relative paths (e.g., `../data`), and no paths using shortcuts such as `~`.
   # See the wiki (https://github.com/lczech/grenepipe/wiki) for the expected format.
+  # The file name needs to end in ".fasta", ".fasta.gz", ".fa", ".fa.gz", ".fna", ".fas", ".fas.gz".
   samples-table: "/path/to/data/samples.tsv"
 
-  # Needed. Path to the reference genome in fasta format.
+  # Needed. Path to the reference genome in fasta format, uncompressed, or gzipped.
   # Path needs to be absolute! No relative path (e.g., `../ref`), and no paths using shortcuts
-  # such as `~`.
+  # such as `~`. We recommend to store the reference genome in a dedicated "resources" directory,
+  # according to the Snakemake best practices. We will automatically process the file,
+  # and add additional indices such as `.fai` and `.dict` to the directory where this file
+  # is stored.
   # We expect that each sequence in the file represents a chromosome, contig, or scaffold.
   # For genomes that are not fully assembled but consist of many small scaffolds,
   # see the `contig-group-size` option below to help increase computational speed.
+  # If the file that this path does not already exist, we will download it, using the below
+  # ENSEMBL download instructions. This is meant to enhance reproducibility.
   reference-genome: "/path/to/data/genome.fa"
 
   # Optional. Path to any database of known variants (in vcf or vcf.gz format),
@@ -39,6 +45,39 @@ data:
   # For instance, in a samples table with no re-sequenced samples, where all entries in the `units`
   # column are 1, the number of rows in the table corresponds to the number of samples.
   samples-count: 0
+
+  # If the file provided by `reference-genome` above does not already exist, we can automatically
+  # download it from ENSEMBL, using the following specification.
+  reference-genome-download:
+    # Ensembl species name.
+    species: "arabidopsis_thaliana"
+
+    # Type of data to be downloaded.
+    # Almost surely should be kept as "dna".
+    datatype: "dna"
+
+    # Genome build
+    build: "Araport11"
+
+    # Ensembl release
+    release: 59
+
+    # Optional: Restrict to one or multiple chromosomes
+    # chromosome:
+    #   - "1"
+    #   - "2"
+
+    # Optional: Specify branch
+    branch: "plants"
+
+    # URL from where to download cache data.
+    # base-url: "http://ftp.ensembl.org/pub"
+    base-url: "https://ftp.ensemblgenomes.ebi.ac.uk/pub"
+
+    # If the above settings do not work, due to the automatic download not being able to locate
+    # the correct file, the full download url can be specified instead. If given, none of the
+    # above download settings are used.
+    full-url: "https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-59/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.dna.toplevel.fa.gz"
 
 # =================================================================================================
 #     Pipeline Settings

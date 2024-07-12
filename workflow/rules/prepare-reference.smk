@@ -1,12 +1,9 @@
 # =================================================================================================
-#     Reference Genome
+#     Paths
 # =================================================================================================
 
-
-# Helper function to get the name of the genome dictorary file as expected by GATK
-def genome_dict():
-    return os.path.splitext(config["data"]["reference-genome"])[0] + ".dict"
-
+import sys
+from snakemake.shell import shell
 
 # We define some local variables for simplicity, and delete them later
 # in order to not spam the global scope by accident.
@@ -28,6 +25,66 @@ genome_logdir = os.path.join(genomedir, "logs")
 # of the rule, which hence would lead to log file paths containing the absolute file path
 # of our input genome. We do not want that - and as this whole prep script here only serves
 # one purpose (prepare one genome for a given config file), we just hard code for simplicity.
+
+# =================================================================================================
+#     Reference Genome Download
+# =================================================================================================
+
+# We either want to use the fully specified URL for downloading the ref genome,
+# or the wrapper, due to https://github.com/snakemake/snakemake-wrappers/issues/3070
+if config["data"]["reference-genome-download"]["full-url"]:
+
+    rule download_reference_genome:
+        output:
+            config["data"]["reference-genome"] + ".gz",
+        params:
+            url=config["data"]["reference-genome-download"]["full-url"],
+        log:
+            os.path.join(genome_logdir, genomename + ".download.log"),
+        shell:
+            "(curl -L {params.url} >> {output[0]}) > {log} 2>&1"
+
+else:
+
+    rule download_reference_genome:
+        output:
+            config["data"]["reference-genome"],
+        params:
+            species=config["data"]["reference-genome-download"]["species"],
+            datatype=config["data"]["reference-genome-download"]["datatype"],
+            build=config["data"]["reference-genome-download"]["build"],
+            release=config["data"]["reference-genome-download"]["release"],
+            chromosome=(
+                config["data"]["reference-genome-download"]["chromosome"]
+                if "chromosome" in config["data"]["reference-genome-download"]
+                else ""
+            ),
+            branch=(
+                config["data"]["reference-genome-download"]["branch"]
+                if "branch" in config["data"]["reference-genome-download"]
+                else ""
+            ),
+            url=config["data"]["reference-genome-download"]["base-url"],
+        log:
+            os.path.join(genome_logdir, genomename + ".download.log"),
+        # save space and time with between workflow caching (see docs)
+        cache: "omit-software"
+        wrapper:
+            "v3.13.6/bio/reference/ensembl-sequence"
+
+
+localrules:
+    download_reference_genome,
+
+
+# =================================================================================================
+#     Reference Genome Processing
+# =================================================================================================
+
+
+# Helper function to get the name of the genome dictorary file as expected by GATK
+def genome_dict():
+    return os.path.splitext(config["data"]["reference-genome"])[0] + ".dict"
 
 
 # Write fai indices for the fasta reference genome file.

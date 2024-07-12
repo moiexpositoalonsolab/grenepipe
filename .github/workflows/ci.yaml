@@ -67,6 +67,7 @@ jobs:
           - calling-haplotypecaller-2
           - calling-haplotypecaller-3
           - calling-haplotypecaller-4
+          - download
           - duplicates-dedup-1
           - duplicates-dedup-2
           - hafpipe-1

@@ -239,7 +239,8 @@ for DICT in ${DICTS} ; do
                 # so we need to provide it with a different sample table. The samples table does
                 # have a different path every time though, so that the grep here will fail.
                 # Fetch this, and do not treat that particular one as an error.
-                if [[ "${FROM}" != \samples* ]]; then
+                # Same for the ref genome, needed for the download test.
+                if [[ "${FROM}" != \samples* ]] && [[ "${FROM}" != \reference* ]]; then
                     printf "${COLOR_RED}Test setting does not exist: ${FROM}${COLOR_END}\n"
                     exit 1
                 fi

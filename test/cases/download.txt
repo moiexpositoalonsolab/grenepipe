@@ -1,0 +1,6 @@
+reference-genome: "(.*)/TAIR10_chr_all.fa"	reference-genome: "\\1/ensembl/TAIR10_chr_all.fa"
+samples-count: 0	samples-count: 3
+snpeff: false	snpeff: true
+vep: false	vep: true
+mapdamage: false	mapdamage: true
+damageprofiler: false	damageprofiler: true
