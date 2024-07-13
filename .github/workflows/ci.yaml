@@ -76,10 +76,10 @@ jobs:
           - hafpipe-4
           - mapping-bowtie2-1
           - mapping-bowtie2-2
-          - mapping-bwaaln-1
-          - mapping-bwaaln-2
-          - mapping-bwaaln-3
-          - mapping-bwaaln-4
+          - mapping-bwa-aln-1
+          - mapping-bwa-aln-2
+          - mapping-bwa-aln-3
+          - mapping-bwa-aln-4
           - mapping-bwa-mem-1
           - mapping-bwa-mem2-1
           - mapping-bwa-mem2-2
@@ -194,6 +194,7 @@ jobs:
         with:
           name: logs-test-${{ matrix.os }}-${{ matrix.case }}
           path: |
+            test/out-${{ matrix.case }}/config.yaml
             test/out-${{ matrix.case }}/test-run.log
             test/out-${{ matrix.case }}/logs/
             test/out-${{ matrix.case }}/.snakemake/log/
