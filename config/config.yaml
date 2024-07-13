@@ -59,7 +59,7 @@ data:
     datatype: "dna"
 
     # Genome build
-    build: "Araport11"
+    build: "TAIR10"
 
     # Ensembl release
     release: 59
@@ -90,7 +90,7 @@ data:
   # specifications, as ensembl is a mess. See above for more explanations on these settings.
   known-variants-download:
     species: "arabidopsis_thaliana"
-    build: "Araport11"
+    build: "TAIR10"
     release: 59
     branch: "plants"
     base-url: "http://ftp.ensembl.org/pub"

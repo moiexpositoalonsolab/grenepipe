@@ -1,4 +1,4 @@
-[![Snakemake](https://img.shields.io/badge/snakemake-6.0.5-brightgreen.svg)](https://snakemake.github.io)
+[![Snakemake](https://img.shields.io/badge/snakemake-8.15.2-brightgreen.svg)](https://snakemake.github.io)
 [![CI](https://github.com/moiexpositoalonsolab/grenepipe/workflows/CI/badge.svg?branch=master)](https://github.com/moiexpositoalonsolab/grenepipe/actions)
 ![Platforms](https://img.shields.io/badge/platform-linux--64%20%7C%20osx--64-lightgrey)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
