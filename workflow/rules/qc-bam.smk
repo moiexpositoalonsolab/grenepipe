@@ -12,7 +12,7 @@ def bam_qc_input(tool, key):
     if config["params"][tool][key] == "processed":
         return get_mapping_result()
     elif config["params"][tool][key] == "merged":
-        return "mapped/{sample}.merged.bam"
+        return "mapping/merged/{sample}.bam"
     else:
         raise Exception(
             "Unknown setting for " + tool + " " + key + ": " + config["params"][tool][key]
@@ -30,9 +30,9 @@ rule samtools_stats:
     output:
         "qc/samtools-stats/{sample}.txt",
     log:
-        "logs/samtools-stats/{sample}.log",
+        "logs/qc/samtools-stats/{sample}.log",
     benchmark:
-        "benchmarks/samtools-stats/{sample}.bench.log"
+        "benchmarks/qc/samtools-stats/{sample}.log"
     group:
         "qc"
     conda:
@@ -58,9 +58,9 @@ rule samtools_flagstat:
     output:
         "qc/samtools-flagstat/{sample}.txt",
     log:
-        "logs/samtools-flagstat/{sample}.log",
+        "logs/qc/samtools-flagstat/{sample}.log",
     benchmark:
-        "benchmarks/samtools-flagstat/{sample}.bench.log"
+        "benchmarks/qc/samtools-flagstat/{sample}.log"
     group:
         "qc"
     conda:
@@ -109,7 +109,7 @@ rule qualimap_sample:
         outdir="qc/qualimap/{sample}",
     threads: config["params"]["qualimap"]["threads"]
     log:
-        "logs/qualimap/{sample}_qualimap.log",
+        "logs/qc/qualimap/{sample}_qualimap.log",
     group:
         "qualimap"
     conda:
@@ -195,7 +195,7 @@ rule picard_collectmultiplemetrics:
     output:
         expand("qc/picard/{{sample}}{ext}", ext=picard_collectmultiplemetrics_exts()),
     log:
-        "logs/picard/multiple_metrics/{sample}.log",
+        "logs/qc/picard-collectmultiplemetrics/{sample}.log",
     params:
         config["params"]["picard"]["CollectMultipleMetrics-java-opts"]
         + " "
@@ -241,7 +241,7 @@ def get_dedup_report():
     if config["settings"]["duplicates-tool"] == "picard":
         return "qc/dedup/{sample}.metrics.txt"
     elif config["settings"]["duplicates-tool"] == "dedup":
-        return "dedup/{sample}.dedup.json"
+        return "mapping/dedup/{sample}.dedup.json"
     else:
         raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
 
@@ -251,7 +251,7 @@ def get_dedup_done():
     if config["settings"]["duplicates-tool"] == "picard":
         return "qc/dedup/picard.done"
     elif config["settings"]["duplicates-tool"] == "dedup":
-        return "dedup/dedup.done"
+        return "mapping/dedup/dedup.done"
     else:
         raise Exception("Unknown duplicates-tool: " + config["settings"]["duplicates-tool"])
 

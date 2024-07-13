@@ -49,9 +49,9 @@ if config["settings"].get("contig-group-size", 0) > 0:
         input:
             fai=get_fai,
         output:
-            "contig-groups/contigs.json",
+            "calling/contig-groups/contigs.json",
         log:
-            "logs/contig-groups/contigs.log",
+            "logs/calling/contig-groups/contigs.log",
         params:
             contig_group_size=config["settings"].get("contig-group-size", 0),
         run:
@@ -98,11 +98,11 @@ if config["settings"].get("contig-group-size", 0) > 0:
         # that have been bin-packed above.
     rule contigs_group_list:
         input:
-            contigs="contig-groups/contigs.json",
+            contigs="calling/contig-groups/contigs.json",
         output:
-            "contig-groups/{contig}.bed",
+            "calling/contig-groups/{contig}.bed",
         log:
-            "logs/contig-groups/{contig}.log",
+            "logs/calling/contig-groups/{contig}.log",
         run:
             # Get the contigs file that we created above.
             contigs = json.load(open(input.contigs))
@@ -212,9 +212,9 @@ if "restrict-regions" in config["settings"]:
         input:
             config["settings"].get("restrict-regions"),
         output:
-            "called/{contig}.regions.bed",
+            "calling/regions/{contig}.bed",
         log:
-            "logs/bedextract/{contig}.regions.log",
+            "logs/calling/regions/bedextract/{contig}.regions.log",
         conda:
             "../envs/bedops.yaml"
         shell:

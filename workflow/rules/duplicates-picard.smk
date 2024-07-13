@@ -16,16 +16,16 @@ rule mark_duplicates:
         get_mapped_reads,
     output:
         bam=(
-            "dedup/{sample}.bam"
+            "mapping/dedup/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("dedup/{sample}.bam")
+            else temp("mapping/dedup/{sample}.bam")
         ),
         metrics="qc/dedup/{sample}.metrics.txt",
-        done=touch("dedup/{sample}.done"),
+        done=touch("mapping/dedup/{sample}.done"),
     log:
-        "logs/picard/dedup/{sample}.log",
+        "logs/mapping/dedup/picard-markduplicates/{sample}.log",
     benchmark:
-        "benchmarks/picard/dedup/{sample}.bench.log"
+        "benchmarks/mapping/dedup/picard-markduplicates/{sample}.log"
     params:
         # Take the params from the config.
         # On MacOS (we experienced it with 10.16, 11, and 12 so far), there is an issue between Java

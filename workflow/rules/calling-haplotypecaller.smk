@@ -38,33 +38,33 @@ rule call_variants:
             config["data"]["known-variants"] + ".tbi" if config["data"]["known-variants"] else []
         ),
         # Further settings for region constraint filter.
-        # regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        # regions="calling/regions/{contig}.bed" if config["settings"].get("restrict-regions") else []
         regions=(
-            "called/{contig}.regions.bed"
+            "calling/regions/{contig}.bed"
             if (config["settings"].get("restrict-regions"))
             else (
-                "contig-groups/{contig}.bed"
+                "calling/contig-groups/{contig}.bed"
                 if (config["settings"].get("contig-group-size"))
                 else []
             )
         ),
     output:
         gvcf=(
-            "called/{sample}.{contig}.g.vcf.gz"
+            "calling/called/{sample}.{contig}.g.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("called/{sample}.{contig}.g.vcf.gz")
+            else temp("calling/called/{sample}.{contig}.g.vcf.gz")
         ),
-        # gvcf=protected("called/{sample}.{contig}.g.vcf.gz")
+        # gvcf=protected("calling/called/{sample}.{contig}.g.vcf.gz")
         gtbi=(
-            "called/{sample}.{contig}.g.vcf.gz.tbi"
+            "calling/called/{sample}.{contig}.g.vcf.gz.tbi"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("called/{sample}.{contig}.g.vcf.gz.tbi")
+            else temp("calling/called/{sample}.{contig}.g.vcf.gz.tbi")
         ),
-        done=touch("called/{sample}.{contig}.g.done"),
+        done=touch("calling/called/{sample}.{contig}.g.done"),
     log:
-        "logs/gatk/haplotypecaller/{sample}.{contig}.log",
+        "logs/calling/gatk-haplotypecaller/{sample}.{contig}.log",
     benchmark:
-        "benchmarks/gatk/haplotypecaller/{sample}.{contig}.bench.log"
+        "benchmarks/calling/called/gatk-haplotypecaller/{sample}.{contig}.log"
     # Need to set threads here so that snakemake can plan the job scheduling properly
     threads: config["params"]["gatk"]["HaplotypeCaller-threads"]
     # resources:
@@ -99,9 +99,9 @@ rule call_variants:
 # # is present sometimes... hopefully snakemake is smart enough for that.
 # rule vcf_index_gatk:
 #     input:
-#         "called/{file}.g.vcf.gz"
+#         "calling/{file}.g.vcf.gz"
 #     output:
-#         "called/{file}.g.vcf.gz.tbi"
+#         "calling/{file}.g.vcf.gz.tbi"
 #     params:
 #         # pass arguments to tabix (e.g. index a vcf)
 #         "-p vcf"
@@ -128,17 +128,20 @@ rule combine_calls:
         ),
         refdict=genome_dict(),
         # Get the sample data, including indices.
-        gvcfs=expand("called/{sample}.{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]),
+        gvcfs=expand(
+            "calling/called/{sample}.{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]
+        ),
         indices=expand(
-            "called/{sample}.{{contig}}.g.vcf.gz.tbi", sample=config["global"]["sample-names"]
+            "calling/called/{sample}.{{contig}}.g.vcf.gz.tbi",
+            sample=config["global"]["sample-names"],
         ),
     output:
         gvcf=(
-            "called/all.{contig}.g.vcf.gz"
+            "calling/called/all.{contig}.g.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("called/all.{contig}.g.vcf.gz")
+            else temp("calling/called/all.{contig}.g.vcf.gz")
         ),
-        done=touch("called/all.{contig}.g.done"),
+        done=touch("calling/called/all.{contig}.g.done"),
     params:
         extra=config["params"]["gatk"]["CombineGVCFs-extra"]
         + (
@@ -148,9 +151,9 @@ rule combine_calls:
         ),
         java_opts=config["params"]["gatk"]["CombineGVCFs-java-opts"],
     log:
-        "logs/gatk/combine-gvcfs/{contig}.log",
+        "logs/calling/gatk-combine-gvcfs/{contig}.log",
     benchmark:
-        "benchmarks/gatk/combine-gvcfs/{contig}.bench.log"
+        "benchmarks/calling/called/gatk-combine-gvcfs/{contig}.log"
     # group:
     #     "gatk_calls_combine"
     conda:
@@ -169,14 +172,14 @@ rule genotype_variants:
             ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
         refdict=genome_dict(),
-        gvcf="called/all.{contig}.g.vcf.gz",
+        gvcf="calling/called/all.{contig}.g.vcf.gz",
     output:
         vcf=(
-            "genotyped/all.{contig}.vcf.gz"
+            "calling/genotyped/all.{contig}.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("genotyped/all.{contig}.vcf.gz")
+            else temp("calling/genotyped/all.{contig}.vcf.gz")
         ),
-        done=touch("genotyped/all.{contig}.done"),
+        done=touch("calling/genotyped/all.{contig}.done"),
     params:
         extra=config["params"]["gatk"]["GenotypeGVCFs-extra"]
         + (
@@ -186,9 +189,9 @@ rule genotype_variants:
         ),
         java_opts=config["params"]["gatk"]["GenotypeGVCFs-java-opts"],
     log:
-        "logs/gatk/genotype-gvcfs/{contig}.log",
+        "logs/calling/gatk-genotype-gvcfs/{contig}.log",
     benchmark:
-        "benchmarks/gatk/genotype-gvcfs/{contig}.bench.log"
+        "benchmarks/calling/genotyped/gatk-genotype-gvcfs/{contig}.log"
     # group:
     #     "gatk_calls_combine"
     conda:
@@ -205,7 +208,7 @@ rule genotype_variants:
 # Need an input function to work with the fai checkpoint
 def merge_variants_vcfs_input(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]
-    return expand("genotyped/all.{contig}.vcf.gz", contig=get_contigs(fai))
+    return expand("calling/genotyped/all.{contig}.vcf.gz", contig=get_contigs(fai))
 
 
 rule merge_variants:
@@ -216,20 +219,20 @@ rule merge_variants:
         # produced before we use it here to get its content.
         ref=get_fai,
         contig_groups=contigs_groups_input,
-        # vcfs=lambda w: expand("genotyped/all.{contig}.vcf.gz", contig=get_contigs())
+        # vcfs=lambda w: expand("calling/genotyped/all.{contig}.vcf.gz", contig=get_contigs())
         vcfs=merge_variants_vcfs_input,
     output:
-        vcf="genotyped/all.vcf.gz",
-        done=touch("genotyped/all.done"),
+        vcf="calling/genotyped-all.vcf.gz",
+        done=touch("calling/genotyped-all.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(
             " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true" if platform.system() == "Darwin" else ""
         ),
     log:
-        "logs/picard/merge-genotyped.log",
+        "logs/calling/picard-merge-genotyped.log",
     benchmark:
-        "benchmarks/picard/merge-genotyped.bench.log"
+        "benchmarks/calling/genotyped/picard/merge-genotyped.log"
     conda:
         "../envs/picard.yaml"
     wrapper:

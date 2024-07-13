@@ -3,6 +3,21 @@
 # =================================================================================================
 
 
+# Generic rule for all bai files.
+# Bit weird as it produces log files with nested paths, but that's okay for now.
+rule bam_index:
+    input:
+        "{prefix}.bam",
+    output:
+        "{prefix}.bam.bai",
+    log:
+        "logs/mapping/samtools-index/{prefix}.log",
+    group:
+        "mapping_extra"
+    wrapper:
+        "0.51.3/bio/samtools/index"
+
+
 # We here get the read group tags list that is used per sample for the reads in the bam file.
 # This differs a bit depending on whether the `platform` field is properly set in the samples table.
 # We do not construct a full string here, as mapping tools take this information in different ways.
@@ -99,7 +114,7 @@ if not mapping_tool_good:
 # We need a helper function to expand based on wildcards.
 # The file names used here is what all the above mappers are expected to produce.
 def get_sorted_sample_bams(wildcards):
-    return expand("mapped/{{sample}}-{unit}.sorted.bam", unit=get_sample_units(wildcards.sample))
+    return expand("mapping/sorted/{{sample}}-{unit}.bam", unit=get_sample_units(wildcards.sample))
 
 
 # This is where all units are merged together.
@@ -112,13 +127,13 @@ rule merge_sample_unit_bams:
     input:
         get_sorted_sample_bams,
     output:
-        "mapped/{sample}.merged.bam",
-        touch("mapped/{sample}.merged.done"),
+        "mapping/merged/{sample}.bam",
+        touch("mapping/merged/{sample}.done"),
     params:
         extra=config["params"]["samtools"]["merge"],
     threads: config["params"]["samtools"]["merge-threads"]
     log:
-        "logs/samtools/merge/merge-{sample}.log",
+        "logs/mapping/samtools-merge/{sample}.log",
     wrapper:
         "v3.13.6/bio/samtools/merge"
 
@@ -130,16 +145,18 @@ rule merge_sample_unit_bams:
 
 rule filter_mapped_reads:
     input:
-        "mapped/{sample}.merged.bam",
+        "mapping/merged/{sample}.bam",
     output:
         (
-            "mapped/{sample}.filtered.bam"
+            "mapping/filtered/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("mapped/{sample}.filtered.bam")
+            else temp("mapping/filtered/{sample}.bam")
         ),
-        touch("mapped/{sample}.filtered.done"),
+        touch("mapping/filtered/{sample}.done"),
     params:
         extra=config["params"]["samtools"]["view"] + " -b",
+    log:
+        "logs/mapping/samtools-view/{sample}.log",
     conda:
         # Need our own env again, because of conflicting numpy and pandas version...
         "../envs/samtools.yaml"
@@ -150,22 +167,22 @@ rule filter_mapped_reads:
 rule clip_read_overlaps:
     input:
         # Either get the mapped reads directly, or if we do filtering before, take that instead.
-        "mapped/{sample}.filtered.bam"
+        "mapping/filtered/{sample}.bam"
         if (config["settings"]["filter-mapped-reads"])
-        else ("mapped/{sample}.merged.bam"),
+        else ("mapping/merged/{sample}.bam"),
     output:
         (
-            "mapped/{sample}.clipped.bam"
+            "mapping/clipped/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("mapped/{sample}.clipped.bam")
+            else temp("mapping/clipped/{sample}.bam")
         ),
-        touch("mapped/{sample}.clipped.done"),
+        touch("mapping/clipped/{sample}.done"),
     params:
         extra=config["params"]["bamutil"]["extra"],
     log:
-        "logs/bamutil/{sample}.log",
+        "logs/mapping/bamutil/{sample}.log",
     benchmark:
-        "benchmarks/bamutil/{sample}.bench.log"
+        "benchmarks/mapping/bamutil/{sample}.log"
     conda:
         "../envs/bamutil.yaml"
     shell:
@@ -177,16 +194,16 @@ def get_mapped_reads(wildcards):
     either unfiltered, filtered, and/or clipped."""
 
     # Default case: just the mapped and sorted reads.
-    result = "mapped/{sample}.merged.bam".format(**wildcards)
+    result = "mapping/merged/{sample}.bam".format(**wildcards)
 
     # If we want filtering, do that instead.
     if config["settings"]["filter-mapped-reads"]:
-        result = "mapped/{sample}.filtered.bam".format(**wildcards)
+        result = "mapping/filtered/{sample}.bam".format(**wildcards)
 
     # If we want clipping, do that. The clipping rule above also might already use the
     # filtered reads, so that is taking into account as well.
     if config["settings"]["clip-read-overlaps"]:
-        result = "mapped/{sample}.clipped.bam".format(**wildcards)
+        result = "mapping/clipped/{sample}.bam".format(**wildcards)
 
     return result
 
@@ -197,14 +214,17 @@ def get_mapped_reads(wildcards):
 # So we need to hardcode this here, it seems...
 # We keep this function here, so that if we ever add an additinal step here, we will (hopefully)
 # notice, and adapt this function as well.
-def get_mapped_read_infix():
-    # Same logic as the function above.
-    result = "merged"
-    if config["settings"]["filter-mapped-reads"]:
-        result = "filtered"
-    if config["settings"]["clip-read-overlaps"]:
-        result = "clipped"
-    return result
+# Udate: We now restructured the directories, so that the file names are consistent,
+# and instead have differently named parent directories for the individual steps, see above.
+# So now it seems we do not need this funciton here any more. Still kept for reference.
+# def get_mapped_read_infix():
+#     # Same logic as the function above.
+#     result = "merged"
+#     if config["settings"]["filter-mapped-reads"]:
+#         result = "filtered"
+#     if config["settings"]["clip-read-overlaps"]:
+#         result = "clipped"
+#     return result
 
 
 # =================================================================================================
@@ -256,26 +276,6 @@ if config["settings"]["recalibrate-base-qualities"]:
 
 
 # =================================================================================================
-#     Indexing
-# =================================================================================================
-
-
-# Generic rule for all bai files.
-# Bit weird as it produces log files with nested paths, but that's okay for now.
-rule bam_index:
-    input:
-        "{prefix}.bam",
-    output:
-        "{prefix}.bam.bai",
-    log:
-        "logs/samtools/index/{prefix}.log",
-    group:
-        "mapping_extra"
-    wrapper:
-        "0.51.3/bio/samtools/index"
-
-
-# =================================================================================================
 #     Final Mapping Result
 # =================================================================================================
 
@@ -289,23 +289,23 @@ rule bam_index:
 
 def get_mapping_result(bai=False):
     # case 1: no duplicate removal
-    f = "mapped/{sample}.merged.bam"
+    f = "mapping/merged/{sample}.bam"
 
     # case 2: filtering via samtools view
     if config["settings"]["filter-mapped-reads"]:
-        f = "mapped/{sample}.filtered.bam"
+        f = "mapping/filtered/{sample}.bam"
 
     # case 3: clipping reads with BamUtil
     if config["settings"]["clip-read-overlaps"]:
-        f = "mapped/{sample}.clipped.bam"
+        f = "mapping/clipped/{sample}.bam"
 
     # case 4: remove duplicates
     if config["settings"]["remove-duplicates"]:
-        f = "dedup/{sample}.bam"
+        f = "mapping/dedup/{sample}.bam"
 
     # case 5: recalibrate base qualities
     if config["settings"]["recalibrate-base-qualities"]:
-        f = "recal/{sample}.bam"
+        f = "mapping/recal/{sample}.bam"
 
     # Additionally, this function is run for getting bai files as well
     if bai:
@@ -364,9 +364,26 @@ def get_all_bais():
 # files that would otherwise be used for variant calling in the downstream process.
 # That is, depending on the config, these are the sorted+merged, filtered, remove duplicates, or
 # recalibrated base qualities bam files.
+
+# Additionally, we create a "final" mapping result dir, for user convenience,
+# which simply contains symlinks to whatever the final result is.
+# That way, if a user is looking for the final result of the mapping step,
+# they just have to consult this one.
+
+
 rule all_bams:
     input:
-        get_all_bams(),
+        bams=get_all_bams(),
+    output:
+        bams=expand("mapping/final/{sample}.bam", sample=config["global"]["sample-names"]),
+        done=touch("mapping/final.done"),
+    run:
+        for bam in input.bams:
+            sample = os.path.basename(bam)
+            output_bam = f"mapping/final/{sample}"
+            bam_abs_path = os.path.abspath(bam)
+            if not os.path.exists(output_bam):
+                shell(f"ln -s {bam_abs_path} {output_bam}")
 
 
 # The `all_bams` rule is local. It does not do anything anyway,

@@ -8,20 +8,20 @@ rule trim_reads_se:
         unpack(get_fastq),
     output:
         fastq=(
-            "trimmed/{sample}-{unit}.fastq.gz"
+            "trimming/{sample}-{unit}.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
-            else temp("trimmed/{sample}-{unit}.fastq.gz")
+            else temp("trimming/{sample}-{unit}.fastq.gz")
         ),
-        qc="trimmed/{sample}-{unit}.qc-se.txt",
-        done=touch("trimmed/{sample}-{unit}.se.done"),
+        qc="trimming/{sample}-{unit}.qc-se.txt",
+        done=touch("trimming/{sample}-{unit}.se.done"),
     params:
         adapters=config["params"]["cutadapt"]["se"]["adapters"],
         extra=config["params"]["cutadapt"]["se"]["extra"],
     threads: config["params"]["cutadapt"]["threads"]
     log:
-        "logs/cutadapt/{sample}-{unit}.log",
+        "logs/trimming/cutadapt/{sample}-{unit}.log",
     benchmark:
-        "benchmarks/cutadapt/{sample}-{unit}.bench.log"
+        "benchmarks/trimming/cutadapt/{sample}-{unit}.log"
     conda:
         # yet another missing dependency in the original wrapper...
         "../envs/cutadapt.yaml"
@@ -34,25 +34,25 @@ rule trim_reads_pe:
         unpack(get_fastq),
     output:
         fastq1=(
-            "trimmed/{sample}-{unit}.1.fastq.gz"
+            "trimming/{sample}-{unit}.1.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
-            else temp("trimmed/{sample}-{unit}.1.fastq.gz")
+            else temp("trimming/{sample}-{unit}.1.fastq.gz")
         ),
         fastq2=(
-            "trimmed/{sample}-{unit}.2.fastq.gz"
+            "trimming/{sample}-{unit}.2.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
-            else temp("trimmed/{sample}-{unit}.2.fastq.gz")
+            else temp("trimming/{sample}-{unit}.2.fastq.gz")
         ),
-        qc="trimmed/{sample}-{unit}.qc-pe.txt",
-        done=touch("trimmed/{sample}-{unit}.pe.done"),
+        qc="trimming/{sample}-{unit}.qc-pe.txt",
+        done=touch("trimming/{sample}-{unit}.pe.done"),
     params:
         adapters=config["params"]["cutadapt"]["pe"]["adapters"],
         extra=config["params"]["cutadapt"]["pe"]["extra"],
     threads: config["params"]["cutadapt"]["threads"]
     log:
-        "logs/cutadapt/{sample}-{unit}.log",
+        "logs/trimming/cutadapt/{sample}-{unit}.log",
     benchmark:
-        "benchmarks/cutadapt/{sample}-{unit}.bench.log"
+        "benchmarks/trimming/cutadapt/{sample}-{unit}.log"
     conda:
         # yet another missing dependency in the original wrapper...
         "../envs/cutadapt.yaml"
@@ -70,7 +70,7 @@ def get_trimmed_reads(wildcards):
     if is_single_end(wildcards.sample, wildcards.unit):
         # single end sample
         return [
-            "trimmed/{sample}-{unit}.fastq.gz".format(sample=wildcards.sample, unit=wildcards.unit)
+            "trimming/{sample}-{unit}.fastq.gz".format(sample=wildcards.sample, unit=wildcards.unit)
         ]
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
@@ -80,7 +80,7 @@ def get_trimmed_reads(wildcards):
     else:
         # paired-end sample
         return expand(
-            "trimmed/{sample}-{unit}.{pair}.fastq.gz",
+            "trimming/{sample}-{unit}.{pair}.fastq.gz",
             pair=[1, 2],
             sample=wildcards.sample,
             unit=wildcards.unit,
@@ -91,7 +91,7 @@ def get_trimming_report(sample, unit):
     """Get the report needed for MultiQC."""
     if is_single_end(sample, unit):
         # single end sample
-        return "trimmed/" + sample + "-" + unit + ".qc-se.txt"
+        return "trimming/" + sample + "-" + unit + ".qc-se.txt"
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
         raise Exception(
@@ -99,4 +99,4 @@ def get_trimming_report(sample, unit):
         )
     else:
         # paired-end sample
-        return "trimmed/" + sample + "-" + unit + ".qc-pe.txt"
+        return "trimming/" + sample + "-" + unit + ".qc-pe.txt"

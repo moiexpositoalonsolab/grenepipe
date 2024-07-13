@@ -61,8 +61,8 @@ rule map_reads:
             ext=["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2"],
         ),
     output:
-        pipe("mapped/{sample}-{unit}.bam"),
-        touch("mapped/{sample}-{unit}.done"),
+        pipe("mapping/mapped/{sample}-{unit}.bam"),
+        touch("mapping/mapped/{sample}-{unit}.done"),
     params:
         # Prefix of reference genome index (built with bowtie2-build above)
         index=config["data"]["reference-genome"],
@@ -73,9 +73,9 @@ rule map_reads:
     # Increase time limit in factors of 2h, if the job fails due to time limit.
     # time = lambda wildcards, input, threads, attempt: int(120 * int(attempt))
     log:
-        "logs/bowtie2/{sample}-{unit}.log",
+        "logs/mapping/bowtie2/{sample}-{unit}.log",
     benchmark:
-        "benchmarks/bowtie2/{sample}-{unit}.bench.log"
+        "benchmarks/mapping/bowtie2/{sample}-{unit}.log"
     group:
         "mapping"
     conda:
@@ -91,21 +91,21 @@ rule map_reads:
 # At least, we can pipe the files from above to here, so this should not slow us down.
 rule sort_reads:
     input:
-        "mapped/{sample}-{unit}.bam",
+        "mapping/mapped/{sample}-{unit}.bam",
     output:
         (
-            "mapped/{sample}-{unit}.sorted.bam"
+            "mapping/sorted/{sample}-{unit}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("mapped/{sample}-{unit}.sorted.bam")
+            else temp("mapping/sorted/{sample}-{unit}.bam")
         ),
-        touch("mapped/{sample}-{unit}.sorted.done"),
+        touch("mapping/sorted/{sample}-{unit}.done"),
     params:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"],
     # Samtools takes additional threads through its option -@
     threads: 1  # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
-        "logs/samtools/sort/{sample}-{unit}.log",
+        "logs/mapping/samtools-sort/{sample}-{unit}.log",
     group:
         "mapping"
     conda:

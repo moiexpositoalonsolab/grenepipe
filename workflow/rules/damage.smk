@@ -10,7 +10,7 @@ rule mapdamage:
         # Get either the normal mapping output, or, if additional filtering via `samtools view`
         # is set in the config settings: filter-mapped-reads, use the filtered output instead.
         get_mapped_reads,
-        # "mapped/{sample}-{unit}.sorted.bam"
+        # "mapping/sorted/{sample}-{unit}.bam"
         # Get the reference genome and its indices. Not sure if the indices are needed
         # for this particular rule, but doesn't hurt to include them as an input anyway.
         ref=config["data"]["reference-genome"],
@@ -19,13 +19,13 @@ rule mapdamage:
             ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
     output:
-        "mapdamage/{sample}/Runtime_log.txt",
+        "damage/mapdamage/{sample}/Runtime_log.txt",
     params:
         index=config["data"]["reference-genome"],
         extra=config["params"]["mapdamage"]["extra"],
-        outdir="mapdamage/{sample}",
+        outdir="damage/mapdamage/{sample}",
     log:
-        "logs/mapdamage/{sample}.log",
+        "logs/damage/mapdamage/{sample}.log",
     conda:
         # We have two different env yaml files, depending on the platform.
         # This is because on Linux, a particular lib might be missing that is needed for mapdamage,
@@ -41,9 +41,9 @@ rule mapdamage:
 
 rule mapdamage_collect:
     input:
-        expand("mapdamage/{sample}/Runtime_log.txt", sample=config["global"]["sample-names"]),
+        expand("damage/mapdamage/{sample}/Runtime_log.txt", sample=config["global"]["sample-names"]),
     output:
-        touch("mapdamage/mapdamage.done"),
+        touch("damage/mapdamage/mapdamage.done"),
 
 
 localrules:
@@ -60,7 +60,7 @@ rule damageprofiler:
         # Get either the normal mapping output, or, if additional filtering via `samtools view`
         # is set in the config settings: filter-mapped-reads, use the filtered output instead.
         get_mapped_reads,
-        # "mapped/{sample}-{unit}.sorted.bam"
+        # "mapping/sorted/{sample}-{unit}.bam"
         # Get the reference genome and its indices. Not sure if the indices are needed
         # for this particular rule, but doesn't hurt to include them as an input anyway.
         ref=config["data"]["reference-genome"],
@@ -69,13 +69,13 @@ rule damageprofiler:
             ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
     output:
-        "damageprofiler/{sample}/DamageProfiler.log",
+        "damage/damageprofiler/{sample}/DamageProfiler.log",
     params:
         index=config["data"]["reference-genome"],
         extra=config["params"]["damageprofiler"]["extra"],
-        outdir="damageprofiler/{sample}",
+        outdir="damage/damageprofiler/{sample}",
     log:
-        "logs/damageprofiler/{sample}.log",
+        "logs/damage/damageprofiler/{sample}.log",
     conda:
         "../envs/damageprofiler.yaml"
     shell:
@@ -86,10 +86,11 @@ rule damageprofiler:
 rule damageprofiler_collect:
     input:
         expand(
-            "damageprofiler/{sample}/DamageProfiler.log", sample=config["global"]["sample-names"]
+            "damage/damageprofiler/{sample}/DamageProfiler.log",
+            sample=config["global"]["sample-names"],
         ),
     output:
-        touch("damageprofiler/damageprofiler.done"),
+        touch("damage/damageprofiler/damageprofiler.done"),
 
 
 localrules:

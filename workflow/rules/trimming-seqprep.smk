@@ -15,37 +15,37 @@ rule trim_reads_pe:
         unpack(get_fastq),
     output:
         merged=(
-            "trimmed/{sample}-{unit}-merged.fastq.gz"
+            "trimming/{sample}-{unit}-merged.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
-            else temp("trimmed/{sample}-{unit}-merged.fastq.gz")
+            else temp("trimming/{sample}-{unit}-merged.fastq.gz")
         ),
         fastq1=(
-            "trimmed/{sample}-{unit}.1.fastq.gz"
+            "trimming/{sample}-{unit}.1.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
-            else temp("trimmed/{sample}-{unit}.1.fastq.gz")
+            else temp("trimming/{sample}-{unit}.1.fastq.gz")
         ),
         fastq2=(
-            "trimmed/{sample}-{unit}.2.fastq.gz"
+            "trimming/{sample}-{unit}.2.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
-            else temp("trimmed/{sample}-{unit}.2.fastq.gz")
+            else temp("trimming/{sample}-{unit}.2.fastq.gz")
         ),
         fastq1_discarded=(
-            "trimmed/{sample}-{unit}.1.discarded.fastq.gz"
+            "trimming/{sample}-{unit}.1.discarded.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
-            else temp("trimmed/{sample}-{unit}.1.discarded.fastq.gz")
+            else temp("trimming/{sample}-{unit}.1.discarded.fastq.gz")
         ),
         fastq2_discarded=(
-            "trimmed/{sample}-{unit}.2.discarded.fastq.gz"
+            "trimming/{sample}-{unit}.2.discarded.fastq.gz"
             if config["settings"]["keep-intermediate"]["trimming"]
-            else temp("trimmed/{sample}-{unit}.2.discarded.fastq.gz")
+            else temp("trimming/{sample}-{unit}.2.discarded.fastq.gz")
         ),
-        done=touch("trimmed/{sample}-{unit}.done"),
+        done=touch("trimming/{sample}-{unit}.done"),
     params:
         extra=config["params"]["seqprep"]["extra"],
     log:
-        "logs/seqprep/{sample}-{unit}.log",
+        "logs/trimming/seqprep/{sample}-{unit}.log",
     benchmark:
-        "benchmarks/seqprep/{sample}-{unit}.bench.log"
+        "benchmarks/trimming/seqprep/{sample}-{unit}.log"
     conda:
         "../envs/seqprep-linux.yaml"
     shell:
@@ -70,14 +70,14 @@ def get_trimmed_reads(wildcards):
     elif config["settings"]["merge-paired-end-reads"]:
         # merged paired-end samples
         return [
-            "trimmed/{sample}-{unit}-merged.fastq.gz".format(
+            "trimming/{sample}-{unit}-merged.fastq.gz".format(
                 sample=wildcards.sample, unit=wildcards.unit
             )
         ]
     else:
         # paired-end sample
         return expand(
-            "trimmed/{sample}-{unit}.{pair}.fastq.gz",
+            "trimming/{sample}-{unit}.{pair}.fastq.gz",
             pair=[1, 2],
             sample=wildcards.sample,
             unit=wildcards.unit,

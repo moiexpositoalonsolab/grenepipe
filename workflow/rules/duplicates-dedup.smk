@@ -29,16 +29,16 @@ rule mark_duplicates:
         # We always use the merged units per sample here.
         get_mapped_reads,
     output:
-        bam=temp("dedup/{sample}_rmdup.bam"),
-        metrics="dedup/{sample}.dedup.json",
-        done=touch("dedup/{sample}.dedup.done"),
+        bam=temp("mapping/dedup/{sample}_rmdup.bam"),
+        metrics="mapping/dedup/{sample}.dedup.json",
+        done=touch("mapping/dedup/{sample}.dedup.done"),
     log:
-        "logs/dedup/{sample}.log",
+        "logs/mapping/dedup/{sample}.log",
     benchmark:
-        "benchmarks/dedup/{sample}.bench.log"
+        "benchmarks/mapping/dedup/{sample}.log"
     params:
         extra=config["params"]["dedup"]["extra"],
-        out_dir="dedup",
+        out_dir="mapping/dedup",
     conda:
         "../envs/dedup.yaml"
     group:
@@ -47,31 +47,31 @@ rule mark_duplicates:
         # Dedup bases its output names on this, so we need some more trickery to make it
         # output the file names that we want.
         "dedup -i {input} -o {params.out_dir} {params.extra} > {log} 2>&1 ; "
-        "mv"
-        "    dedup/{wildcards.sample}." + get_mapped_read_infix() + "_rmdup.bam"
-        "    dedup/{wildcards.sample}_rmdup.bam ; "
-        "mv"
-        "    dedup/{wildcards.sample}." + get_mapped_read_infix() + ".dedup.json"
-        "    dedup/{wildcards.sample}.dedup.json"
+        # "mv"
+        # "    dedup/{wildcards.sample}." + get_mapped_read_infix() + "_rmdup.bam"
+        # "    dedup/{wildcards.sample}_rmdup.bam ; "
+        # "mv"
+        # "    dedup/{wildcards.sample}." + get_mapped_read_infix() + ".dedup.json"
+        # "    dedup/{wildcards.sample}.dedup.json"
 
 
 rule sort_reads_dedup:
     input:
-        "dedup/{sample}_rmdup.bam",
+        "mapping/dedup/{sample}_rmdup.bam",
     output:
         (
-            "dedup/{sample}.bam"
+            "mapping/dedup/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("dedup/{sample}.bam")
+            else temp("mapping/dedup/{sample}.bam")
         ),
-        touch("dedup/{sample}.done"),
+        touch("mapping/dedup/{sample}.done"),
     params:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"],
     # Samtools takes additional threads through its option -@
     threads: 1  # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
-        "logs/samtools/sort/{sample}-dedup.log",
+        "logs/mapping/dedup/samtools-sort/{sample}.log",
     group:
         "mapping_extra"
     conda:

@@ -7,14 +7,14 @@ rule bcftools_stats:
     input:
         # we use the filtered file if a filtering is done, or the unfiltered if not.
         calls=(
-            "filtered/all.vcf.gz"
+            "calling/filtered-all.vcf.gz"
             if not config["settings"]["filter-variants"] == "none"
-            else "genotyped/all.vcf.gz"
+            else "calling/genotyped-all.vcf.gz"
         ),
     output:
         "qc/bcftools-stats/stats.vchk",
     log:
-        "logs/bcftools-stats/bcftools.stats.log",
+        "logs/qc/bcftools-stats.log",
     params:
         config["params"]["bcftools"]["stats"],
     conda:
@@ -32,7 +32,7 @@ rule bcftools_stats_plot:
         # We only request the PDF here, but other files are generated as well.
         "qc/bcftools-stats/summary.pdf",
     log:
-        "logs/bcftools-stats/bcftools.stats.plot.log",
+        "logs/qc/bcftools-stats-plot.log",
     params:
         outdir="qc/bcftools-stats",
         extra=config["params"]["bcftools"]["stats-plot"],

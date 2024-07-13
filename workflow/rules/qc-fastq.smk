@@ -85,9 +85,9 @@ rule fastqc:
     params:
         config["params"]["fastqc"]["extra"],
     log:
-        "logs/fastqc/{sample}-{unit}-{id}.log",
+        "logs/qc/fastqc/{sample}-{unit}-{id}.log",
     benchmark:
-        "benchmarks/fastqc/{sample}-{unit}-{id}.bench.log"
+        "benchmarks/qc/fastqc/{sample}-{unit}-{id}.log"
     group:
         "qc"
     conda:
@@ -136,15 +136,15 @@ def get_trimming_reports():
 
         # Now append the file for the sample to the result list
         # if config["settings"]["trimming-tool"] == "adapterremoval":
-        # result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + ".settings" )
+        # result.append( "trimming/" + smp.sample + "-" + smp.unit + "-" + suffix + ".settings" )
         # elif config["settings"]["trimming-tool"] == "cutadapt":
-        # result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".qc-" + suffix + ".txt" )
+        # result.append( "trimming/" + smp.sample + "-" + smp.unit + ".qc-" + suffix + ".txt" )
         # elif config["settings"]["trimming-tool"] == "fastp":
-        #     result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-fastp.json" )
+        #     result.append( "trimming/" + smp.sample + "-" + smp.unit + "-" + suffix + "-fastp.json" )
         # elif config["settings"]["trimming-tool"] == "skewer":
-        #     result.append( "trimmed/" + smp.sample + "-" + smp.unit + "-" + suffix + "-trimmed.log" )
+        #     result.append( "trimming/" + smp.sample + "-" + smp.unit + "-" + suffix + "-trimmed.log" )
         # elif config["settings"]["trimming-tool"] == "trimmomatic":
-        #     result.append( "trimmed/" + smp.sample + "-" + smp.unit + ".trimlog.log" )
+        #     result.append( "trimming/" + smp.sample + "-" + smp.unit + ".trimlog.log" )
         # else:
         #     raise Exception("Unknown trimming-tool: " + config["settings"]["trimming-tool"])
     return result
@@ -154,7 +154,7 @@ rule trimming_reports_collect:
     input:
         get_trimming_reports(),
     output:
-        touch("trimmed/trimming-reports.done"),
+        touch("trimming/trimming-reports.done"),
 
 
 localrules:

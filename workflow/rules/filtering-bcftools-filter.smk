@@ -10,22 +10,22 @@ def get_filter(wildcards):
 
 rule bcftools_filter_calls:
     input:
-        vcf="filtered/all.{vartype}.selected.vcf.gz",
+        vcf="calling/filtered/all.{vartype}.selected.vcf.gz",
     output:
         vcf=(
-            "filtered/all.{vartype}.filtered.vcf.gz"
+            "calling/filtered/all.{vartype}.filtered.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
-            else temp("filtered/all.{vartype}.filtered.vcf.gz")
+            else temp("calling/filtered/all.{vartype}.filtered.vcf.gz")
         ),
-        done=touch("filtered/all.{vartype}.filtered.done"),
+        done=touch("calling/filtered/all.{vartype}.filtered.done"),
     params:
         tool=config["params"]["bcftools-filter"]["tool"],
         filters=get_filter,
         extra=config["params"]["bcftools-filter"]["extra"],
     log:
-        "logs/bcftools/filter-{vartype}.log",
+        "logs/calling/bcftools/filter-{vartype}.log",
     benchmark:
-        "benchmarks/bcftools/filter-{vartype}.bench.log"
+        "benchmarks/calling/filtered/bcftools/filter-{vartype}.log"
     group:
         "filtering"
     conda:

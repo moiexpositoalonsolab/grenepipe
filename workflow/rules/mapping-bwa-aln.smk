@@ -38,25 +38,25 @@ rule map_reads:
         ),
     output:
         (
-            "sai/{sample}-{unit}-{pair}.sai"
+            "mapping/sai/{sample}-{unit}-{pair}.sai"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("sai/{sample}-{unit}-{pair}.sai")
+            else temp("mapping/sai/{sample}-{unit}-{pair}.sai")
         ),
-        touch("sai/{sample}-{unit}-{pair}.done"),
+        touch("mapping/sai/{sample}-{unit}-{pair}.done"),
         # Absolutely no idea why the following does not work. Snakemake complains that the pipe
         # is not used at all, which is simply wrong, as it is clearly used by bwa_sai_to_bam,
         # and also why would this rule here be called if its output file was not requested at all?!
         # Snakemake... no idea what you are doing there again.
-        # pipe( "sai/{sample}-{unit}-{pair}.sai" )
+        # pipe( "mapping/sai/{sample}-{unit}-{pair}.sai" )
     params:
         index=config["data"]["reference-genome"],
         extra=config["params"]["bwaaln"]["extra"],
     group:
         "mapping"
     log:
-        "logs/bwa-aln/{sample}-{unit}-{pair}.log",
+        "logs/mapping/bwa-aln/{sample}-{unit}-{pair}.log",
     benchmark:
-        "benchmarks/bwa-aln/{sample}-{unit}-{pair}.bench.log"
+        "benchmarks/mapping/bwa-aln/{sample}-{unit}-{pair}.log"
     threads: config["params"]["bwaaln"]["threads"]
     # resources:
     # Increase time limit in factors of 2h, if the job fails due to time limit.
@@ -85,18 +85,18 @@ if len(config["params"]["samtools"]["temp-dir"]) > 0:
 def get_sai(wildcards):
     if is_single_end(**wildcards):
         # Single end sample.
-        return ["sai/{sample}-{unit}-1.sai".format(**wildcards)]
+        return ["mapping/sai/{sample}-{unit}-1.sai".format(**wildcards)]
     elif config["settings"]["merge-paired-end-reads"]:
         # Merged paired-end samples.
         # Here, we rely on the fact that get_trimmed_reads() only returns a single sample for
         # merged paired-end samples, which is then the only one in the list returned from that
         # function. So then, we pretend that this is the "pair == 1" sample, so that the bwa aln
         # rule maps that file.
-        return ["sai/{sample}-{unit}-1.sai".format(**wildcards)]
+        return ["mapping/sai/{sample}-{unit}-1.sai".format(**wildcards)]
     else:
         # Paired-end sample.
         return expand(
-            "sai/{sample}-{unit}-{pair}.sai",
+            "mapping/sai/{sample}-{unit}-{pair}.sai",
             sample=wildcards.sample,
             unit=wildcards.unit,
             pair=[1, 2],
@@ -126,8 +126,8 @@ rule bwa_sai_to_bam:
             ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
     output:
-        pipe("mapped/{sample}-{unit}.sorted-unclean.bam"),
-        touch("mapped/{sample}-{unit}.sorted-unclean.done"),
+        pipe("mapping/sorted/{sample}-{unit}-unclean.bam"),
+        touch("mapping/sorted/{sample}-{unit}-unclean.done"),
     params:
         extra=get_bwa_aln_extra,
         # Sort as we need it.
@@ -138,9 +138,9 @@ rule bwa_sai_to_bam:
     group:
         "mapping"
     log:
-        "logs/bwa-sam/{sample}-{unit}.log",
+        "logs/mapping/bwa-sam/{sample}-{unit}.log",
     benchmark:
-        "benchmarks/bwa-sam/{sample}-{unit}.bench.log"
+        "benchmarks/mapping/bwa-sam/{sample}-{unit}.log"
     conda:
         # The wrapper does not include numpy and pandas as dependencies, but somehow needs them...
         # So we just re-use our normal bwa env, which also workes for the above rule.
@@ -148,11 +148,9 @@ rule bwa_sai_to_bam:
     script:
         # We use our own version of the wrapper here, as that wrapper misses temp dirs for
         # samtools sort, causing all kinds of trouble...
+        # wrapper:
+        #     "0.74.0/bio/bwa/samxe"
         "../scripts/bwa-samxe.py"
-
-
-# wrapper:
-#     "0.74.0/bio/bwa/samxe"
 
 
 # Apparently, yet another bioinformatics tool fail is at play here. The bam files written above
@@ -162,14 +160,14 @@ rule bwa_sai_to_bam:
 # can work with those files again.
 rule bwa_bam_clean:
     input:
-        "mapped/{sample}-{unit}.sorted-unclean.bam",
+        "mapping/sorted/{sample}-{unit}-unclean.bam",
     output:
         (
-            "mapped/{sample}-{unit}.sorted.bam"
+            "mapping/sorted/{sample}-{unit}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("mapped/{sample}-{unit}.sorted.bam")
+            else temp("mapping/sorted/{sample}-{unit}.bam")
         ),
-        touch("mapped/{sample}-{unit}.sorted.done"),
+        touch("mapping/sorted/{sample}-{unit}.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(
@@ -178,7 +176,7 @@ rule bwa_bam_clean:
     group:
         "mapping"
     log:
-        "logs/picard/cleansam/{sample}-{unit}.log",
+        "logs/mapping/picard-cleansam/{sample}-{unit}.log",
     conda:
         "../envs/picard.yaml"
     shell:

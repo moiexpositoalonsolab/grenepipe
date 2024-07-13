@@ -81,7 +81,7 @@ if config["data"]["reference-genome-download"]["full-url"]:
 
     rule download_reference_genome:
         output:
-            config["data"]["reference-genome"] + ".gz",
+            protected(config["data"]["reference-genome"] + ".gz"),
         params:
             url=config["data"]["reference-genome-download"]["full-url"],
         log:
@@ -93,7 +93,7 @@ else:
 
     rule download_reference_genome:
         output:
-            config["data"]["reference-genome"],
+            protected(config["data"]["reference-genome"]),
         params:
             species=config["data"]["reference-genome-download"]["species"],
             datatype=config["data"]["reference-genome-download"]["datatype"],
@@ -141,12 +141,29 @@ checkpoint samtools_faidx:
         genome,
     output:
         genome + ".fai",
+        # Special case: If there is a known variants file, we do not want to download it.
+        # However, the download rule depends on this fai file here, so that the downloaded file
+        # can be properly sorted. Creating this file here could hence trigger the download,
+        # as the fai file would have a more recent time stamp. We do not want this to happen
+        # if the known variants already exist. So, we just touch it, to update its time stamp
+        # to after the above fai file. If the known references file does not exist, we instead
+        # touch dummy files, so that snakemake does not complain about the syntax...
+        touch(variants + ".gz")
+        if os.path.exists(variants + ".gz")
+        else temp(touch(variants + ".gz.dummy")),
+        touch(variants) if os.path.exists(variants) else temp(touch(variants + ".dummy")),
     log:
         os.path.join(genome_logdir, genomename + ".samtools_faidx.log"),
     params:
         "",  # optional params string
     wrapper:
         "0.51.3/bio/samtools/faidx"
+
+
+# For the above to work properly, we also need to make sure that we have the right order...
+# Snakemake can be so messy. Maybe there is a better way to do this, but I am not aware of it.
+# This rule order is only used if the known variants file exists already.
+ruleorder: samtools_faidx > download_known_variants
 
 
 # Uncompress the reference genome if it is gz, without deleting the original.
@@ -353,7 +370,7 @@ if config["data"]["known-variants-download"]["full-url"]:
         input:
             fai=get_fai,
         output:
-            vcf=variants + ".gz",
+            vcf=protected(variants + ".gz"),
         params:
             url=config["data"]["known-variants-download"]["full-url"],
         log:
@@ -372,7 +389,7 @@ else:
         input:
             fai=get_fai,
         output:
-            vcf=variants + ".gz",
+            vcf=protected(variants + ".gz"),
         params:
             species=config["data"]["known-variants-download"]["species"],
             build=config["data"]["known-variants-download"]["build"],

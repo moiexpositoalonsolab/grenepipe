@@ -16,33 +16,33 @@ rule call_variants:
         indices=get_sample_bais_wildcards,
         # If we use restricted regions, set them here. If not, empty, which will propagate to the
         # get_mpileup_params function as well. Same for small contig groups.
-        # regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        # regions="calling/regions/{contig}.bed" if config["settings"].get("restrict-regions") else []
         regions=(
-            "called/{contig}.regions.bed"
+            "calling/regions/{contig}.bed"
             if (config["settings"].get("restrict-regions"))
             else (
-                "contig-groups/{contig}.bed"
+                "calling/contig-groups/{contig}.bed"
                 if (config["settings"].get("contig-group-size"))
                 else []
             )
         ),
     output:
         gvcf=(
-            "called/{sample}.{contig}.g.vcf.gz"
+            "calling/called/{sample}.{contig}.g.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("called/{sample}.{contig}.g.vcf.gz")
+            else temp("calling/called/{sample}.{contig}.g.vcf.gz")
         ),
-        gtbi="called/{sample}.{contig}.g.vcf.gz.tbi",
-        done=touch("called/{sample}.{contig}.g.done"),
+        gtbi="calling/called/{sample}.{contig}.g.vcf.gz.tbi",
+        done=touch("calling/called/{sample}.{contig}.g.done"),
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
         mpileup=get_mpileup_params,
         # Optional parameters for bcftools call (except -v, -o, -m).
         call=config["params"]["bcftools"]["call"],
     log:
-        "logs/bcftools/call-{sample}.{contig}.log",
+        "logs/calling/bcftools/call-{sample}.{contig}.log",
     benchmark:
-        "benchmarks/bcftools/call-{sample}.{contig}.bench.log"
+        "benchmarks/calling/called/bcftools/call-{sample}.{contig}.log"
     conda:
         "../envs/bcftools.yaml"
     threads: config["params"]["bcftools"]["threads"]
@@ -83,21 +83,22 @@ rule combine_contig:
             ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
         # Get the sample data, including indices, which are produced above.
-        gvcfs=(
-            expand("called/{sample}.{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"])
+        gvcfs=expand(
+            "calling/called/{sample}.{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]
         ),
         indices=expand(
-            "called/{sample}.{{contig}}.g.vcf.gz.tbi", sample=config["global"]["sample-names"]
+            "calling/called/{sample}.{{contig}}.g.vcf.gz.tbi",
+            sample=config["global"]["sample-names"],
         ),
     output:
-        gvcf="called/all.{contig}.g.vcf.gz",
-        gtbi="called/all.{contig}.g.vcf.gz.tbi",
-        gvcflist="called/all.{contig}.g.txt",
-        done=touch("called/all.{contig}.g.done"),
+        gvcf="calling/called/all.{contig}.g.vcf.gz",
+        gtbi="calling/called/all.{contig}.g.vcf.gz.tbi",
+        gvcflist="calling/called/all.{contig}.g.txt",
+        done=touch("calling/called/all.{contig}.g.done"),
     log:
-        "logs/bcftools/combine-contig-{contig}.log",
+        "logs/calling/bcftools/combine-contig-{contig}.log",
     benchmark:
-        "benchmarks/bcftools/combine-contig-{contig}.bench.log"
+        "benchmarks/calling/called/bcftools/combine-contig-{contig}.log"
     conda:
         "../envs/bcftools.yaml"
     shell:
@@ -127,7 +128,7 @@ rule combine_contig:
 # config file, this is the list of the group names.
 def combined_contig_gvcfs(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]
-    return expand("called/all.{contig}.g.vcf.gz", contig=get_contigs(fai))
+    return expand("calling/called/all.{contig}.g.vcf.gz", contig=get_contigs(fai))
 
 
 # We also need a comma-separated list of the contigs, so that bcftools can output
@@ -154,37 +155,37 @@ rule combine_all:
         contig_groups=contigs_groups_input,
         gvcfs=combined_contig_gvcfs,
     output:
-        # vcf="genotyped/all.vcf.gz",
-        # tbi="genotyped/all.vcf.gz.tbi",
-        # lst="genotyped/all.txt",
-        # done="genotyped/all.done"
+        # vcf="calling/genotyped-all.vcf.gz",
+        # tbi="calling/genotyped/all.vcf.gz.tbi",
+        # lst="calling/genotyped/all.txt",
+        # done="calling/genotyped-all.done"
         vcf=(
-            temp("genotyped/merged-all.vcf.gz")
+            temp("calling/called/merged-all.vcf.gz")
             if (config["settings"].get("contig-group-size"))
-            else "genotyped/all.vcf.gz"
+            else "calling/genotyped-all.vcf.gz"
         ),
         tbi=(
-            temp("genotyped/merged-all.vcf.gz.tbi")
+            temp("calling/called/merged-all.vcf.gz.tbi")
             if (config["settings"].get("contig-group-size"))
-            else "genotyped/all.vcf.gz.tbi"
+            else "calling/genotyped-all.vcf.gz.tbi"
         ),
         lst=(
-            temp("genotyped/merged-all.txt")
+            temp("calling/called/merged-all.txt")
             if (config["settings"].get("contig-group-size"))
-            else "genotyped/all.txt"
+            else "calling/genotyped-all.txt"
         ),
         done=(
-            touch("genotyped/merged-all.done")
+            touch("calling/called/merged-all.done")
             if (config["settings"].get("contig-group-size"))
-            else touch("genotyped/all.done")
+            else touch("calling/genotyped-all.done")
         ),
     params:
         # Use a list of the chromosomes in the same order as the fai, for bcftools to sort the output.
         regionorder=combined_contig_order,
     log:
-        "logs/bcftools/combine-all.log",
+        "logs/calling/bcftools/combine-all.log",
     benchmark:
-        "benchmarks/bcftools/combine-all.bench.log"
+        "benchmarks/calling/genotyped/bcftools/combine-all.log"
     conda:
         "../envs/bcftools.yaml"
     shell:

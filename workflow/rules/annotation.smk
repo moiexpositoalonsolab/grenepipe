@@ -64,21 +64,21 @@ rule snpeff:
         # (vcf, bcf, or vcf.gz)
         # we use the filtered file if a filtering is done, or the unfiltered if not.
         calls=(
-            "filtered/all.vcf.gz"
+            "calling/filtered-all.vcf.gz"
             if not config["settings"]["filter-variants"] == "none"
-            else "genotyped/all.vcf.gz"
+            else "calling/genotyped-all.vcf.gz"
         ),
         # path to reference db downloaded with the snpeff download wrapper above
         db=get_snpeff_db_path(),
     output:
         # annotated calls (vcf, bcf, or vcf.gz)
-        calls=report("annotated/snpeff.vcf.gz", caption="../report/vcf.rst", category="Calls"),
+        calls=report("annotation/snpeff.vcf.gz", caption="../report/vcf.rst", category="Calls"),
         # summary statistics (in HTML), optional
-        stats=report("annotated/snpeff.html", category="Calls"),
+        stats=report("annotation/snpeff.html", category="Calls"),
         # summary statistics in CSV, optional
-        csvstats="annotated/snpeff.csv",
+        csvstats="annotation/snpeff.csv",
     log:
-        "logs/snpeff.log",
+        "logs/annotation/snpeff.log",
     group:
         "snpeff"
     params:
@@ -186,15 +186,15 @@ rule vep:
     input:
         # we use the filtered file if a filtering is done, or the unfiltered if not.
         calls=(
-            "filtered/all.vcf.gz"
+            "calling/filtered-all.vcf.gz"
             if not config["settings"]["filter-variants"] == "none"
-            else "genotyped/all.vcf.gz"
+            else "calling/genotyped-all.vcf.gz"
         ),
         cache=get_vep_cache_dir(),
         plugins=get_vep_plugins_dir(),
     output:
         calls=report(
-            "annotated/vep.vcf.gz",
+            "annotation/vep.vcf.gz",
             caption="../report/vcf.rst",
             category="Calls",
         ),
@@ -204,7 +204,7 @@ rule vep:
         # MultiQC recently, see https://github.com/ewels/MultiQC/issues/1438
         # Will need to update to MultiQC v1.11 at some point.
         stats=report(
-            "annotated/vep_summary.html",
+            "annotation/vep_summary.html",
             caption="../report/stats.rst",
             category="Calls",
         ),
@@ -215,7 +215,7 @@ rule vep:
         plugins=config["params"]["vep"]["plugins"],
         extra=config["params"]["vep"]["extra"],
     log:
-        "logs/vep-annotate.log",
+        "logs/annotation/vep-annotate.log",
     threads: 4
     conda:
         # Use our own env definition here, to ensure that we are working with the same vep

@@ -5,11 +5,11 @@
 
 rule vcf_to_tsv:
     input:
-        "annotated/snpeff.vcf.gz",
+        "annotation/snpeff.vcf.gz",
     output:
         report("tables/calls.tsv.gz", caption="../report/calls.rst", category="Calls"),
     log:
-        "logs/vcf_to_tsv.log",
+        "logs/stats/vcf_to_tsv.log",
     conda:
         "../envs/rbt.yaml"
     group:
@@ -36,7 +36,7 @@ rule plot_stats:
         depths=report("plots/depths.svg", caption="../report/depths.rst", category="Plots"),
         freqs=report("plots/allele-freqs.svg", caption="../report/freqs.rst", category="Plots"),
     log:
-        "logs/plot-depths.log",
+        "logs/stats/plot-depths.log",
     conda:
         "../envs/stats.yaml"
     group:
@@ -68,16 +68,16 @@ rule frequency_table:
     input:
         # we use the filtered file if a filtering is done, or the unfiltered if not.
         calls=(
-            "filtered/all.vcf.gz"
+            "calling/filtered-all.vcf.gz"
             if not config["settings"]["filter-variants"] == "none"
-            else "genotyped/all.vcf.gz"
+            else "calling/genotyped-all.vcf.gz"
         ),
     output:
         "tables/frequencies.tsv",
     params:
         fields=config["settings"]["frequency-table-fields"],
     log:
-        "logs/frequency-table.log",
+        "logs/stats/frequency-table.log",
     conda:
         "../envs/frequency-table.yaml"
     script:

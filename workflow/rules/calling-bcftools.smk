@@ -63,11 +63,11 @@ if config["settings"].get("contig-group-size"):
 
     rule sort_variants:
         input:
-            vcf="genotyped/merged-all.vcf.gz",
+            vcf="calling/called/merged-all.vcf.gz",
             refdict=genome_dict(),
         output:
-            vcf="genotyped/all.vcf.gz",
-            done=touch("genotyped/all.done"),
+            vcf="calling/genotyped-all.vcf.gz",
+            done=touch("calling/genotyped-all.done"),
         params:
             # See duplicates-picard.smk for the reason whe need this on MacOS.
             extra=(
@@ -77,9 +77,9 @@ if config["settings"].get("contig-group-size"):
             ),
             java_opts=config["params"]["picard"]["SortVcf-java-opts"],
         log:
-            "logs/picard/sort-genotyped.log",
+            "logs/calling/picard/sort-genotyped.log",
         benchmark:
-            "benchmarks/picard/sort-genotyped.bench.log"
+            "benchmarks/calling/genotyped/picard/sort-genotyped.log"
         conda:
             "../envs/picard.yaml"
         shell:

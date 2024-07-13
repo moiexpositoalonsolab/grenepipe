@@ -46,23 +46,23 @@ rule call_variants:
             config["data"]["known-variants"] + ".tbi" if config["data"]["known-variants"] else []
         ),
         # If we restict the calling to some regions, use this file here.
-        # regions="called/{contig}.regions.bed" if config["settings"].get("restrict-regions") else []
+        # regions="calling/regions/{contig}.bed" if config["settings"].get("restrict-regions") else []
         regions=(
-            "called/{contig}.regions.bed"
+            "calling/regions/{contig}.bed"
             if (config["settings"].get("restrict-regions"))
             else (
-                "contig-groups/{contig}.bed"
+                "calling/contig-groups/{contig}.bed"
                 if (config["settings"].get("contig-group-size"))
                 else []
             )
         ),
     output:
-        pipe("called/{contig}.vcf"),
-        touch("called/{contig}.vcf.done"),
+        pipe("calling/called/{contig}.vcf"),
+        touch("calling/called/{contig}.vcf.done"),
     log:
-        "logs/freebayes/{contig}.log",
+        "logs/calling/freebayes/{contig}.log",
     benchmark:
-        "benchmarks/freebayes/{contig}.bench.log"
+        "benchmarks/calling/called/freebayes/{contig}.log"
     params:
         # Optional extra parameters.
         extra=config["params"]["freebayes"]["extra"] + know_variants_extra(),
@@ -84,17 +84,17 @@ rule call_variants:
 # an unfortunate detour via vcf, and compress on-the-fly using a piped rule from above.
 rule compress_vcf:
     input:
-        "called/{contig}.vcf",
+        "calling/called/{contig}.vcf",
     output:
         (
-            "called/{contig}.vcf.gz"
+            "calling/called/{contig}.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("called/{contig}.vcf.gz")
+            else temp("calling/called/{contig}.vcf.gz")
         ),
-        # protected("called/{contig}.vcf.gz")
-        touch("called/{contig}.vcf.gz.done"),
+        # protected("calling/called/{contig}.vcf.gz")
+        touch("calling/called/{contig}.vcf.gz.done"),
     log:
-        "logs/compress_vcf/{contig}.log",
+        "logs/calling/compress_vcf/{contig}.log",
     threads: config["params"]["freebayes"]["compress-threads"]
     group:
         "call_variants"
@@ -114,7 +114,7 @@ rule compress_vcf:
 # Need an input function to work with the fai checkpoint
 def merge_variants_vcfs_input(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]
-    return expand("called/{contig}.vcf.gz", contig=get_contigs(fai))
+    return expand("calling/called/{contig}.vcf.gz", contig=get_contigs(fai))
 
 
 rule merge_variants:
@@ -126,20 +126,20 @@ rule merge_variants:
         ref=get_fai,
         contig_groups=contigs_groups_input,
         # The wrapper expects input to be called `vcfs`, but we can use `vcf.gz` as well.
-        # vcfs=lambda w: expand("called/{contig}.vcf.gz", contig=get_contigs())
+        # vcfs=lambda w: expand("calling/called/{contig}.vcf.gz", contig=get_contigs())
         vcfs=merge_variants_vcfs_input,
     output:
-        vcf="genotyped/all.vcf.gz",
-        done=touch("genotyped/all.done"),
+        vcf="calling/genotyped-all.vcf.gz",
+        done=touch("calling/genotyped-all.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(
             " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true" if platform.system() == "Darwin" else ""
         ),
     log:
-        "logs/picard/merge-genotyped.log",
+        "logs/calling/picard/merge-genotyped.log",
     benchmark:
-        "benchmarks/picard/merge-genotyped.bench.log"
+        "benchmarks/calling/genotyped/picard/merge-genotyped.log"
     conda:
         "../envs/picard.yaml"
     wrapper:

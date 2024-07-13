@@ -43,19 +43,19 @@ if config["settings"]["recalibrate-base-qualities"]:
 
 def get_recal_input(bai=False):
     # case 1: no duplicate removal
-    f = "mapped/{sample}.merged.bam"
+    f = "mapping/merged/{sample}.bam"
 
     # case 2: filtering via samtools view
     if config["settings"]["filter-mapped-reads"]:
-        f = "mapped/{sample}.filtered.bam"
+        f = "mapping/filtered/{sample}.bam"
 
     # case 3: clipping reads with BamUtil
     if config["settings"]["clip-read-overlaps"]:
-        f = "mapped/{sample}.clipped.bam"
+        f = "mapping/clipped/{sample}.bam"
 
     # case 4: remove duplicates
     if config["settings"]["remove-duplicates"]:
-        f = "dedup/{sample}.bam"
+        f = "mapping/dedup/{sample}.bam"
 
     if bai:
         if config["settings"].get("restrict-regions"):
@@ -82,18 +82,18 @@ rule recalibrate_base_qualities:
         known=config["data"]["known-variants"],
     output:
         bam=(
-            "recal/{sample}.bam"
+            "mapping/recal/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("recal/{sample}.bam")
+            else temp("mapping/recal/{sample}.bam")
         ),
-        done=touch("recal/{sample}.done"),
-        # bam=protected("recal/{sample}.bam")
+        done=touch("mapping/recal/{sample}.done"),
+        # bam=protected("mapping/recal/{sample}.bam")
     params:
         extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"],
     log:
-        "logs/gatk/bqsr/{sample}.log",
+        "logs/mapping/gatk-bqsr/{sample}.log",
     benchmark:
-        "benchmarks/gatk/bqsr/{sample}.bench.log"
+        "benchmarks/mapping/gatk-bqsr/{sample}.log"
     group:
         "mapping_extra"
     conda:

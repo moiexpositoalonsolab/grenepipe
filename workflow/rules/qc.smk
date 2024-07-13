@@ -21,7 +21,7 @@ rule multiqc:
     input:
         # Fastq QC tools
         "qc/fastqc/fastqc.done",
-        "trimmed/trimming-reports.done",
+        "trimming/trimming-reports.done",
         # Mapping QC tools
         "qc/samtools-stats/samtools-stats.done",
         "qc/samtools-flagstat/samtools-flagstat.done",
@@ -34,18 +34,18 @@ rule multiqc:
         "qc/bcftools-stats/stats.vchk" if config["settings"]["bcftools-stats"] else [],
         "qc/bcftools-stats/summary.pdf" if config["settings"]["bcftools-stats"] else [],
         # Annotations, if requested
-        "annotated/snpeff.csv" if config["settings"]["snpeff"] else [],
-        "annotated/vep_summary.html" if config["settings"]["vep"] else [],
+        "annotation/snpeff.csv" if config["settings"]["snpeff"] else [],
+        "annotation/vep_summary.html" if config["settings"]["vep"] else [],
         # Damage profiling, if requested
-        "mapdamage/mapdamage.done" if config["settings"]["mapdamage"] else [],
-        "damageprofiler/damageprofiler.done" if config["settings"]["damageprofiler"] else [],
+        "damage/mapdamage/mapdamage.done" if config["settings"]["mapdamage"] else [],
+        "damage/damageprofiler/damageprofiler.done" if config["settings"]["damageprofiler"] else [],
     output:
         report("qc/multiqc.html", caption="../report/multiqc.rst", category="Quality control"),
         "qc/multiqc.zip",
     params:
         config["params"]["multiqc"]["extra"],
     log:
-        "logs/multiqc.log",
+        "logs/qc/multiqc.log",
     conda:
         # We use a conda environment on top of the wrapper, as the wrapper always causes
         # issues with missing python modules and mismatching program versions and stuff...

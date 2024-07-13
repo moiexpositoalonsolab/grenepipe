@@ -27,11 +27,11 @@ rule map_reads:
         ),
     output:
         (
-            "mapped/{sample}-{unit}.sorted.bam"
+            "mapping/sorted/{sample}-{unit}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("mapped/{sample}-{unit}.sorted.bam")
+            else temp("mapping/sorted/{sample}-{unit}.bam")
         ),
-        touch("mapped/{sample}-{unit}.sorted.done"),
+        touch("mapping/sorted/{sample}-{unit}.done"),
     params:
         extra=get_bwa_mem2_extra,
         # Sort as we need it.
@@ -42,9 +42,9 @@ rule map_reads:
     group:
         "mapping"
     log:
-        "logs/bwa-mem2/{sample}-{unit}.log",
+        "logs/mapping/bwa-mem2/{sample}-{unit}.log",
     benchmark:
-        "benchmarks/bwa-mem2/{sample}-{unit}.bench.log"
+        "benchmarks/mapping/bwa-mem2/{sample}-{unit}.log"
     threads: config["params"]["bwamem2"]["threads"]
     conda:
         # As always, we need our own env here that overwrites the python/pandas/numpy stack

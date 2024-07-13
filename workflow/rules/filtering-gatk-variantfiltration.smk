@@ -15,23 +15,23 @@ def get_filter(wildcards):
 rule gatk_hard_filter_calls:
     input:
         ref=config["data"]["reference-genome"],
-        vcf="filtered/all.{vartype}.selected.vcf.gz",
+        vcf="calling/filtered/all.{vartype}.selected.vcf.gz",
         refdict=genome_dict(),
     output:
         vcf=(
-            "filtered/all.{vartype}.filtered.vcf.gz"
+            "calling/filtered/all.{vartype}.filtered.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
-            else temp("filtered/all.{vartype}.filtered.vcf.gz")
+            else temp("calling/filtered/all.{vartype}.filtered.vcf.gz")
         ),
-        done=touch("filtered/all.{vartype}.filtered.done"),
+        done=touch("calling/filtered/all.{vartype}.filtered.done"),
     params:
         filters=get_filter,
         extra=config["params"]["gatk-variantfiltration"]["extra"],
         java_opts=config["params"]["gatk-variantfiltration"]["java-opts"],
     log:
-        "logs/gatk/variantfiltration/{vartype}.log",
+        "logs/calling/gatk-variantfiltration/{vartype}.log",
     benchmark:
-        "benchmarks/gatk/variantfiltration/{vartype}.bench.log"
+        "benchmarks/calling/filtered/gatk-variantfiltration/{vartype}.log"
     group:
         "filtering"
     conda:

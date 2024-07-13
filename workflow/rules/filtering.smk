@@ -9,24 +9,24 @@ import platform
 rule select_calls:
     input:
         ref=config["data"]["reference-genome"],
-        vcf="genotyped/all.vcf.gz",
+        vcf="calling/genotyped-all.vcf.gz",
         refdict=genome_dict(),
         # bcftools does not automatically create vcf index files, so we need to specifically request them...
         # ... but the picard merge tool that we use right now does create tbi files, so all good atm.
-        # tbi="genotyped/all.vcf.gz.tbi" if config["settings"]["calling-tool"] == "bcftools" else []
+        # tbi="calling/genotyped/all.vcf.gz.tbi" if config["settings"]["calling-tool"] == "bcftools" else []
     output:
         vcf=(
-            "filtered/all.{vartype}.selected.vcf.gz"
+            "calling/filtered/all.{vartype}.selected.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
-            else temp("filtered/all.{vartype}.selected.vcf.gz")
+            else temp("calling/filtered/all.{vartype}.selected.vcf.gz")
         ),
-        done=touch("filtered/all.{vartype}.selected.done"),
+        done=touch("calling/filtered/all.{vartype}.selected.done"),
     params:
         extra="--select-type-to-include {vartype}",
     log:
-        "logs/gatk/selectvariants/{vartype}.log",
+        "logs/calling/gatk-selectvariants/{vartype}.log",
     benchmark:
-        "benchmarks/gatk/selectvariants/{vartype}.bench.log"
+        "benchmarks/calling/filtered/gatk-selectvariants/{vartype}.log"
     group:
         "filtering"
     conda:
@@ -84,7 +84,7 @@ rule merge_calls:
         # to make it a bit more understandable to the user which file is which...
         # not sure if that helps, or is more confusing in the end :-O
         vcf=expand(
-            "filtered/all.{vartype}.{filtertype}.vcf.gz",
+            "calling/filtered/all.{vartype}.{filtertype}.vcf.gz",
             vartype=["SNP", "INDEL"],
             filtertype=(
                 "recalibrated"
@@ -93,18 +93,18 @@ rule merge_calls:
             ),
         ),
     output:
-        vcf="filtered/all.vcf.gz",
-        # vcf=protected("filtered/all.vcf.gz")
-        done=touch("filtered/all.done"),
+        vcf="calling/filtered-all.vcf.gz",
+        # vcf=protected("calling/filtered-all.vcf.gz")
+        done=touch("calling/filtered/all.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(
             " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true" if platform.system() == "Darwin" else ""
         ),
     log:
-        "logs/picard/merge-filtered.log",
+        "logs/calling/picard-mergevcfs.log",
     benchmark:
-        "benchmarks/picard/merge-filtered.bench.log"
+        "benchmarks/calling/filtered/picard-mergevcfs.log"
     conda:
         "../envs/picard.yaml"
     wrapper:

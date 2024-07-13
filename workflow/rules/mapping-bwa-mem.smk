@@ -23,11 +23,11 @@ rule map_reads:
         ),
     output:
         (
-            "mapped/{sample}-{unit}.sorted.bam"
+            "mapping/sorted/{sample}-{unit}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
-            else temp("mapped/{sample}-{unit}.sorted.bam")
+            else temp("mapping/sorted/{sample}-{unit}.bam")
         ),
-        touch("mapped/{sample}-{unit}.sorted.done"),
+        touch("mapping/sorted/{sample}-{unit}.done"),
     params:
         index=config["data"]["reference-genome"],
         extra=get_bwa_mem_extra,
@@ -40,9 +40,9 @@ rule map_reads:
     group:
         "mapping"
     log:
-        "logs/bwa-mem/{sample}-{unit}.log",
+        "logs/mapping/bwa-mem/{sample}-{unit}.log",
     benchmark:
-        "benchmarks/bwa-mem/{sample}-{unit}.bench.log"
+        "benchmarks/mapping/bwa-mem/{sample}-{unit}.log"
     threads: config["params"]["bwamem"]["threads"]
     conda:
         "../envs/bwa.yaml"

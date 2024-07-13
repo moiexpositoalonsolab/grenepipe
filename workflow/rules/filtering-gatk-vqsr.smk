@@ -75,7 +75,7 @@ rule gatk_variant_recalibrator:
     input:
         **get_variant_recalibrator_resource_files(),
         ref=config["data"]["reference-genome"],
-        vcf="filtered/all.{vartype}.selected.vcf.gz",
+        vcf="calling/filtered/all.{vartype}.selected.vcf.gz",
         refdict=genome_dict(),
         # Resources have to be given as named input files, we unpack the dict to get them.
         # We also request the tbi index files, so that users get a nice error message if missing.
@@ -83,12 +83,12 @@ rule gatk_variant_recalibrator:
     output:
         # Ouput file needs to be called vcf for the wrapper, but is in fact a fake vcf
         # that actually contains the recal information.
-        vcf="filtered/all.{vartype}.vqsr-recal.vcf.gz",
-        tranches="filtered/all.{vartype}.vqsr-recal.tranches",
+        vcf="calling/filtered/all.{vartype}.vqsr-recal.vcf.gz",
+        tranches="calling/filtered/all.{vartype}.vqsr-recal.tranches",
         # We also might produce a plot PDF about the trances - but only for the SNPs,
         # not for the INDELs, so we do not specify it here for simplicity...
         # The avid user will find it in the `filtered` directory either way.
-        done=touch("filtered/all.{vartype}.vqsr-recal.done"),
+        done=touch("calling/filtered/all.{vartype}.vqsr-recal.done"),
     params:
         # set mode, must be either SNP, INDEL or BOTH
         mode="{vartype}",
@@ -101,9 +101,9 @@ rule gatk_variant_recalibrator:
         extra=get_variant_recalibrator_extra,
         java_opts=config["params"]["gatk-vqsr"]["java-variantrecalibrator"],
     log:
-        "logs/gatk/variantrecalibrator/{vartype}.log",
+        "logs/calling/gatk-variantrecalibrator/{vartype}.log",
     benchmark:
-        "benchmarks/gatk/variantrecalibrator/{vartype}.bench.log"
+        "benchmarks/calling/filtered/gatk-variantrecalibrator/{vartype}.log"
     # Group deactivated, so that it can run in parallel for SNP and INDEL
     # group:
     #     "filtering"
@@ -126,20 +126,20 @@ rule gatk_apply_vqsr:
     input:
         ref=config["data"]["reference-genome"],
         refdict=genome_dict(),
-        vcf="filtered/all.{vartype}.selected.vcf.gz",
-        recal="filtered/all.{vartype}.vqsr-recal.vcf.gz",
-        tranches="filtered/all.{vartype}.vqsr-recal.tranches",
+        vcf="calling/filtered/all.{vartype}.selected.vcf.gz",
+        recal="calling/filtered/all.{vartype}.vqsr-recal.vcf.gz",
+        tranches="calling/filtered/all.{vartype}.vqsr-recal.tranches",
     output:
         vcf=(
-            "filtered/all.{vartype}.recalibrated.vcf.gz"
+            "calling/filtered/all.{vartype}.recalibrated.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
-            else temp("filtered/all.{vartype}.recalibrated.vcf.gz")
+            else temp("calling/filtered/all.{vartype}.recalibrated.vcf.gz")
         ),
-        done=touch("filtered/all.{vartype}.recalibrated.done"),
+        done=touch("calling/filtered/all.{vartype}.recalibrated.done"),
     log:
-        "logs/gatk/applyvqsr/{vartype}.log",
+        "logs/calling/gatk-applyvqsr/{vartype}.log",
     benchmark:
-        "benchmarks/gatk/applyvqsr/{vartype}.bench.log"
+        "benchmarks/calling/filtered/gatk-applyvqsr/{vartype}.log"
     params:
         # set mode, must be either SNP, INDEL or BOTH
         mode="{vartype}",
