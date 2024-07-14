@@ -24,7 +24,7 @@ data:
   # For genomes that are not fully assembled but consist of many small scaffolds,
   # see the `contig-group-size` option below to help increase computational speed.
   # If the file that this path points to does not already exist, we will download it,
-  # using the below ENSEMBL download instructions. This is meant to enhance reproducibility.
+  # using the below download instructions. This is meant to enhance reproducibility.
   reference-genome: "/path/to/data/genome.fa"
 
   # Optional. Path to any database of known variants (in vcf or vcf.gz format),
@@ -32,7 +32,7 @@ data:
   # Use an empty list or string instead, if there is no reference of known variants or if you
   # want to call variant without this guided approach. Path needs to be absolute, as above.
   # If the file that this path points to does not already exist, we will download it,
-  # using the below ENSEMBL download instructions. This is meant to enhance reproducibility.
+  # using the below download instructions. This is meant to enhance reproducibility.
   known-variants: ""
 
   # Optional. Number of distinct samples that are expect to be in the above samples table.
@@ -49,10 +49,13 @@ data:
   samples-count: 0
 
   # If the file provided by `reference-genome` above do not already exist, we can automatically
-  # download it from ENSEMBL, using the following specification.
+  # download it from ensembl (or any other URL), using the following specification.
+  # When downloading from ensembl, try filling in the specificiation of your reference.
+  # If this does not work, or if download from a different source is needed, use the `full-url`
+  # instead to directly download a file from any source.
   reference-genome-download:
-    # By default, this feature is turned off, to avoid any accidental downloads
-    # that might overwrite existing files. Turn on if needed.
+    # By default, this feature is turned off, to avoid any accidental downloads triggered by
+    # snakemake that might overwrite existing files. Turn on if needed, by setting this to `True`.
     enabled: False
 
     # Ensembl species name.
@@ -77,21 +80,24 @@ data:
     branch: "plants"
 
     # URL from where to download cache data. This is tricky to figure out for many species...
-    # Unfortunately, we do not know of a nice way to do that other than checking the lkinks
-    # provided by ensembl directly, and seeing what works. Alternatively, use the direct urls below.
+    # Unfortunately, we do not know of a nice way to do that other than checking the links
+    # provided by ensembl directly, and seeing what works. Alternatively, use the `full-url` below.
     base-url: "http://ftp.ensembl.org/pub"
     # base-url: "https://ftp.ensemblgenomes.ebi.ac.uk/pub"
     # base-url: "https://ftp.ebi.ac.uk/ensemblgenomes/pub"
 
     # If the above settings do not work, due to the automatic download not being able to locate
-    # the correct file, the full download url for the reference genome can be specified instead.
+    # the correct file in ensemble, or the download is not from ensemble at all, the full download
+    # URL for the reference genome can be specified here instead.
     # If given, all of the above download settings are ignored, and just this URL here is used.
+    # This currently has to link to a bgzipped file, which seems to be the standard for ensembl.
+    # If you need a different file type to work, please let us know.
     full-url: "https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-59/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.dna.toplevel.fa.gz"
 
   # If the file provided by `known-variants` above do not already exist, we can automatically
-  # download it from ENSEMBL, using the following specification. Mostly the same settings as above
-  # fore the `reference-genome-download`, but separated here to allow for differing URL
-  # specifications, as ensembl is a mess. See above for more explanations on these settings.
+  # download it from ensembl (or any other URL), using the following specification.  Mostly the same
+  # settings as above for the `reference-genome-download`, but separated here to allow for differing
+  # URL specifications, as ensembl is a mess. See above for more explanations of these settings.
   known-variants-download:
     enabled: False
     species: "arabidopsis_thaliana"

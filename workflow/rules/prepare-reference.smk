@@ -77,12 +77,16 @@ variant_logdir = os.path.join(os.path.dirname(variants), "logs")
 
 # We either want to use the fully specified URL for downloading the ref genome,
 # or the wrapper, due to https://github.com/snakemake/snakemake-wrappers/issues/3070
-if not config["data"]["reference-genome-download"]["enabled"]:
+if (
+    "reference-genome-download" not in config["data"]
+    or not config["data"]["reference-genome-download"]["enabled"]
+):
 
     # Do not include any download rule if the feature is inactive.
     # That way, Snakemake will instead complain about missing inputs,
     # but at least not accidentally overwrite the file, which could happen due to
     # https://github.com/snakemake/snakemake/issues/2962
+    # This branch is also taken if the setting is not in the config, for backwards compatibility.
     pass
 
 elif config["data"]["reference-genome-download"]["full-url"]:
@@ -352,9 +356,13 @@ def get_fai(wildcards):
 # We either want to use the fully specified URL for downloading the ref genome,
 # or the wrapper, due to https://github.com/snakemake/snakemake-wrappers/issues/3070
 # We use our own script here instead for the full download, because the wrapper is not working.
-if not config["data"]["known-variants-download"]["enabled"]:
+if (
+    "known-variants-download" not in config["data"]
+    or not config["data"]["known-variants-download"]["enabled"]
+):
 
     # As before for the ref genome, we avoid accidental downloads by having a user switch.
+    # This branch is also taken if the setting is not in the config, for backwards compatibility.
     pass
 
 elif config["data"]["known-variants-download"]["full-url"]:
