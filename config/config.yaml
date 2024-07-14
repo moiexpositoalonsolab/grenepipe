@@ -51,6 +51,10 @@ data:
   # If the file provided by `reference-genome` above do not already exist, we can automatically
   # download it from ENSEMBL, using the following specification.
   reference-genome-download:
+    # By default, this feature is turned off, to avoid any accidental downloads
+    # that might overwrite existing files. Turn on if needed.
+    enabled: False
+
     # Ensembl species name.
     species: "arabidopsis_thaliana"
 
@@ -89,6 +93,7 @@ data:
   # fore the `reference-genome-download`, but separated here to allow for differing URL
   # specifications, as ensembl is a mess. See above for more explanations on these settings.
   known-variants-download:
+    enabled: False
     species: "arabidopsis_thaliana"
     build: "TAIR10"
     release: 59

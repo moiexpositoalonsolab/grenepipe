@@ -58,7 +58,7 @@ def get_variant_recalibrator_extra(wildcards):
     vartype = wildcards.vartype
     return (
         config["params"]["gatk-vqsr"]["extra-variantrecalibrator-" + vartype]
-        + " --rscript-file filtered/all."
+        + " --rscript-file calling/filtered/all."
         + vartype
         + ".vqsr-recal.plots.R"
     )

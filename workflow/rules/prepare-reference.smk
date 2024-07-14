@@ -77,7 +77,15 @@ variant_logdir = os.path.join(os.path.dirname(variants), "logs")
 
 # We either want to use the fully specified URL for downloading the ref genome,
 # or the wrapper, due to https://github.com/snakemake/snakemake-wrappers/issues/3070
-if config["data"]["reference-genome-download"]["full-url"]:
+if not config["data"]["reference-genome-download"]["enabled"]:
+
+    # Do not include any download rule if the feature is inactive.
+    # That way, Snakemake will instead complain about missing inputs,
+    # but at least not accidentally overwrite the file, which could happen due to
+    # https://github.com/snakemake/snakemake/issues/2962
+    pass
+
+elif config["data"]["reference-genome-download"]["full-url"]:
 
     rule download_reference_genome:
         output:
@@ -141,29 +149,12 @@ checkpoint samtools_faidx:
         genome,
     output:
         genome + ".fai",
-        # Special case: If there is a known variants file, we do not want to download it.
-        # However, the download rule depends on this fai file here, so that the downloaded file
-        # can be properly sorted. Creating this file here could hence trigger the download,
-        # as the fai file would have a more recent time stamp. We do not want this to happen
-        # if the known variants already exist. So, we just touch it, to update its time stamp
-        # to after the above fai file. If the known references file does not exist, we instead
-        # touch dummy files, so that snakemake does not complain about the syntax...
-        touch(variants + ".gz")
-        if os.path.exists(variants + ".gz")
-        else temp(touch(variants + ".gz.dummy")),
-        touch(variants) if os.path.exists(variants) else temp(touch(variants + ".dummy")),
     log:
         os.path.join(genome_logdir, genomename + ".samtools_faidx.log"),
     params:
         "",  # optional params string
     wrapper:
         "0.51.3/bio/samtools/faidx"
-
-
-# For the above to work properly, we also need to make sure that we have the right order...
-# Snakemake can be so messy. Maybe there is a better way to do this, but I am not aware of it.
-# This rule order is only used if the known variants file exists already.
-ruleorder: samtools_faidx > download_known_variants
 
 
 # Uncompress the reference genome if it is gz, without deleting the original.
@@ -361,14 +352,25 @@ def get_fai(wildcards):
 # We either want to use the fully specified URL for downloading the ref genome,
 # or the wrapper, due to https://github.com/snakemake/snakemake-wrappers/issues/3070
 # We use our own script here instead for the full download, because the wrapper is not working.
-if config["data"]["known-variants-download"]["full-url"]:
+if not config["data"]["known-variants-download"]["enabled"]:
+
+    # As before for the ref genome, we avoid accidental downloads by having a user switch.
+    pass
+
+elif config["data"]["known-variants-download"]["full-url"]:
 
     rule download_known_variants:
         # Add fai as input to get VCF with annotated contig lengths
         # (as required by GATK) and properly sorted VCFs.
-        # Need the above checkpoint for that.
+        # Need the above checkpoint for that, and need to mark it as ancient here,
+        # so that the creation of the fai file does not trigger a download here.
+        # We cannot use the checkpoint input function though, due to
+        # https://github.com/snakemake/snakemake/issues/2962
+        # Luckily, we do not have to, as we just need the file to be present,
+        # but not re-evaluate the DAG depending on its content.
         input:
-            fai=get_fai,
+            # fai=ancient(get_fai),
+            fai=ancient(genome + ".fai"),
         output:
             vcf=protected(variants + ".gz"),
         params:
@@ -383,11 +385,9 @@ if config["data"]["known-variants-download"]["full-url"]:
 else:
 
     rule download_known_variants:
-        # Add fai as input to get VCF with annotated contig lengths
-        # (as required by GATK) and properly sorted VCFs.
-        # Need the above checkpoint for that.
         input:
-            fai=get_fai,
+            # fai=ancient(get_fai),
+            fai=ancient(genome + ".fai"),
         output:
             vcf=protected(variants + ".gz"),
         params:
