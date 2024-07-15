@@ -118,6 +118,7 @@ rule all_pileups:
             if "all-merged-samples" in config["settings"]["pileups"]
             else []
         ),
+        "mapping/final.done"
     output:
         touch("mpileup/all-pileups.done"),
 
