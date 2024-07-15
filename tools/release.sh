@@ -127,8 +127,10 @@ vversion="v${version}"
 echo
 
 # Replace version line in common.smk file.
+# We now need spaces around the comment there, as snakefmt changes that automatically,
+# and that would lead to us failing the automated check for the workflow repository...
 echo "Replace version in workflow/rules/initialize.smk"
-sed -i.bak -e "s/grenepipe_version = \".*\" #GRENEPIPE_VERSION#/grenepipe_version = \"${version}\" #GRENEPIPE_VERSION#/g" workflow/rules/initialize.smk
+sed -i.bak -e "s/grenepipe_version = \".*\"  # GRENEPIPE_VERSION #/grenepipe_version = \"${version}\"  # GRENEPIPE_VERSION #/g" workflow/rules/initialize.smk
 rm workflow/rules/initialize.smk.bak
 
 ####################################################################################################
