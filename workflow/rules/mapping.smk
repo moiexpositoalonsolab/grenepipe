@@ -2,6 +2,7 @@
 #     Read Group and Helper Functions
 # =================================================================================================
 
+
 # Generic rule for all bai files.
 # Bit weird as it produces log files with nested paths, but that's okay for now.
 # To avoid having absolute paths as part of the log file output though,
@@ -19,7 +20,7 @@ rule bam_index:
         "{prefix}.bam.bai",
     log:
         # "logs/mapping/samtools-index/{prefix}.log",
-        "logs/mapping/samtools-index/_" + "{prefix}.log"
+        "logs/mapping/samtools-index/_" + "{prefix}.log",
     group:
         "mapping_extra"
     wrapper:
@@ -287,11 +288,13 @@ if config["settings"]["recalibrate-base-qualities"]:
 #     Final Mapping Result
 # =================================================================================================
 
+
 # Helper function for the case that a `mappings-table` is provided, in which case we do not run
 # any mapping ourselves, and skipp all of the above. Instead, we then simply want to use the
 # sample bam file from the table here.
 def get_bam_from_mappings_table(sample):
     return config["global"]["samples"].loc[sample, ["bam"]].dropna()
+
 
 # At this point, we have several choices of which files we want to hand down to the next
 # pipleine step. We offer a function so that downstream does not have to deal with this.
@@ -348,7 +351,7 @@ def get_sample_bams(sample):
 
 # Return the bai file(s) for a given sample
 def get_sample_bais(sample):
-    return get_mapping_result(sample,True)
+    return get_mapping_result(sample, True)
 
 
 # Return the bam file(s) for a sample, given a wildcard param from a rule.

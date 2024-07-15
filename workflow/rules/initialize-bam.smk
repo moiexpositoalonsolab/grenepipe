@@ -67,8 +67,7 @@ relative_filenames = 0
 for index, row in config["global"]["samples"].iterrows():
     if row["sample"] in uniq_sample_names:
         raise Exception(
-            "Multiple rows with identical sample name found in samples table: "
-            + str(row["sample"])
+            "Multiple rows with identical sample name found in samples table: " + str(row["sample"])
         )
     uniq_sample_names.append(row["sample"])
 

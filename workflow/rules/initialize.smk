@@ -38,9 +38,14 @@ report: os.path.join(workflow.basedir, "reports/workflow.rst")
 # or, if the mappings table is given, starting from there.
 # This reads the samples/mappings table, and provides validation and user output functions for it.
 include: "initialize-reference.smk"
+
+
 if "mappings-table" in config["data"] and config["data"]["mappings-table"]:
+
     include: "initialize-bam.smk"
+
 else:
+
     include: "initialize-fastq.smk"
 
 

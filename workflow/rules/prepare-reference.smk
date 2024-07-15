@@ -104,7 +104,6 @@ elif config["data"]["reference-genome-download"]["full-url"]:
     localrules:
         download_reference_genome,
 
-
 else:
 
     rule download_reference_genome:
@@ -393,10 +392,8 @@ elif config["data"]["known-variants-download"]["full-url"]:
         script:
             "../scripts/ensembl-variation.py"
 
-
     localrules:
         download_known_variants,
-
 
 else:
 
@@ -424,7 +421,6 @@ else:
         cache: "omit-software"
         wrapper:
             "v3.13.6/bio/reference/ensembl-variation"
-
 
     localrules:
         download_known_variants,

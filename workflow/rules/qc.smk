@@ -1,11 +1,14 @@
 # We use a switch to decide when we are running the pipeline normally with a set of fastq files,
 # and when we are running it instead with a set of bam files to start with.
 # In the latter case, some of the fastq and bam qc tools are not applicable.
-use_fastq_input = not( "mappings-table" in config["data"] and config["data"]["mappings-table"] )
+use_fastq_input = not ("mappings-table" in config["data"] and config["data"]["mappings-table"])
 
 # We outsource the individual QC steps for clarity.
 if use_fastq_input:
+
     include: "qc-fastq.smk"
+
+
 include: "qc-bam.smk"
 include: "qc-vcf.smk"
 
@@ -23,6 +26,7 @@ include: "qc-vcf.smk"
 # rule in the snakemake log be incredibly long. However, the multiqc wrapper that we are using uses
 # the directories of these files anyway, so we can just start with these in the first place.
 # That is, our `done` files are in the same dir as the actual QC files, so multiqc still finds them.
+
 
 rule multiqc:
     input:
@@ -44,8 +48,12 @@ rule multiqc:
         "annotation/snpeff.csv" if config["settings"]["snpeff"] else [],
         "annotation/vep_summary.html" if config["settings"]["vep"] else [],
         # Damage profiling, if requested
-        "damage/mapdamage/mapdamage.done" if use_fastq_input and config["settings"]["mapdamage"] else [],
-        "damage/damageprofiler/damageprofiler.done" if use_fastq_input and config["settings"]["damageprofiler"] else [],
+        "damage/mapdamage/mapdamage.done"
+        if use_fastq_input and config["settings"]["mapdamage"]
+        else [],
+        "damage/damageprofiler/damageprofiler.done"
+        if use_fastq_input and config["settings"]["damageprofiler"]
+        else [],
     output:
         report("qc/multiqc.html", caption="../report/multiqc.rst", category="Quality control"),
         "qc/multiqc.zip",

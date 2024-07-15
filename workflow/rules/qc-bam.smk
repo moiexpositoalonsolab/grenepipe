@@ -201,9 +201,9 @@ def picard_collectmultiplemetrics_exts():
 rule picard_collectmultiplemetrics:
     input:
         # bam=bam_qc_input("picard", "CollectMultipleMetrics-bams"),
-        bam = lambda wildcards: bam_qc_input("picard", "CollectMultipleMetrics-bams", wildcards),
+        bam=lambda wildcards: bam_qc_input("picard", "CollectMultipleMetrics-bams", wildcards),
         # bam = picard_collectmultiplemetrics_input
-        ref = config["data"]["reference-genome"],
+        ref=config["data"]["reference-genome"],
     output:
         expand("qc/picard/{{sample}}{ext}", ext=picard_collectmultiplemetrics_exts()),
     log:

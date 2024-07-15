@@ -121,9 +121,7 @@ for index, row in config["global"]["samples"].iterrows():
         )
 
     # Do a check of the fastq file names.
-    if not os.path.isfile(row["fq1"]) or (
-        not pd.isnull(row["fq2"]) and not os.path.isfile(row["fq2"])
-    ):
+    if not os.path.isfile(row["fq1"]) or (not pd.isnull(row["fq2"]) and not os.path.isfile(row["fq2"])):
         raise Exception(
             "Input fastq files listed in the input files samples table "
             + config["data"]["samples-table"]
@@ -132,13 +130,9 @@ for index, row in config["global"]["samples"].iterrows():
             + "; "
             + str(row["fq2"])
         )
-    if not valid_filepath(row["fq1"]) or (
-        not pd.isnull(row["fq2"]) and not valid_filepath(row["fq2"])
-    ):
+    if not valid_filepath(row["fq1"]) or (not pd.isnull(row["fq2"]) and not valid_filepath(row["fq2"])):
         problematic_filenames += 1
-    if not os.path.isabs(row["fq1"]) or (
-        not pd.isnull(row["fq2"]) and not os.path.isabs(row["fq2"])
-    ):
+    if not os.path.isabs(row["fq1"]) or (not pd.isnull(row["fq2"]) and not os.path.isabs(row["fq2"])):
         relative_filenames += 1
 
 # Warning about input names and files.
@@ -167,7 +161,6 @@ if relative_filenames > 0:
         "to create a samples table with absolute paths. "
         "We will try to continue running with these files, but it might lead to errors.\n"
     )
-
 
 
 # Check if a given string can be converted to a number, https://stackoverflow.com/q/354038/4184258
