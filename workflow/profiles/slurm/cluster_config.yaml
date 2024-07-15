@@ -1,7 +1,4 @@
 __default__:
-  account: lczech # Your hpc account
-  mail-user: lczech@carnegiescience.edu # Your email (optional)
-  partition: DPB,SHARED # The partition you use
   time: 120 # Default time (minutes). A time limit of zero requests that no time limit be imposed
   mem: 10G # Default memory. A memory size specification of zero grants the job access to all of the memory on each node.
   cpus-per-task: 1
@@ -17,12 +14,11 @@ trim_reads_pe:
   cpus-per-task: 4
 
 map_reads:
-  cpus-per-task: 12
+  cpus-per-task: 4
 
 call_variants:
-  partition: DPB # Use DPB only, as it as inf time limit
   time: 1-0
-  cpus-per-task: 8
+  cpus-per-task: 4
 
 combine_calls:
   time: 1-0

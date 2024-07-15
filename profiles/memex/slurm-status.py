@@ -1,1 +1,0 @@
-../slurm/slurm-status.py

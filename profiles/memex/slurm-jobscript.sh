@@ -1,1 +1,0 @@
-../slurm/slurm-jobscript.sh

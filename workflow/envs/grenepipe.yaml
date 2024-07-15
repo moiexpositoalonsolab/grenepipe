@@ -15,6 +15,7 @@ dependencies:
   # Snakemake
   - snakemake ==8.15.2
   - snakemake-wrapper-utils ==0.6.2
+  - snakemake-executor-plugin-slurm
 
   # Python
   - python ==3.12  #==3.7.10
