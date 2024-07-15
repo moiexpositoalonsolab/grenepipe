@@ -34,10 +34,14 @@ snakemake.utils.validate(config, schema="../schemas/config.schema.yaml")
 report: os.path.join(workflow.basedir, "reports/workflow.rst")
 
 
-# Include the functions neeed to initialize the pipeline for analysing a set of fastq samples.
-# This reads the samples table, and provides validation and user output functions for it.
+# Include the functions neeed to initialize the pipeline for analysing a set of fastq samples,
+# or, if the mappings table is given, starting from there.
+# This reads the samples/mappings table, and provides validation and user output functions for it.
 include: "initialize-reference.smk"
-include: "initialize-fastq.smk"
+if "mappings-table" in config["data"] and config["data"]["mappings-table"]:
+    include: "initialize-bam.smk"
+else:
+    include: "initialize-fastq.smk"
 
 
 # =================================================================================================

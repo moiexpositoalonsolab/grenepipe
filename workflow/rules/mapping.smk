@@ -2,16 +2,24 @@
 #     Read Group and Helper Functions
 # =================================================================================================
 
-
 # Generic rule for all bai files.
 # Bit weird as it produces log files with nested paths, but that's okay for now.
+# To avoid having absolute paths as part of the log file output though,
+# which can happen for the absolute paths provided by the mappings table,
+# we add an underscore, just to silence the snakemake warning...
+# Super ugly, but log file paths do not work with lambdas or functions in snakemake,
+# so there is no easy solution. And introducing separate bam index functions
+# for every case where we need those is stupid as well.
+# So we live with the ugly understore and neste paths... It's just a log file,
+# after all. Still, ugly due to snakemake being weird.
 rule bam_index:
     input:
         "{prefix}.bam",
     output:
         "{prefix}.bam.bai",
     log:
-        "logs/mapping/samtools-index/{prefix}.log",
+        # "logs/mapping/samtools-index/{prefix}.log",
+        "logs/mapping/samtools-index/_" + "{prefix}.log"
     group:
         "mapping_extra"
     wrapper:
@@ -279,6 +287,12 @@ if config["settings"]["recalibrate-base-qualities"]:
 #     Final Mapping Result
 # =================================================================================================
 
+# Helper function for the case that a `mappings-table` is provided, in which case we do not run
+# any mapping ourselves, and skipp all of the above. Instead, we then simply want to use the
+# sample bam file from the table here.
+def get_bam_from_mappings_table(sample):
+    return config["global"]["samples"].loc[sample, ["bam"]].dropna()
+
 # At this point, we have several choices of which files we want to hand down to the next
 # pipleine step. We offer a function so that downstream does not have to deal with this.
 # The way this works is as follows: Each optional step that could be applied
@@ -287,25 +301,34 @@ if config["settings"]["recalibrate-base-qualities"]:
 # (see above), what we get here is the file name of the last step that we want to apply.
 
 
-def get_mapping_result(bai=False):
-    # case 1: no duplicate removal
-    f = "mapping/merged/{sample}.bam"
+def get_mapping_result(sample, bai=False):
+    # Special case: we are using the mappings table of bam files,
+    # instead of any of the ones produced with the rules here.
+    if "mappings-table" in config["data"] and config["data"]["mappings-table"]:
+        f = get_bam_from_mappings_table(sample)
 
-    # case 2: filtering via samtools view
-    if config["settings"]["filter-mapped-reads"]:
-        f = "mapping/filtered/{sample}.bam"
+    else:
+        # All other cases: pick the "final" bam file following the settings
+        # that is the one to be used downstream from here.
 
-    # case 3: clipping reads with BamUtil
-    if config["settings"]["clip-read-overlaps"]:
-        f = "mapping/clipped/{sample}.bam"
+        # case 1: no duplicate removal
+        f = "mapping/merged/{sample}.bam".format(sample=sample)
 
-    # case 4: remove duplicates
-    if config["settings"]["remove-duplicates"]:
-        f = "mapping/dedup/{sample}.bam"
+        # case 2: filtering via samtools view
+        if config["settings"]["filter-mapped-reads"]:
+            f = "mapping/filtered/{sample}.bam".format(sample=sample)
 
-    # case 5: recalibrate base qualities
-    if config["settings"]["recalibrate-base-qualities"]:
-        f = "mapping/recal/{sample}.bam"
+        # case 3: clipping reads with BamUtil
+        if config["settings"]["clip-read-overlaps"]:
+            f = "mapping/clipped/{sample}.bam".format(sample=sample)
+
+        # case 4: remove duplicates
+        if config["settings"]["remove-duplicates"]:
+            f = "mapping/dedup/{sample}.bam".format(sample=sample)
+
+        # case 5: recalibrate base qualities
+        if config["settings"]["recalibrate-base-qualities"]:
+            f = "mapping/recal/{sample}.bam".format(sample=sample)
 
     # Additionally, this function is run for getting bai files as well
     if bai:
@@ -320,12 +343,12 @@ def get_mapping_result(bai=False):
 # setting (whether to remove duplicates, and whether to recalibrate the base qualities),
 # by using the get_mapping_result function, that gives the respective files depending on the config.
 def get_sample_bams(sample):
-    return expand(get_mapping_result(), sample=sample)
+    return get_mapping_result(sample)
 
 
 # Return the bai file(s) for a given sample
 def get_sample_bais(sample):
-    return expand(get_mapping_result(True), sample=sample)
+    return get_mapping_result(sample,True)
 
 
 # Return the bam file(s) for a sample, given a wildcard param from a rule.
@@ -342,16 +365,16 @@ def get_sample_bais_wildcards(wildcards):
 def get_all_bams():
     # Make a list of all bams in the order as the samples list.
     res = list()
-    for smp in config["global"]["sample-names"]:
-        res.append(get_mapping_result().format(sample=smp))
+    for sample in config["global"]["sample-names"]:
+        res.append(get_mapping_result(sample))
     return res
 
 
 # Return the bai file(s) for all samples
 def get_all_bais():
     res = list()
-    for smp in config["global"]["sample-names"]:
-        res.append(get_mapping_result(True).format(sample=smp))
+    for sample in config["global"]["sample-names"]:
+        res.append(get_mapping_result(sample, True))
     return res
 
 
@@ -374,6 +397,7 @@ def get_all_bais():
 rule all_bams:
     input:
         bams=get_all_bams(),
+        qc="qc/multiqc.html",
     output:
         bams=expand("mapping/final/{sample}.bam", sample=config["global"]["sample-names"]),
         done=touch("mapping/final.done"),

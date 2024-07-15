@@ -83,6 +83,7 @@ jobs:
           - mapping-bwa-mem-1
           - mapping-bwa-mem2-1
           - mapping-bwa-mem2-2
+          - mappings-table
           - pileup-1
           - trimming-adapterremoval-1
           - trimming-adapterremoval-2

@@ -1,0 +1,4 @@
+sample	bam
+S1	#BASEPATH#/example/mapping/S1.bam
+S2	#BASEPATH#/example/mapping/S2.bam
+S3	#BASEPATH#/example/mapping/S3.bam

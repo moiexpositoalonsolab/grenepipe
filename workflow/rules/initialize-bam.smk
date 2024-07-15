@@ -1,29 +1,19 @@
 # =================================================================================================
-#     Read Samples Table
+#     Read Mapping Table
 # =================================================================================================
 
-# We add the samples information to the config, in order to not spam our global scope
-# (unfortunately, while python is super good with namespaces, it is super bad with scopes,
-# and in particular in snakemake, every file is included so that all variables defined in a file
-# are global and accessible in all subsequent files as well...).
-# We use a new top level key that is not used in the config file for this. Assert this.
+# Similar setup to what we do in `initialize-fastq.smk`, see there for details.
 if "global" in config:
     raise Exception("Config key 'global' already defined. Someone messed with our setup.")
 else:
     config["global"] = {}
 
-# Read samples and units table, and enforce to use strings in the index
+# Read mappings table, and enforce to use strings in the index
 config["global"]["samples"] = pd.read_csv(
-    config["data"]["samples-table"], sep="\t", dtype=str
-).set_index(["sample", "unit"], drop=False)
-config["global"]["samples"].index = config["global"]["samples"].index.set_levels(
-    [i.astype(str) for i in config["global"]["samples"].index.levels]
-)
-snakemake.utils.validate(config["global"]["samples"], schema="../schemas/samples.schema.yaml")
-
+    config["data"]["mappings-table"], sep="\t", dtype=str
+).set_index(["sample"], drop=False)
 
 # Get a list of all samples names, in the same order as the input sample table.
-# Samples with multiple units appear only once, at the first position in the table.
 # We cannot use a simple approach here, as this messes up the sample
 # order, which we do not want... (good that we noticed that bug though!)
 # So instead, we iterate, and add sample names incrementally.
@@ -33,36 +23,17 @@ for index, row in config["global"]["samples"].iterrows():
     if s not in config["global"]["sample-names"]:
         config["global"]["sample-names"].append(s)
 
-# Unordered list of all unit names that appear in all the samples.
-config["global"]["unit-names"] = list(
-    set(config["global"]["samples"].index.get_level_values("unit"))
-)
-
-
-# Helper function to get a list of all units of a given sample name.
-def get_sample_units(sample):
-    res = list()
-    for unit in config["global"]["samples"].loc[sample].unit:
-        if unit not in res:
-            res.append(unit)
-    return res
-
 
 # Helper function for user output to summarize the samples found in the table.
+# In the fastq case, we here print the units as well.
+# For bam files, it's just simply the number of samples.
 def get_sample_units_print():
-    unitcnt = len(config["global"]["samples"].index.get_level_values("unit"))
-    if unitcnt == len(config["global"]["sample-names"]):
-        return str(len(config["global"]["sample-names"]))
-    else:
-        return (
-            str(len(config["global"]["sample-names"])) + ", with " + str(unitcnt) + " total units"
-        )
+    return str(len(config["global"]["sample-names"]))
 
 
 # Wildcard constraints: only allow sample names from the spreadsheet to be used
 wildcard_constraints:
     sample="|".join(config["global"]["sample-names"]),
-    unit="|".join(config["global"]["unit-names"]),
 
 
 # =================================================================================================
@@ -83,37 +54,31 @@ if config["data"].get("samples-count", 0) > 0:
         )
 
 # We recommend to use absolute paths. Check that for the samples table.
-if not os.path.isabs(config["data"]["samples-table"]):
+if not os.path.isabs(config["data"]["mappings-table"]):
     logger.warning(
         "Path to the samples table as provided in the config file is not an absolute path. "
         "We recommend using absolute paths for all files.\n"
     )
 
-# List that contains tuples for all samples with their units.
-# In other words, a list of tuples of the sample and unit column of the sample table,
-# in the same order.
-config["global"]["sample-units"] = list()
+# Run integrity checks similar to what we do for the fastq files.
+uniq_sample_names = list()
 problematic_filenames = 0
 relative_filenames = 0
 for index, row in config["global"]["samples"].iterrows():
-    if (row["sample"], row["unit"]) in config["global"]["sample-units"]:
+    if row["sample"] in uniq_sample_names:
         raise Exception(
-            "Multiple rows with identical sample name and unit found in samples table: "
+            "Multiple rows with identical sample name found in samples table: "
             + str(row["sample"])
-            + " "
-            + str(row["unit"])
         )
-    config["global"]["sample-units"].append((row["sample"], row["unit"]))
+    uniq_sample_names.append(row["sample"])
 
-    # Do a check that the sample and unit names are valid file names.
+    # Do a check that the sample names are valid file names.
     # They are used for file names, and would cause weird errors if they contain bad chars.
-    if not valid_filename(row["sample"]) or not valid_filename(row["unit"]):
+    if not valid_filename(row["sample"]):
         raise Exception(
-            "Invalid sample name or unit name found in samples table that contains characters "
-            + "which cannot be used as sample/unit names for naming output files: "
+            "Invalid sample name name found in samples table that contains characters "
+            + "which cannot be used as sample names for naming output files: "
             + str(row["sample"])
-            + " "
-            + str(row["unit"])
             + "; for maximum robustness, we only allow alpha-numerical, dots, dashes, "
             "and underscores. "
             + "Use for example the script `tools/copy-samples.py --mode link [...] --clean` "
@@ -121,24 +86,16 @@ for index, row in config["global"]["samples"].iterrows():
         )
 
     # Do a check of the fastq file names.
-    if not os.path.isfile(row["fq1"]) or (
-        not pd.isnull(row["fq2"]) and not os.path.isfile(row["fq2"])
-    ):
+    if not os.path.isfile(row["bam"]):
         raise Exception(
-            "Input fastq files listed in the input files samples table "
-            + config["data"]["samples-table"]
+            "Input bam files listed in the input files mappings table "
+            + config["data"]["mappings-table"]
             + " not found: "
-            + str(row["fq1"])
-            + "; "
-            + str(row["fq2"])
+            + str(row["bam"])
         )
-    if not valid_filepath(row["fq1"]) or (
-        not pd.isnull(row["fq2"]) and not valid_filepath(row["fq2"])
-    ):
+    if not valid_filepath(row["bam"]):
         problematic_filenames += 1
-    if not os.path.isabs(row["fq1"]) or (
-        not pd.isnull(row["fq2"]) and not os.path.isabs(row["fq2"])
-    ):
+    if not os.path.isabs(row["bam"]):
         relative_filenames += 1
 
 # Warning about input names and files.
@@ -147,12 +104,10 @@ if problematic_filenames > 0:
         str(problematic_filenames)
         + " of the "
         + str(len(config["global"]["sample-names"]))
-        + " input samples listed in the input files samples table "
-        + config["data"]["samples-table"]
+        + " input samples listed in the input files mappings table "
+        + config["data"]["mappings-table"]
         + " contain problematic characters. We generally advise to only use alpha-numeric "
         "characters, dots, dashes, and underscores. "
-        "Use for example the script `tools/copy-samples.py --mode link [...] --clean` "
-        "to create a new samples table and symlinks to the existing fastq files to solve this. "
         "We will try to continue running with these files, but it might lead to errors.\n"
     )
 if relative_filenames > 0:
@@ -160,14 +115,11 @@ if relative_filenames > 0:
         str(relative_filenames)
         + " of the "
         + str(len(config["global"]["sample-names"]))
-        + " input samples listed in the input files samples table "
-        + config["data"]["samples-table"]
+        + " input samples listed in the input files mappings table "
+        + config["data"]["mappings-table"]
         + " use relative file paths. We generally advise to only use absolute paths. "
-        "Use for example the script `tools/generate-table.py` "
-        "to create a samples table with absolute paths. "
         "We will try to continue running with these files, but it might lead to errors.\n"
     )
-
 
 
 # Check if a given string can be converted to a number, https://stackoverflow.com/q/354038/4184258
@@ -190,8 +142,8 @@ if numeric_sample_names > 0:
         str(numeric_sample_names)
         + " of the "
         + str(len(config["global"]["sample-names"]))
-        + " input sample names listed in the input files samples table "
-        + config["data"]["samples-table"]
+        + " input sample names listed in the input files mappings table "
+        + config["data"]["mappings-table"]
         + " are just numbers, or can be converted to numbers. We generally advise to avoid this, "
         "as it might confuse downstream processing such as Excel and R. The same applies for names "
         'that can be converted to dates ("Dec21"), but we do not check this here. '
@@ -199,5 +151,5 @@ if numeric_sample_names > 0:
         "but recommend to change the sample names.\n"
     )
 
-del problematic_filenames, relative_filenames
+del uniq_sample_names, problematic_filenames, relative_filenames
 del numeric_sample_names

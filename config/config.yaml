@@ -7,11 +7,12 @@
 # Adjust the below dummy file paths and other options as needed.
 data:
 
-  # Needed. Samples table that lists all samples with their units (re-sequencing runs) and fastq files.
+  # Needed for the standard use case of calling variants from `fastq` input files.
+  # The samples table lists all samples with their units (re-sequencing runs) and fastq files.
   # The path to the table file itself, as well as the paths to the fastq files within the table need
   # to be absolute! No relative paths (e.g., `../data`), and no paths using shortcuts such as `~`.
   # See the wiki (https://github.com/lczech/grenepipe/wiki) for the expected format.
-  # The file name needs to end in ".fasta", ".fasta.gz", ".fa", ".fa.gz", ".fna", ".fas", ".fas.gz".
+  # The file names need to end in ".fasta", ".fasta.gz", ".fa", ".fa.gz", ".fna", ".fas", ".fas.gz".
   samples-table: "/path/to/data/samples.tsv"
 
   # Needed. Path to the reference genome in fasta format, uncompressed, or gzipped.
@@ -47,6 +48,12 @@ data:
   # For instance, in a samples table with no re-sequenced samples, where all entries in the `units`
   # column are 1, the number of rows in the table corresponds to the number of samples.
   samples-count: 0
+
+  # Advanced usage: Skip all fastq related steps, i.e., the trimming, mapping, and the bam file
+  # processing, and instead start the whole pipeline with a given set of bam files, running only
+  # the variant calling and filtering.
+  # See https://github.com/moiexpositoalonsolab/grenepipe/wiki/Advanced-Usage#running-the-variant-calling-from-a-set-of-bam-files
+  mappings-table: ""
 
   # If the file provided by `reference-genome` above do not already exist, we can automatically
   # download it from ensembl (or any other URL), using the following specification.
@@ -593,6 +600,9 @@ params:
     # processing all (optional) steps (filtering, clipping, dedup, base recalibration).
     # However, we can also run on the raw merged samples, where reads just have been mapped, sorted,
     # and merged per sample (all units of a sample into one bam file), but before any other processing.
+    # When running the pipeline from a set of bam files, that is, when processing a mappings-table
+    # instead of mapping the the fastq files of the `samples-table` in the pipeline itself,
+    # the bam files from that table are used instead, and these settings here are ignored.
     # Valid values: "processed", "merged"
     stats-bams: "processed"
     flagstat-bams: "processed"

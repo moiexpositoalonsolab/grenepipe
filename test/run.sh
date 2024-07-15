@@ -41,9 +41,10 @@ if [[ ! -d ./test/reference ]]; then
     cp ./example/regions.bed               ./test/reference/regions.bed
 fi
 
-# Copy the samples table, so that we can change the paths without changing the original,
+# Copy the samples tables, so that we can change the paths without changing the original,
 # We need to use a different sed separator here that cannot occur in paths, to avoid conflict.
-cat ./test/samples_template.tsv | sed "s?#BASEPATH#?${BASEPATH}?g" > ./test/samples.tsv
+cat ./test/samples-template.tsv  | sed "s?#BASEPATH#?${BASEPATH}?g" > ./test/samples.tsv
+cat ./test/mappings-template.tsv | sed "s?#BASEPATH#?${BASEPATH}?g" > ./test/mappings.tsv
 
 # For seqprep, we also want a samples table with only paired-end reads.
 # So let's make a copy and remove the line that contains the single-end file.

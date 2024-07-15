@@ -1,0 +1,2 @@
+samples-count: 0	samples-count: 3
+mappings-table: ""	mappings-table: "#BASEPATH#/test/mappings.tsv"

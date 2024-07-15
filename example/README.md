@@ -42,6 +42,11 @@ Furthermore, for testing, we provide a simple `regions.bed` file that restricts 
 to just some of the regions in the chromosomes. Note that this is mostly an experimental feature
 at the moment (see the `config.yaml`, under `settings: restrict-regions`, for details).
 
+Lastly, the `mapping` directory contains mapped `bam` files of the samples, also for testing
+purposes. This can for instance be used in order to run the pipeline for variant calling
+starting from a set of given `bam` files, instead of mapping `fastq` files first.
+See [here](https://github.com/moiexpositoalonsolab/grenepipe/wiki/Advanced-Usage#running-only-parts-of-the-pipeline) for details on this.
+
 
 Pipeline
 ==============

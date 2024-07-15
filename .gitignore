@@ -15,6 +15,7 @@ test/vep-cache.zip
 test/prep.log
 test/reference
 test/reference.tar.gz
+test/mappings.tsv
 test/samples.tsv
 test/samples-pe.tsv
 test/out-*

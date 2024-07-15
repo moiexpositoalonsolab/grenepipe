@@ -6,13 +6,15 @@ import platform
 # have been run. Here, we offer a simple function to switch between these inputs,
 # in order to avoid duplicating thise code below.
 # It expects the tool and key from the config.yaml
-def bam_qc_input(tool, key):
+def bam_qc_input(tool, key, wildcards):
     if key not in config["params"][tool]:
         raise Exception("config key " + key + " not found for tool " + tool)
-    if config["params"][tool][key] == "processed":
-        return get_mapping_result()
+    if "mappings-table" in config["data"] and config["data"]["mappings-table"]:
+        return get_sample_bams(wildcards.sample)
+    elif config["params"][tool][key] == "processed":
+        return get_sample_bams(wildcards.sample)
     elif config["params"][tool][key] == "merged":
-        return "mapping/merged/{sample}.bam"
+        return "mapping/merged/{sample}.bam".format(sample=wildcards.sample)
     else:
         raise Exception(
             "Unknown setting for " + tool + " " + key + ": " + config["params"][tool][key]
@@ -26,7 +28,8 @@ def bam_qc_input(tool, key):
 
 rule samtools_stats:
     input:
-        bam_qc_input("samtools", "stats-bams"),
+        # bam_qc_input("samtools", "stats-bams"),
+        lambda wildcards: bam_qc_input("samtools", "stats-bams", wildcards),
     output:
         "qc/samtools-stats/{sample}.txt",
     log:
@@ -54,7 +57,8 @@ localrules:
 
 rule samtools_flagstat:
     input:
-        bam_qc_input("samtools", "flagstat-bams"),
+        # bam_qc_input("samtools", "flagstat-bams"),
+        lambda wildcards: bam_qc_input("samtools", "flagstat-bams", wildcards),
     output:
         "qc/samtools-flagstat/{sample}.txt",
     log:
@@ -88,7 +92,8 @@ localrules:
 # Rule for running qualimap for each bam file of a sample, with its units merged.
 rule qualimap_sample:
     input:
-        bam_qc_input("qualimap", "bams"),
+        # bam_qc_input("qualimap", "bams"),
+        lambda wildcards: bam_qc_input("qualimap", "bams", wildcards),
     output:
         # The output of this rule (for now) is a directory, so we have no way of telling whether
         # the rule succeeded by that. We hence add the `done` file here as well, which (according
@@ -188,10 +193,17 @@ def picard_collectmultiplemetrics_exts():
     return res
 
 
+# Need a function here, to handle wildcards, as a lambda with a named input does not work...
+# def picard_collectmultiplemetrics_input(wildcards):
+#     return bam_qc_input("picard", "CollectMultipleMetrics-bams", wildcards),
+
+
 rule picard_collectmultiplemetrics:
     input:
-        bam=bam_qc_input("picard", "CollectMultipleMetrics-bams"),
-        ref=config["data"]["reference-genome"],
+        # bam=bam_qc_input("picard", "CollectMultipleMetrics-bams"),
+        bam = lambda wildcards: bam_qc_input("picard", "CollectMultipleMetrics-bams", wildcards),
+        # bam = picard_collectmultiplemetrics_input
+        ref = config["data"]["reference-genome"],
     output:
         expand("qc/picard/{{sample}}{ext}", ext=picard_collectmultiplemetrics_exts()),
     log:
