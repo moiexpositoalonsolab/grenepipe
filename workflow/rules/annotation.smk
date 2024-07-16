@@ -85,7 +85,8 @@ rule snpeff:
         # For finding the chromosome names used by snpeff, add `-v` here
         extra=config["params"]["snpeff"]["extra"],
     resources:
-        mem_mb=config["params"]["snpeff"]["mem"],
+        # Use get() for backwards compatibilty with older config files pre v0.13.0
+        mem_mb=config["params"]["snpeff"].get("mem", 2000),
     conda:
         "../envs/snpeff.yaml"
     wrapper:
