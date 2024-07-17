@@ -7,10 +7,26 @@ import os, sys, pwd, re
 import socket, platform
 import subprocess
 from datetime import datetime
+import logging
 
 # Ensure min Snakemake version
 snakemake.utils.min_version("8.15.2")
 basedir = workflow.basedir
+
+# We are currently setting up our own extra log file, so that the below banner is shown.
+# Snakemake currently only activates logging to the `.snakemake/log` files _after_ having
+# processed all snakefiles, which is not really how logging should work...
+# See https://github.com/snakemake/snakemake/issues/2974 for the issue.
+os.makedirs(os.path.join("logs", "snakemake"), exist_ok=True)
+extra_logfile = os.path.abspath(
+    os.path.join(
+        "logs",
+        "snakemake",
+        datetime.now().isoformat().replace(":", "") + ".log",
+    )
+)
+logger.logger.addHandler(logging.FileHandler(extra_logfile))
+
 
 # =================================================================================================
 #     Basic Configuration
