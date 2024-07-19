@@ -9,6 +9,8 @@ import subprocess
 from datetime import datetime
 import logging
 
+from snakemake_interface_executor_plugins.settings import ExecMode
+
 # Ensure min Snakemake version
 snakemake.utils.min_version("8.15.2")
 basedir = workflow.basedir
@@ -17,11 +19,16 @@ basedir = workflow.basedir
 # Snakemake currently only activates logging to the `.snakemake/log` files _after_ having
 # processed all snakefiles, which is not really how logging should work...
 # See https://github.com/snakemake/snakemake/issues/2974 for the issue.
-os.makedirs(os.path.join("logs", "snakemake"), exist_ok=True)
+# We need to distinguish between the main instance, and the instances of each rule job.
+if logger.mode == ExecMode.DEFAULT:
+    extra_logdir = "snakemake"
+else:
+    extra_logdir = "snakemake-jobs"
+os.makedirs(os.path.join("logs", extra_logdir), exist_ok=True)
 extra_logfile = os.path.abspath(
     os.path.join(
         "logs",
-        "snakemake",
+        extra_logdir,
         datetime.now().isoformat().replace(":", "") + ".log",
     )
 )
