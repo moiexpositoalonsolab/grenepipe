@@ -41,7 +41,7 @@ logger.logger.addHandler(logging.FileHandler(extra_logfile))
 
 # We want to report the grenepipe version for the user, for reproducibility.
 # The following line is automatically replaced by the deploy scripts. Do not change manually.
-grenepipe_version = "0.13.0"  # GRENEPIPE_VERSION #
+grenepipe_version = "0.13.1"  # GRENEPIPE_VERSION #
 
 
 # Load the config. If --directory was provided, this is also loaded from there.
