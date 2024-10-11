@@ -50,7 +50,12 @@ elif config["params"]["fastqc"]["input"] == "trimmed":
         trimmed = get_trimmed_reads(wc)
 
         # Now let's see if we have merged them or not, and add to our result accordingly.
-        if config["settings"]["merge-paired-end-reads"]:
+        if config["settings"]["trimming-tool"] == "none":
+            raise Exception(
+                "Invalid setting for fastqc: Selected 'settings: trimming-tool: \"none\"' "
+                + "in combination with 'params: fastqc: input: \"trimmed\"'."
+            )
+        elif config["settings"]["merge-paired-end-reads"]:
             assert len(trimmed) == 1
             add_fastqc_file(smp.sample, smp.unit, "trimmed-merged", trimmed[0])
         else:
