@@ -131,7 +131,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v3.0.4
+        # uses: conda-incubator/setup-miniconda@v3.0.4
+        uses: mamba-org/setup-micromamba@v1.9.0
         with:
           # We need mamba here already, otherwise we run into
           # https://github.com/conda-incubator/setup-miniconda/issues/262
@@ -151,12 +152,22 @@ jobs:
           # New workaround suggestion:
           # https://github.com/conda-incubator/setup-miniconda/issues/292#issuecomment-1767669652
           # Why is this stuff so broken all the time?
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          use-mamba: true
-          channels: conda-forge,defaults
+          # miniforge-variant: Mambaforge
+          # miniforge-version: latest
+          # use-mamba: true
+          # channels: conda-forge,defaults
+          # environment-file: workflow/envs/grenepipe.yaml
+          # activate-environment: grenepipe
+
+          # Nope, the above also does not work, this time due to
+          # https://github.com/snakemake/snakemake/issues/3108
+          # So now we try to use a completely different setup, and hope that that works,
+          # at least for now...
+          micromamba-version: '1.5.8-0'
           environment-file: workflow/envs/grenepipe.yaml
-          activate-environment: grenepipe
+          environment-name: grenepipe
+          init-shell: bash
+          post-cleanup: 'all'
 
       # Manually create the conda env.
       # Not needed at the moment, as the above setup works (if it works).
@@ -239,17 +250,25 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@v3.0.3
+        # uses: conda-incubator/setup-miniconda@v3.0.3
+        uses: mamba-org/setup-micromamba@v1.9.0
         with:
           # mamba-version: "*"
           # channels: conda-forge
           # Need to use a different setup to get mamba to work, see above.
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          use-mamba: true
-          channels: conda-forge,defaults
+          # miniforge-variant: Mambaforge
+          # miniforge-version: latest
+          # use-mamba: true
+          # channels: conda-forge,defaults
+          # environment-file: workflow/envs/grenepipe.yaml
+          # activate-environment: grenepipe
+
+          # Same as above, need a different setup here...
+          micromamba-version: '1.5.8-0'
           environment-file: workflow/envs/grenepipe.yaml
-          activate-environment: grenepipe
+          environment-name: grenepipe
+          init-shell: bash
+          post-cleanup: 'all'
 
       - name: Run Example
         run: |
