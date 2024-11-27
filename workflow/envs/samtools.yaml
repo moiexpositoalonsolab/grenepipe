@@ -4,9 +4,9 @@ channels:
   - bioconda
 dependencies:
   # Python
-  # - python ==3.12
-  # - pandas ==2.2.2
-  # - numpy  ==2.0.0
+  - python ==3.12
+  - pandas ==2.2.2
+  - numpy  ==2.0.0
   # Tools
   - bioconda::samtools ==1.20
-  # - snakemake-wrapper-utils ==0.6.2
+  - snakemake-wrapper-utils ==0.6.2

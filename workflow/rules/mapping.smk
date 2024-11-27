@@ -23,6 +23,8 @@ rule bam_index:
         "logs/mapping/samtools-index/_" + "{prefix}.log",
     group:
         "mapping_extra"
+    conda:
+        "../envs/samtools.yaml"
     wrapper:
         "0.51.3/bio/samtools/index"
 
@@ -143,6 +145,10 @@ rule merge_sample_unit_bams:
     threads: config["params"]["samtools"]["merge-threads"]
     log:
         "logs/mapping/samtools-merge/{sample}.log",
+    conda:
+        # Need our own env again, because of conflicting numpy and pandas version...
+        # Probably the cause of https://github.com/moiexpositoalonsolab/grenepipe/issues/58
+        "../envs/samtools.yaml"
     wrapper:
         "v3.13.6/bio/samtools/merge"
 
