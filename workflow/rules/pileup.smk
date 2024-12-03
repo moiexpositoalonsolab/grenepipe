@@ -17,6 +17,8 @@ rule mpileup_merge_all:
     threads: config["params"]["samtools"]["merge-threads"]
     log:
         "logs/samtools/mpileup/merge-all.log",
+    conda:
+        "../envs/samtools.yaml"
     wrapper:
         "v3.13.6/bio/samtools/merge"
 
@@ -67,6 +69,8 @@ rule mpileup_individual_sample:
         extra=config["params"]["samtools"]["pileup"],
     log:
         "logs/samtools/mpileup/samples-{sample}.log",
+    conda:
+        "../envs/samtools.yaml"
     wrapper:
         "v3.13.6/bio/samtools/mpileup"
 
@@ -82,6 +86,8 @@ rule mpileup_all_samples:
         extra=config["params"]["samtools"]["pileup"],
     log:
         "logs/samtools/mpileup/all-merged-units.log",
+    conda:
+        "../envs/samtools.yaml"
     wrapper:
         "v3.13.6/bio/samtools/mpileup"
 
@@ -96,6 +102,8 @@ rule mpileup_all_merged_samples:
         extra=config["params"]["samtools"]["pileup"],
     log:
         "logs/samtools/mpileup/all-merged-samples.log",
+    conda:
+        "../envs/samtools.yaml"
     wrapper:
         "v3.13.6/bio/samtools/mpileup"
 
