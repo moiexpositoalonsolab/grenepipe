@@ -347,7 +347,7 @@ settings:
     # This also creates a file "mpileup/all-sample-names.txt", which lists the order of the
     # pileup columns in the file, which is the same order as the `data: samples-table` input table
     # (the order in which each sample name appears first in the table, forsamples with multiple units).
-    # - "all-sampless"
+    # - "all-samples"
     #
     # Make a pileup file with one column only, by merging all samples with all units into one pile.
     # - "all-merged-samples"
@@ -473,11 +473,19 @@ params:
 
   # Used only if settings:trimming-tool == trimmomatic
   # See trimmomatic manual: http://www.usadellab.org/cms/?page=trimmomatic
+  # Download adapters here: https://github.com/usadellab/Trimmomatic/tree/main/adapters
   trimmomatic:
     threads: 6
     se:
       extra: ""
       trimmer:
+        # We recommend playing with these settings, e.g., LEADING and TRAILING might be better at 5,
+        # and SLIDINGWINDOW might work better with, e.g., 4:20.
+        # Adapter sequences should be provided as in the ILLUMINACLIP examples; unfortunately,
+        # we cannot provide the standard adapter files within grenepipe due to copyrights.
+        # Change the `/path/to/...` to absolute paths as needed.
+        # - "ILLUMINACLIP:/path/to/adapters/TruSeq3-PE-2.fa:2:30:10:2:True"
+        # - "ILLUMINACLIP:/path/to/adapter-se.fa:2:30:10"
         - "LEADING:3"
         - "TRAILING:3"
         - "SLIDINGWINDOW:4:15"
@@ -485,14 +493,12 @@ params:
     pe:
       extra: ""
       trimmer:
-        # We recommend playing with these settings, e.g., LEADING and TRAILING might be better at 5,
-        # and SLIDINGWINDOW might work better with, e.g., 4:20.
-        # Adapter sequences can also be provided as in the ILLUMINACLIP example below.
+        # Same as above for the single end trimming. See there for details.
+        # - "ILLUMINACLIP:/path/to/adapter-pe.fa:2:30:10:2:True"
         - "LEADING:3"
         - "TRAILING:3"
         - "SLIDINGWINDOW:4:15"
         - "MINLEN:36"
-        # - "ILLUMINACLIP:/path/to/adapters/TruSeq3-PE-2.fa:2:30:10:2:True"
 
   # ----------------------------------------------------------------------
   #     bowtie2
