@@ -87,12 +87,14 @@ def match_pe_files(s1, s2):
         dirn += '/'
 
     # Find the single position at which the two file basenames differ,
-    # or -1 if they differ in more than one position
+    # or -1 if they differ in more than one position (except 'R'/'F')
     # (or are the same string, but that should not happen in our case).
     pos = -1
     for i, (c1, c2) in enumerate(zip(s1s[1], s2s[1])):
         if c1 != c2:
-            if pos != -1:
+            if c1.upper() in ['R', 'F'] and c2.upper() in ['R']:
+                continue
+            elif pos != -1:
                 return -1
             else:
                 pos = len(dirn) + i
@@ -148,7 +150,8 @@ def get_mates(seqfiles):
                     # If the match position is 0 (that is, the first char is '1'/'2' in the files),
                     # these cannot have an 'R' in front of them.
                     continue
-                if cand.seq1[ cand.pos - 1 ] == 'R' or cand.seq1[ cand.pos - 1 ] == 'r':
+                if cand.seq1[ cand.pos - 1 ].upper() in ['R', 'F']:
+                    assert cand.seq2[ cand.pos - 1 ].upper() in ['R']
                     # We found an 'R'. If we already found another, that is also a fail.
                     if cand_idx > -1:
                         multiple_r = True
@@ -161,8 +164,8 @@ def get_mates(seqfiles):
                     print("  -  " + cand.seq2)
                 print(
                     "We cannot automatically determine match pairs with this. Please consider "
-                    "renaming your files so that the intended match pairs have the letter 'R' "
-                    "in front of the two numbers, like 'R1' and 'R2'."
+                    "renaming your files so that the intended match pairs have the letter 'R'/'F' "
+                    "in front of the two numbers, like 'R1'/'F1' and 'R2', case independent."
                 )
                 sys.exit()
             # Here, we have determined a pair that works. Add it to the results, and remove
@@ -189,7 +192,7 @@ def get_sample_name(match):
         # Then, we also clean trailing dashes, dots, and underscores.
         # We do not do this in one step, as that might truncate sample names ending in 'r'.
         name = re.split( '/', match.seq1[:match.pos] )[-1]
-        if name[-1:] == 'R' or name[-1:] == 'r':
+        if name[-1:].upper() in ['R', 'F']:
             name = name[:-1]
         return name.rstrip( '-_.' )
     else:
