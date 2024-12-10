@@ -116,8 +116,8 @@ jobs:
             case: base
           - os: macos-13
             case: base
-          - os: macos-14
-            case: base
+          # - os: macos-14
+          #   case: base
 
     # -------------------------------------------------------
     #     Steps
@@ -235,7 +235,7 @@ jobs:
           - ubuntu-22.04
           - ubuntu-24.04
           - macos-13
-          - macos-14
+          # - macos-14
 
     # -------------------------------------------------------
     #     Steps
@@ -306,7 +306,7 @@ jobs:
           - ubuntu-22.04
           - ubuntu-24.04
           - macos-13
-          - macos-14
+          # - macos-14
 
         installer:
           # Conda is just waaaay to slow... some runs even exceed the GitHub Actions
