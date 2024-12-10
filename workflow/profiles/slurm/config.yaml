@@ -1,13 +1,62 @@
-# Default settings of the cookiecutter setup
-restart-times: 3
-max-jobs-per-second: 1
-max-status-checks-per-second: 10
-local-cores: 1
-latency-wait: 60
+# Settings based on https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html
+# as well as some additional custom settings for our convenience.
+# See also our documentation for details on using Snakemake on a slurm cluster:
+# https://github.com/moiexpositoalonsolab/grenepipe/wiki/Cluster-and-Profiles
 
-# Additional settings used for our purposes
+# General Snakemake settings
 use-conda: True
-jobs: 100
 keep-going: True
 rerun-incomplete: True
+restart-times: 3
 printshellcmds: True
+
+# Slurm and cluster settings
+executor: slurm
+jobs: 100
+max-jobs-per-second: 1
+max-status-checks-per-second: 10
+latency-wait: 60
+local-cores: 1
+
+# For now, we do not separate between the global and the workflow profile,
+# as it seems that the whole profiles setup of Snakemake is in active development,
+# and so we do not bother just yet to put in the effort
+# to comply with their ever changing requirements...
+# See https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles
+# Here, we simply put in all the configuration in one file.
+
+# As of now, it seems that the Snakemake slurm plugin only understands MB and minutes,
+# instead of the more convenient resource specifications that slurm offers,
+# see https://github.com/snakemake/snakemake-executor-plugin-slurm/issues/175
+# So, for now, please convert everything to these units.
+
+# Default resources applied for all rules that are not explicitly specified below.
+# In particlar, set the slurm accounting information here as needed.
+# Any category from here can be overwritten by creating a rule-specific config below.
+default-resources:
+  slurm_account: "your_account"
+  slurm_partition: "your_partition"
+  mem_mb: 10000 # Memory in megabytes
+  runtime: 120  # Runtime in minutes
+  cpus_per_task: 1
+  nodes: 1
+  tasks: 1
+
+set-resources:
+  trim_reads_se:
+    mem_mb: 5000
+    cpus_per_task: 4
+
+  trim_reads_pe:
+    mem_mb: 5000
+    cpus_per_task: 4
+
+  map_reads:
+    cpus_per_task: 4
+
+  call_variants:
+    runtime: 1440  # One day
+    cpus_per_task: 4
+
+  combine_calls:
+    runtime: 1440
