@@ -33,7 +33,7 @@ descend_into_single_dir = True
 ftp_download_log_file = "ftp-download.log"
 
 # File name search pattern (regex) for finding a file with md5 hashes of the files on the server.
-md5_file_re = "(.*/)?(md5|MD5)(sum)?\.txt"
+md5_file_re = "(.*/)?(md5|MD5)(sum)?\\.txt"
 
 # Summary of all processed files
 summary = {}
@@ -103,7 +103,7 @@ def get_md5_hash_dict(md5_file):
     hashdict = {}
     with open(md5_file) as fp:
         for line in fp:
-            sl = [item for item in re.split("\s+", line) if item]
+            sl = [item for item in re.split("\\s+", line) if item]
             if len(sl) == 0:
                 continue
             elif len(sl) > 2:
