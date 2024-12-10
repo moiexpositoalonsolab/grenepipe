@@ -34,16 +34,22 @@ outfile = "samples.tsv"
 # char match occurrs. While finding match candidates, we also need the indices in the input list.
 Match = namedtuple("Match", ['seq1', 'seq2', 'pos', 'idx1', 'idx2'])
 
-def get_fastq_files(indir):
+def get_fastq_files(indir, shallow):
     # Get all files in the given directory that match our file extensions, and sort them,
     # so that adjacent entries are potential paired files.
     seqfiles = []
-    for dirpath, subdirs, filenames in os.walk(indir):
-        # print(filenames)
-        for f in filenames:
-            path = os.path.abspath(os.path.join(dirpath, f))
+    if shallow:
+        for f in os.listdir(indir):
+            path = os.path.abspath(os.path.join(indir, f))
             if path.endswith( tuple( extensions )):
                 seqfiles.append(path)
+    else:
+        for dirpath, subdirs, filenames in os.walk(indir):
+            # print(filenames)
+            for f in filenames:
+                path = os.path.abspath(os.path.join(dirpath, f))
+                if path.endswith( tuple( extensions )):
+                    seqfiles.append(path)
     seqfiles.sort()
     return seqfiles
 
@@ -326,6 +332,11 @@ if __name__ == "__main__":
         help="If set, all fastq files are considered to be single-end, " +
         "and no attempt to match their names is performed"
         )
+    parser.add_argument(
+        "--shallow",
+        action='store_true',
+        help="If set, only the given directory is searched for files, and not its sub-directories"
+        )
     args = parser.parse_args()
 
     # Output file check.
@@ -344,7 +355,7 @@ if __name__ == "__main__":
         print("(If not, this script here has to be adapted accordingly.)")
 
     # Get the read mate pairs and write them to a table.
-    seqfiles = get_fastq_files( args.dir )
+    seqfiles = get_fastq_files( args.dir, args.shallow )
     if args.single:
         mates = get_singles( seqfiles )
     else:
