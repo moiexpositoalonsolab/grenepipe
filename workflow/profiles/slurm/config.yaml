@@ -21,14 +21,27 @@ local-cores: 1
 # For now, we do not separate between the global and the workflow profile,
 # as it seems that the whole profiles setup of Snakemake is in active development,
 # and so we do not bother just yet to put in the effort
-# to comply with their ever changing requirements...
+# to fully comply with their ever changing requirements...
 # See https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles
 # Here, we simply put in all the configuration in one file.
+# Feel free though to use this profile as a basis for your own more specific setup.
 
 # As of now, it seems that the Snakemake slurm plugin only understands MB and minutes,
 # instead of the more convenient resource specifications that slurm offers,
 # see https://github.com/snakemake/snakemake-executor-plugin-slurm/issues/175
 # So, for now, please convert everything to these units.
+
+# Furthermore, there is a bug in the snakemake slurm submission, where the number
+# of cores on the login node (where typically snakemake is being run, and from which
+# the slurm jobs are hence submitted) is used as a limitation check for the number
+# of cores a job can request, in order to avoid over-allocation.
+# Of course, on many clusters, the login node might have way fewer cores than the
+# compute nodes, and so this prevents us of submitting jobs that need more cores
+# than the login node has. Silly.
+# See: https://github.com/snakemake/snakemake/issues/2997
+# The workaround for this is to run snakemake with `--cores 1024` or some other
+# large number - those cores might however be used for some local rules, which
+# however should not lead to issues on the login node.
 
 # Default resources applied for all rules that are not explicitly specified below.
 # In particlar, set the slurm accounting information here as needed.
@@ -37,26 +50,38 @@ default-resources:
   slurm_account: "your_account"
   slurm_partition: "your_partition"
   mem_mb: 10000 # Memory in megabytes
-  runtime: 120  # Runtime in minutes
+  runtime: 180  # Runtime in minutes
   cpus_per_task: 1
   nodes: 1
   tasks: 1
 
+# Overrides for specific tasks
 set-resources:
+
+  # Single end trimming
   trim_reads_se:
     mem_mb: 5000
     cpus_per_task: 4
 
+  # Paired end trimming
   trim_reads_pe:
     mem_mb: 5000
     cpus_per_task: 4
 
+  # Read mapping tool
   map_reads:
-    cpus_per_task: 4
+    cpus_per_task: 10
 
+  # Group job: Read mapping and sorting, needs to be
+  # at least one greater than the above `map_reads`
+  mapping:
+    cpus_per_task: 12
+
+  # Variant calling
   call_variants:
-    runtime: 1440  # One day
+    runtime: 1440 # One day
     cpus_per_task: 4
 
+  # For GATK HaplotypeCaller
   combine_calls:
     runtime: 1440

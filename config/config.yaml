@@ -507,7 +507,7 @@ params:
   # Used only if settings:mapping-tool == bowtie2
   # See bowtie2 manual: http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
   bowtie2:
-    threads: 12
+    threads: 10
 
     # Extra parameters. We internally already set `--rg` and `--rg-id`, using read group ("@RG")
     # tags "ID" and "SM", and potentially "PL".
@@ -523,7 +523,7 @@ params:
   # Used only if settings:mapping-tool == bwaaln
   # See bwa manual: http://bio-bwa.sourceforge.net/
   bwaaln:
-    threads: 4
+    threads: 10
 
     # Extra parameters for bwa aln, which maps the reads and produces intermediate *.sai files.
     extra: ""
@@ -544,7 +544,7 @@ params:
   # Used only if settings:mapping-tool == bwamem
   # See bwa manual: http://bio-bwa.sourceforge.net/
   bwamem:
-    threads: 12
+    threads: 10
 
     # Extra parameters for bwa mem.
     # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM",
@@ -561,7 +561,7 @@ params:
   # Used only if settings:mapping-tool == bwamem2
   # See bwa manual: https://github.com/bwa-mem2/bwa-mem2
   bwamem2:
-    threads: 12
+    threads: 10
 
     # Extra parameters for bwa mem.
     # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM",
