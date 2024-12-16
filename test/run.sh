@@ -62,9 +62,9 @@ make_config() {
     sed -i.bak -e "s?/path/to/data/genome.fa?${BASEPATH}/test/reference/TAIR10_chr_all.fa?g" ${TARGET}
     # cat ./test/config_template.yaml | sed "s?#BASEPATH#?${BASEPATH}?g" > ./test/config.yaml
 
-    # Need an extra replacement step for threads. Might change in the future - this is a bit
-    # volatile. But works for now.
-    sed -i.bak -e "s/threads: 12/threads: 6/g" ${TARGET}
+    # Need an extra replacement step for threads. Might change in the future.
+    # This is a bit volatile, as it needs to reflect the config file. But works for now.
+    sed -i.bak -e "s/threads: 10/threads: 6/g" ${TARGET}
     rm ${TARGET}.bak
 }
 
