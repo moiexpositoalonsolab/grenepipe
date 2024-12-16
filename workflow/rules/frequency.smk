@@ -174,7 +174,7 @@ rule hafpipe_snp_table:
         # in order to better inform the user about the situation and how to fix this.
         numeric=get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric",
         numericbgz=get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz",
-        done=touch(get_hafpipe_snp_table_dir() + "/{chrom}.done"),
+        done=get_hafpipe_snp_table_dir() + "/{chrom}.done",
     params:
         tasks="1",
         chrom="{chrom}",
@@ -247,9 +247,8 @@ if impmethod in ["simpute", "npute"]:
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
             bins=get_hafpipe_bins(),
         output:
-            # Unnamed output, as this is implicit in HAFpipe Task 2
-            get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
-            touch(get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done"),
+            csv=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
+            done=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done",
         params:
             tasks="2",
             impmethod=impmethod,
@@ -278,9 +277,8 @@ elif impmethod != "":
         input:
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
         output:
-            # Unnamed output, as this is implicit in the user script
-            get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
-            touch(get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done"),
+            csv=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
+            done=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done",
         # Same logic as above, let's accelarate the workflow.
         priority: 5
         log:
@@ -448,7 +446,7 @@ rule hafpipe_haplotype_frequencies:
             if config["params"]["hafpipe"].get("keep-intermediates", True)
             else temp("hafpipe/frequencies/{sample}.bam.{chrom}.freqs")
         ),
-        done=touch("hafpipe/frequencies/{sample}.bam.{chrom}.freqs.done"),
+        done="hafpipe/frequencies/{sample}.bam.{chrom}.freqs.done",
     params:
         tasks="3",
         outdir="hafpipe/frequencies",
@@ -476,7 +474,7 @@ rule hafpipe_allele_frequencies:
             if config["params"]["hafpipe"].get("keep-intermediates", True)
             else temp("hafpipe/frequencies/{sample}.bam.{chrom}.afSite")
         ),
-        done=touch("hafpipe/frequencies/{sample}.bam.{chrom}.afSite.done"),
+        done="hafpipe/frequencies/{sample}.bam.{chrom}.afSite.done",
     params:
         tasks="4",
         outdir="hafpipe/frequencies",

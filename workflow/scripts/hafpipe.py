@@ -144,3 +144,8 @@ if snakemake.params.get("tasks") == "1":
         #     "big if your founder VCF has many samples. Please check all log files for errors, "
         #     "and try to increase the amount of memory for our grenepipe rule `hafpipe_snp_table`."
         # )
+
+# Finally, if the snakemake rule expects a "done" marker file, we produce this,
+# at the very end, so that it only is made when everything above succeeded.
+if snakemake.output.get("done", ""):
+    shell("touch {snakemake.output.done:q}")
