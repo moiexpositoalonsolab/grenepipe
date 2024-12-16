@@ -278,7 +278,7 @@ elif impmethod != "":
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
         output:
             csv=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
-            done=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done",
+            done=touch(get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done"),
         # Same logic as above, let's accelarate the workflow.
         priority: 5
         log:
