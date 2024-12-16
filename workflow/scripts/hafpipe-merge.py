@@ -9,7 +9,7 @@
 # sample or chromosome - except for the file name.
 # Hence, our rules expect a certain fixed file naming scheme for these files, and this script
 # here expects that same scheme.
-# In particular, we expect "{sample}.merged.bam.{chrom}.afSite" for the samples,
+# In particular, we expect "{sample}.bam.{chrom}.afSite" for the samples,
 # and at least allow to set the base path, which for our case is "hafpipe/allele-frequencies".
 # It is hence not terribily portable, but might still be useful for others as inspiration.
 # There does not seem to be any other way, given that different use cases might want to handle
@@ -50,7 +50,7 @@ def get_afsite_path(sample, chrom):
         raise Exception("Invalid sample " + sample)
     if chrom not in snakemake.params.chroms:
         raise Exception("Invalid chrom " + chrom)
-    return sample + ".merged.bam." + chrom + ".afSite"
+    return sample + ".bam." + chrom + ".afSite"
 
 
 # -------------------------------------------------------------------------

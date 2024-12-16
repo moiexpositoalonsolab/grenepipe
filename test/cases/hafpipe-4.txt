@@ -4,3 +4,4 @@ snp-table-dir: ""	snp-table-dir: "#BASEPATH#/test/snp-tables"
 impmethod: ""	impmethod: "my_method"
 impute-script: ""	impute-script: "../../packages/hafpipe-impute-example.sh"
 keep-intermediates: false	keep-intermediates: true
+make-merged-table: false	make-merged-table: true
