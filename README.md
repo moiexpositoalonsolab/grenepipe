@@ -1,8 +1,10 @@
 [![Snakemake](https://img.shields.io/badge/snakemake-8.15.2-brightgreen.svg)](https://snakemake.github.io)
-[![CI](https://github.com/moiexpositoalonsolab/grenepipe/workflows/CI/badge.svg?branch=master)](https://github.com/moiexpositoalonsolab/grenepipe/actions)
-![Platforms](https://img.shields.io/badge/platform-linux--64%20%7C%20osx--64-lightgrey)
+[![CI](https://github.com/moiexpositoalonsolab/grenepipe/actions/workflows/ci.yaml/badge.svg)](https://github.com/moiexpositoalonsolab/grenepipe/actions)
+[![Platforms](https://img.shields.io/badge/platform-linux--64%20%7C%20osx--64-lightgrey)](https://github.com/moiexpositoalonsolab/grenepipe/releases)
+[![Release](https://img.shields.io/github/v/release/moiexpositoalonsolab/grenepipe.svg)](https://github.com/moiexpositoalonsolab/grenepipe/releases)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
 [![DOI](https://img.shields.io/badge/doi-10.1093%2Fbioinformatics%2Fbtac600-blue)](https://doi.org/10.1093/bioinformatics/btac600)
+<!-- [![CI](https://github.com/moiexpositoalonsolab/grenepipe/workflows/CI/badge.svg?branch=master)](https://github.com/moiexpositoalonsolab/grenepipe/actions) -->
 <!-- ![Language](https://img.shields.io/badge/language-python-lightgrey.svg) -->
 
 ![grenepipe logo](/doc/logo/grenepipe.png?raw=true)
