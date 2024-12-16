@@ -63,3 +63,4 @@ for chrom in snakemake.params.chroms:
 
 # User output.
 shell('echo "Finished `date`" {log} ; ')
+shell("touch {snakemake.output.done:q} ; ")

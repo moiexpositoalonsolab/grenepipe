@@ -41,6 +41,7 @@ else:
 
 # We actually change to the directory of the files, to keep it simple,
 # and to potentially avoid issues with too long paths when doing our hundreds of concats.
+prev_cwd = os.getcwd()
 os.chdir(snakemake.params.get("base_path", "hafpipe/frequencies"))
 
 
@@ -229,3 +230,7 @@ shell(
     "rm {chrom_files} ; "
     'echo -e "\\nFinished `date`" {log} ; '
 )
+
+# Write the "done" flag file, in the original base directory.
+os.chdir(prev_cwd)
+shell("touch {snakemake.output.done:q} ; ")

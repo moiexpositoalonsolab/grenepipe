@@ -515,7 +515,7 @@ rule hafpipe_concat_sample_allele_frequencies:
         # This is the file name produced by the script. For now we do not allow to change this.
         table="hafpipe/samples/{sample}.csv"
         + (".gz" if config["params"]["hafpipe"].get("compress-sample-tables", False) else ""),
-        done=touch("hafpipe/samples/{sample}.done"),
+        done="hafpipe/samples/{sample}.done",
     params:
         # The rule needs access to the list of chromosomes, and to the sample.
         sample="{sample}",
@@ -579,7 +579,7 @@ rule hafpipe_merge_allele_frequencies:
         # This is the file name produced by the script. For now we do not allow to change this.
         table="hafpipe/all.csv"
         + (".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""),
-        done=touch("hafpipe/all.done"),
+        done="hafpipe/all.done",
     params:
         # We are potentially dealing with tons of files, and cannot open all of them at the same
         # time, due to OS limitations, check `ulimit -n` for example. When this param is set to 0,
