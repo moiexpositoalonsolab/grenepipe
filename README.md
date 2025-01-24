@@ -24,7 +24,7 @@ Getting Started
 
 See [**--&gt; the Wiki pages &lt;--**](https://github.com/lczech/grenepipe/wiki) for setup and documentation.
 
-For **questions, bug reports, and feature requests**, please
+For **questions, bug reports, and feature requests**,
 [open an issue](https://github.com/lczech/grenepipe/issues).
 Please do not send emails with questions or requests, as others might be having them as well,
 and so it is better to discuss them where they can be found.
