@@ -80,7 +80,7 @@ set-resources:
   # Variant calling
   call_variants:
     runtime: 1440 # One day
-    cpus_per_task: 4
+    cpus_per_task: 2
 
   # For GATK HaplotypeCaller
   combine_calls:
