@@ -31,8 +31,8 @@ rule bowtie2_index:
 
 
 # Rule is not submitted as a job to the cluster.
-localrules:
-    bowtie2_index,
+# localrules:
+#     bowtie2_index,
 
 
 # =================================================================================================
