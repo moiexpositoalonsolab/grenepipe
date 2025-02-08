@@ -63,7 +63,7 @@ if config["settings"].get("contig-group-size"):
 
     rule sort_variants:
         input:
-            vcf="calling/called/merged-all.vcf.gz",
+            vcf="calling/merged/merged-all.vcf.gz",
             refdict=genome_dict(),
         output:
             vcf="calling/genotyped-all.vcf.gz",

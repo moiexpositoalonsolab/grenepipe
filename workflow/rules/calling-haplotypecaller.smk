@@ -137,11 +137,11 @@ rule combine_calls:
         ),
     output:
         gvcf=(
-            "calling/called/all.{contig}.g.vcf.gz"
+            "calling/combined/all.{contig}.g.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("calling/called/all.{contig}.g.vcf.gz")
+            else temp("calling/combined/all.{contig}.g.vcf.gz")
         ),
-        done=touch("calling/called/all.{contig}.g.done"),
+        done=touch("calling/combined/all.{contig}.g.done"),
     params:
         extra=config["params"]["gatk"]["CombineGVCFs-extra"]
         + (
@@ -172,7 +172,7 @@ rule genotype_variants:
             ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
         refdict=genome_dict(),
-        gvcf="calling/called/all.{contig}.g.vcf.gz",
+        gvcf="calling/combined/all.{contig}.g.vcf.gz",
     output:
         vcf=(
             "calling/genotyped/all.{contig}.vcf.gz"

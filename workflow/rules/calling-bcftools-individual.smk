@@ -91,10 +91,10 @@ rule combine_contig:
             sample=config["global"]["sample-names"],
         ),
     output:
-        gvcf="calling/called/all.{contig}.g.vcf.gz",
-        gtbi="calling/called/all.{contig}.g.vcf.gz.tbi",
-        gvcflist="calling/called/all.{contig}.g.txt",
-        done=touch("calling/called/all.{contig}.g.done"),
+        gvcf="calling/combined/all.{contig}.g.vcf.gz",
+        gtbi="calling/combined/all.{contig}.g.vcf.gz.tbi",
+        gvcflist="calling/combined/all.{contig}.g.txt",
+        done=touch("calling/combined/all.{contig}.g.done"),
     log:
         "logs/calling/bcftools/combine-contig-{contig}.log",
     benchmark:
@@ -128,7 +128,7 @@ rule combine_contig:
 # config file, this is the list of the group names.
 def combined_contig_gvcfs(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]
-    return expand("calling/called/all.{contig}.g.vcf.gz", contig=get_contigs(fai))
+    return expand("calling/combined/all.{contig}.g.vcf.gz", contig=get_contigs(fai))
 
 
 # We also need a comma-separated list of the contigs, so that bcftools can output
@@ -160,22 +160,22 @@ rule combine_all:
         # lst="calling/genotyped/all.txt",
         # done="calling/genotyped-all.done"
         vcf=(
-            temp("calling/called/merged-all.vcf.gz")
+            temp("calling/merged/merged-all.vcf.gz")
             if (config["settings"].get("contig-group-size"))
             else "calling/genotyped-all.vcf.gz"
         ),
         tbi=(
-            temp("calling/called/merged-all.vcf.gz.tbi")
+            temp("calling/merged/merged-all.vcf.gz.tbi")
             if (config["settings"].get("contig-group-size"))
             else "calling/genotyped-all.vcf.gz.tbi"
         ),
         lst=(
-            temp("calling/called/merged-all.txt")
+            temp("calling/merged/merged-all.txt")
             if (config["settings"].get("contig-group-size"))
             else "calling/genotyped-all.txt"
         ),
         done=(
-            touch("calling/called/merged-all.done")
+            touch("calling/merged/merged-all.done")
             if (config["settings"].get("contig-group-size"))
             else touch("calling/genotyped-all.done")
         ),

@@ -164,12 +164,12 @@ rule merge_variants:
         # Unfortunately, we cannot pipe here, as Picard fails with that, so temp file it is...
         # If we do not use small contigs, we directly output the final file.
         vcf=(
-            temp("calling/called/merged-all.vcf.gz")
+            temp("calling/merged/merged-all.vcf.gz")
             if (config["settings"].get("contig-group-size"))
             else "calling/genotyped-all.vcf.gz"
         ),
         done=(
-            touch("calling/called/merged-all.done")
+            touch("calling/merged/merged-all.done")
             if (config["settings"].get("contig-group-size"))
             else touch("calling/genotyped-all.done")
         ),
