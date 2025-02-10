@@ -10,6 +10,7 @@ rule select_calls:
     input:
         ref=config["data"]["reference-genome"],
         vcf="calling/genotyped-all.vcf.gz",
+        done="calling/genotyped-all.vcf.gz.done",
         refdict=genome_dict(),
         # bcftools does not automatically create vcf index files, so we need to specifically request them...
         # ... but the picard merge tool that we use right now does create tbi files, so all good atm.
@@ -20,7 +21,7 @@ rule select_calls:
             if config["settings"]["keep-intermediate"]["filtering"]
             else temp("calling/filtered/all.{vartype}.selected.vcf.gz")
         ),
-        done=touch("calling/filtered/all.{vartype}.selected.done"),
+        done=touch("calling/filtered/all.{vartype}.selected.vcf.gz.done"),
     params:
         extra="--select-type-to-include {vartype}",
     log:
@@ -92,10 +93,19 @@ rule merge_calls:
                 else "filtered"
             ),
         ),
+        done=expand(
+            "calling/filtered/all.{vartype}.{filtertype}.vcf.gz.done",
+            vartype=["SNP", "INDEL"],
+            filtertype=(
+                "recalibrated"
+                if config["settings"]["filter-variants"] == "gatk-vqsr"
+                else "filtered"
+            ),
+        ),
     output:
         vcf="calling/filtered-all.vcf.gz",
         # vcf=protected("calling/filtered-all.vcf.gz")
-        done=touch("calling/filtered/all.done"),
+        done=touch("calling/filtered-all.vcf.gz.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(

@@ -68,6 +68,11 @@ rule snpeff:
             if not config["settings"]["filter-variants"] == "none"
             else "calling/genotyped-all.vcf.gz"
         ),
+        done=(
+            "calling/filtered-all.vcf.gz.done"
+            if not config["settings"]["filter-variants"] == "none"
+            else "calling/genotyped-all.vcf.gz.done"
+        ),
         # path to reference db downloaded with the snpeff download wrapper above
         db=get_snpeff_db_path(),
     output:
@@ -77,6 +82,7 @@ rule snpeff:
         stats=report("annotation/snpeff.html", category="Calls"),
         # summary statistics in CSV, optional
         csvstats="annotation/snpeff.csv",
+        done=touch("annotation/snpeff.vcf.gz.done")
     log:
         "logs/annotation/snpeff.log",
     group:
@@ -191,6 +197,11 @@ rule vep:
             if not config["settings"]["filter-variants"] == "none"
             else "calling/genotyped-all.vcf.gz"
         ),
+        done=(
+            "calling/filtered-all.vcf.gz.done"
+            if not config["settings"]["filter-variants"] == "none"
+            else "calling/genotyped-all.vcf.gz.done"
+        ),
         cache=get_vep_cache_dir(),
         plugins=get_vep_plugins_dir(),
     output:
@@ -209,6 +220,7 @@ rule vep:
             caption="../report/stats.rst",
             category="Calls",
         ),
+        done=touch("annotation/vep.vcf.gz.done")
     params:
         # Pass a list of plugins to use,
         # see https://www.ensembl.org/info/docs/tools/vep/script/vep_plugins.html

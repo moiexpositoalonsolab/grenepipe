@@ -16,6 +16,7 @@ rule gatk_hard_filter_calls:
     input:
         ref=config["data"]["reference-genome"],
         vcf="calling/filtered/all.{vartype}.selected.vcf.gz",
+        don="calling/filtered/all.{vartype}.selected.vcf.gz.done",
         refdict=genome_dict(),
     output:
         vcf=(
@@ -23,7 +24,7 @@ rule gatk_hard_filter_calls:
             if config["settings"]["keep-intermediate"]["filtering"]
             else temp("calling/filtered/all.{vartype}.filtered.vcf.gz")
         ),
-        done=touch("calling/filtered/all.{vartype}.filtered.done"),
+        done=touch("calling/filtered/all.{vartype}.filtered.vcf.gz.done"),
     params:
         filters=get_filter,
         extra=config["params"]["gatk-variantfiltration"]["extra"],

@@ -640,7 +640,7 @@ params:
 
     # Extra parameters for MarkDuplicates.
     # See https://gatk.broadinstitute.org/hc/en-us/articles/360057439771-MarkDuplicates-Picard
-    MarkDuplicates: "REMOVE_DUPLICATES=true"
+    MarkDuplicates: "--REMOVE_DUPLICATES true"
 
     # Run several Picard QC tools, as needed, using Picard CollectMultipleMetrics.
     # See https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard
@@ -670,7 +670,7 @@ params:
     # or `-Djava.io.tmpdir=/path/to/tmp` to set a directory for temporary data, in case that the
     # system-provided tmp dir is too small (which can happen on clusters).
     # The last option, SortVcf-java-opts, is used by bcftools when using contig-group-size > 0.
-    MarkDuplicates-java-opts: "-Xmx10g"
+    MarkDuplicates-java-opts: ""
     CollectMultipleMetrics-java-opts: ""
     SortVcf-java-opts: ""
 

@@ -13,7 +13,7 @@ rule trim_reads_se:
             else temp("trimming/{sample}-{unit}.fastq.gz")
         ),
         settings="trimming/{sample}-{unit}.se.settings",
-        done=touch("trimming/{sample}-{unit}.se.done"),
+        done=touch("trimming/{sample}-{unit}.fastq.gz.done"),
     params:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["se"],
@@ -45,7 +45,8 @@ rule trim_reads_pe:
             else temp("trimming/{sample}-{unit}.pair2.fastq.gz")
         ),
         settings="trimming/{sample}-{unit}.pe.settings",
-        done=touch("trimming/{sample}-{unit}.pe.done"),
+        done1=touch("trimming/{sample}-{unit}.pair1.fastq.gz.done"),
+        done2=touch("trimming/{sample}-{unit}.pair2.fastq.gz.done"),
     params:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["pe"],
@@ -101,7 +102,7 @@ rule trim_reads_pe_merged:
             else temp("trimming/{sample}-{unit}.discarded.gz")
         ),
         settings="trimming/{sample}-{unit}.pe-merged.settings",
-        done=touch("trimming/{sample}-{unit}.pe-merged.done"),
+        done=touch("trimming/{sample}-{unit}.collapsed.gz.done"),
     params:
         extra="--gzip --collapse",
         params=config["params"]["adapterremoval"]["pe"],
@@ -145,6 +146,11 @@ def get_trimmed_reads(wildcards):
             sample=wildcards.sample,
             unit=wildcards.unit,
         )
+
+
+def get_trimmed_reads_done(wildcards):
+    files = get_trimmed_reads(wildcards)
+    return [f + ".done" for f in files]
 
 
 def get_trimming_report(sample, unit):

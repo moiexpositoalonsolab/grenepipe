@@ -8,6 +8,7 @@ import socket, platform
 import subprocess
 from datetime import datetime
 import logging
+from pathlib import Path
 
 from snakemake_interface_executor_plugins.settings import ExecMode
 

@@ -36,13 +36,14 @@ rule map_reads:
             config["data"]["reference-genome"] + ".{ext}",
             ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
+        reads_done=get_trimmed_reads_done,
     output:
         (
             "mapping/sai/{sample}-{unit}-{pair}.sai"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/sai/{sample}-{unit}-{pair}.sai")
         ),
-        touch("mapping/sai/{sample}-{unit}-{pair}.done"),
+        touch("mapping/sai/{sample}-{unit}-{pair}.sai.done"),
         # Absolutely no idea why the following does not work. Snakemake complains that the pipe
         # is not used at all, which is simply wrong, as it is clearly used by bwa_sai_to_bam,
         # and also why would this rule here be called if its output file was not requested at all?!
@@ -102,6 +103,8 @@ def get_sai(wildcards):
             pair=[1, 2],
         )
 
+def get_sai_done(wildcards):
+    return get_sai(wildcards) + ".done"
 
 def get_bwa_aln_extra(wildcards):
     # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
@@ -116,6 +119,7 @@ rule bwa_sai_to_bam:
     input:
         fastq=get_trimmed_reads,
         sai=get_sai,
+        done=get_sai_done
         ref=config["data"]["reference-genome"],
         # Somehow, the wrapper expects the index extensions to be given,
         # instead of the underlying fasta file... Well, so let's do that.
@@ -127,7 +131,7 @@ rule bwa_sai_to_bam:
         ),
     output:
         pipe("mapping/sorted/{sample}-{unit}-unclean.bam"),
-        touch("mapping/sorted/{sample}-{unit}-unclean.done"),
+        # touch("mapping/sorted/{sample}-{unit}-unclean.bam.done"),
     params:
         extra=get_bwa_aln_extra,
         # Sort as we need it.
@@ -167,7 +171,7 @@ rule bwa_bam_clean:
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/sorted/{sample}-{unit}.bam")
         ),
-        touch("mapping/sorted/{sample}-{unit}.done"),
+        touch("mapping/sorted/{sample}-{unit}.bam.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(

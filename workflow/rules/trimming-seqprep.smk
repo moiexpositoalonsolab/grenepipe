@@ -39,7 +39,9 @@ rule trim_reads_pe:
             if config["settings"]["keep-intermediate"]["trimming"]
             else temp("trimming/{sample}-{unit}.2.discarded.fastq.gz")
         ),
-        done=touch("trimming/{sample}-{unit}.done"),
+        donem=touch("trimming/{sample}-{unit}-merged.fastq.gz.done"),
+        done1=touch("trimming/{sample}-{unit}.1.fastq.gz.done"),
+        done2=touch("trimming/{sample}-{unit}.2.fastq.gz.done"),
     params:
         extra=config["params"]["seqprep"]["extra"],
     log:
@@ -78,10 +80,15 @@ def get_trimmed_reads(wildcards):
         # paired-end sample
         return expand(
             "trimming/{sample}-{unit}.{pair}.fastq.gz",
-            pair=[1, 2],
             sample=wildcards.sample,
             unit=wildcards.unit,
+            pair=[1, 2],
         )
+
+
+def get_trimmed_reads_done(wildcards):
+    files = get_trimmed_reads(wildcards)
+    return [f + ".done" for f in files]
 
 
 # MultiQC does not support SeqPrep. Empty output.

@@ -13,7 +13,7 @@ rule trim_reads_se:
             else temp("trimming/{sample}-{unit}.fastq.gz")
         ),
         qc="trimming/{sample}-{unit}.qc-se.txt",
-        done=touch("trimming/{sample}-{unit}.se.done"),
+        done=touch("trimming/{sample}-{unit}.fastq.gz.done"),
     params:
         adapters=config["params"]["cutadapt"]["se"]["adapters"],
         extra=config["params"]["cutadapt"]["se"]["extra"],
@@ -44,7 +44,8 @@ rule trim_reads_pe:
             else temp("trimming/{sample}-{unit}.2.fastq.gz")
         ),
         qc="trimming/{sample}-{unit}.qc-pe.txt",
-        done=touch("trimming/{sample}-{unit}.pe.done"),
+        done1=touch("trimming/{sample}-{unit}.1.fastq.gz.done"),
+        done2=touch("trimming/{sample}-{unit}.2.fastq.gz.done"),
     params:
         adapters=config["params"]["cutadapt"]["pe"]["adapters"],
         extra=config["params"]["cutadapt"]["pe"]["extra"],
@@ -81,10 +82,15 @@ def get_trimmed_reads(wildcards):
         # paired-end sample
         return expand(
             "trimming/{sample}-{unit}.{pair}.fastq.gz",
-            pair=[1, 2],
             sample=wildcards.sample,
             unit=wildcards.unit,
+            pair=[1, 2],
         )
+
+
+def get_trimmed_reads_done(wildcards):
+    files = get_trimmed_reads(wildcards)
+    return [f + ".done" for f in files]
 
 
 def get_trimming_report(sample, unit):

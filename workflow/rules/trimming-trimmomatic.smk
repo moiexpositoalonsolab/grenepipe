@@ -13,7 +13,7 @@ rule trim_reads_se:
             else temp("trimming/{sample}-{unit}.fastq.gz")
         ),
         # trimlog="trimming/{sample}-{unit}-se.trimlog.log"
-        touch("trimming/{sample}-{unit}-se.done"),
+        touch("trimming/{sample}-{unit}.fastq.gz.done"),
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         extra=config["params"]["trimmomatic"]["se"]["extra"],
@@ -55,7 +55,8 @@ rule trim_reads_pe:
             else temp("trimming/{sample}-{unit}.2.unpaired.fastq.gz")
         ),
         # trimlog="trimming/{sample}-{unit}-pe.trimlog.log"
-        done=touch("trimming/{sample}-{unit}-pe.done"),
+        done1=touch("trimming/{sample}-{unit}.1.fastq.gz.done"),
+        done2=touch("trimming/{sample}-{unit}.2.fastq.gz.done"),
     params:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         extra=config["params"]["trimmomatic"]["se"]["extra"],
@@ -97,6 +98,11 @@ def get_trimmed_reads(wildcards):
             sample=wildcards.sample,
             unit=wildcards.unit,
         )
+
+
+def get_trimmed_reads_done(wildcards):
+    files = get_trimmed_reads(wildcards)
+    return [f + ".done" for f in files]
 
 
 # MultiQC expects the normal stdout log files from trimmomatic, but as we use a wrapper for the latter,

@@ -17,6 +17,7 @@ rule bowtie2_index:
             config["data"]["reference-genome"] + ".{ext}",
             ext=["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2"],
         ),
+        done=touch(config["data"]["reference-genome"] + ".done")
     params:
         # Bowtie expects the prefix, and creates the above output files automatically.
         # So, let's do some snakemake magic to make this work.
@@ -28,11 +29,6 @@ rule bowtie2_index:
         os.path.dirname(config["data"]["reference-genome"]) + "/logs/bowtie2_index.log",
     shell:
         "bowtie2-build {input[0]} {params.basename} > {log} 2>&1"
-
-
-# Rule is not submitted as a job to the cluster.
-# localrules:
-#     bowtie2_index,
 
 
 # =================================================================================================
@@ -56,13 +52,14 @@ def get_bowtie2_extra(wildcards):
 rule map_reads:
     input:
         sample=get_trimmed_reads,
+        sample_done=get_trimmed_reads_done,
         indices=expand(
             config["data"]["reference-genome"] + ".{ext}",
-            ext=["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2"],
+            ext=["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2", "done"],
         ),
     output:
         pipe("mapping/mapped/{sample}-{unit}.bam"),
-        touch("mapping/mapped/{sample}-{unit}.done"),
+        # touch("mapping/mapped/{sample}-{unit}.bam.done"),
     params:
         # Prefix of reference genome index (built with bowtie2-build above)
         index=config["data"]["reference-genome"],
@@ -92,13 +89,14 @@ rule map_reads:
 rule sort_reads:
     input:
         "mapping/mapped/{sample}-{unit}.bam",
+        "mapping/mapped/{sample}-{unit}.bam.done",
     output:
         (
             "mapping/sorted/{sample}-{unit}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/sorted/{sample}-{unit}.bam")
         ),
-        touch("mapping/sorted/{sample}-{unit}.done"),
+        touch("mapping/sorted/{sample}-{unit}.bam.done"),
     params:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"],

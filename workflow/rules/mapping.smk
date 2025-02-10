@@ -128,6 +128,21 @@ def get_sorted_sample_bams(wildcards):
     return expand("mapping/sorted/{{sample}}-{unit}.bam", unit=get_sample_units(wildcards.sample))
 
 
+# Also need the done files, with wildcards, so wrap it!
+def get_sorted_sample_bams_done(wildcards):
+    bams = get_sorted_sample_bams(wildcards)
+    return [b + ".done" for b in bams]
+
+
+def get_all_sorted_sample_bams():
+    res = list()
+    for sample in config["global"]["sample-names"]:
+        for unit in get_sample_units(sample):
+            bam = f"mapping/sorted/{sample}-{unit}.bam"
+            res.append(bam)
+    return res
+
+
 # This is where all units are merged together.
 # We changed this behaviour. grenepipe v0.11.1 and before did _all_ the steps in this file
 # individually per unit. After that, we changed to merge here, and then run every subsequent
@@ -137,9 +152,14 @@ def get_sorted_sample_bams(wildcards):
 rule merge_sample_unit_bams:
     input:
         get_sorted_sample_bams,
+        # We cannot request the done files here, as the wrapper
+        # simply wants to use them as bam files for merging as well...
+        # So instead, in order to ensure they are requested somewhere,
+        # we do that instead below in the all_bams rule.
+        # get_sorted_sample_bams_done,
     output:
         "mapping/merged/{sample}.bam",
-        touch("mapping/merged/{sample}.done"),
+        touch("mapping/merged/{sample}.bam.done"),
     params:
         extra=config["params"]["samtools"]["merge"],
     threads: config["params"]["samtools"]["merge-threads"]
@@ -161,13 +181,14 @@ rule merge_sample_unit_bams:
 rule filter_mapped_reads:
     input:
         "mapping/merged/{sample}.bam",
+        "mapping/merged/{sample}.bam.done",
     output:
         (
             "mapping/filtered/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/filtered/{sample}.bam")
         ),
-        touch("mapping/filtered/{sample}.done"),
+        touch("mapping/filtered/{sample}.bam.done"),
     params:
         extra=config["params"]["samtools"]["view"] + " -b",
     log:
@@ -185,13 +206,16 @@ rule clip_read_overlaps:
         "mapping/filtered/{sample}.bam"
         if (config["settings"]["filter-mapped-reads"])
         else ("mapping/merged/{sample}.bam"),
+        "mapping/filtered/{sample}.bam.done"
+        if (config["settings"]["filter-mapped-reads"])
+        else ("mapping/merged/{sample}.bam.done"),
     output:
         (
             "mapping/clipped/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/clipped/{sample}.bam")
         ),
-        touch("mapping/clipped/{sample}.done"),
+        touch("mapping/clipped/{sample}.bam.done"),
     params:
         extra=config["params"]["bamutil"]["extra"],
     log:
@@ -221,6 +245,12 @@ def get_mapped_reads(wildcards):
         result = "mapping/clipped/{sample}.bam".format(**wildcards)
 
     return result
+
+
+# Need an extra function for this, as this is called with wildcards in the rule,
+# so we cannot provide it with extra arguments there, and hence have to do this here.
+def get_mapped_reads_done(wildcards):
+    return get_mapped_reads(wildcards) + ".done"
 
 
 # We need to get a bit dirty here, as dedup names output files based on input file names,
@@ -291,15 +321,37 @@ if config["settings"]["recalibrate-base-qualities"]:
 
 
 # =================================================================================================
-#     Final Mapping Result
+#     External Mapping
 # =================================================================================================
 
 
 # Helper function for the case that a `mappings-table` is provided, in which case we do not run
-# any mapping ourselves, and skipp all of the above. Instead, we then simply want to use the
+# any mapping ourselves, and skip all of the above. Instead, we then simply want to use the
 # sample bam file from the table here.
+# However, in our current setup, we require "done" files to trick snakemake into working properly.
+# These might not exist when running with bam files from the outside, so we touch them here.
 def get_bam_from_mappings_table(sample):
-    return config["global"]["samples"].loc[sample, ["bam"]].dropna()
+    assert "mappings-table" in config["data"] and config["data"]["mappings-table"]
+    bams = config["global"]["samples"].loc[sample, ["bam"]].dropna()
+
+    # Check if we have touched the bam done files already
+    if not hasattr(get_bam_from_mappings_table, "done"):
+        get_bam_from_mappings_table.done = False
+
+    # If not, touch all files, then set the internal flag
+    # so that we do not do this every time this function is called.
+    if not get_bam_from_mappings_table.done:
+        for f in bams:
+            Path(f + ".done").touch()
+    get_bam_from_mappings_table.done = True
+
+    # Now we can return the bam file list to the caller.
+    return bams
+
+
+# =================================================================================================
+#     Final Mapping Result
+# =================================================================================================
 
 
 # At this point, we have several choices of which files we want to hand down to the next
@@ -310,7 +362,7 @@ def get_bam_from_mappings_table(sample):
 # (see above), what we get here is the file name of the last step that we want to apply.
 
 
-def get_mapping_result(sample, bai=False):
+def get_mapping_result(sample, ext=""):
     # Special case: we are using the mappings table of bam files,
     # instead of any of the ones produced with the rules here.
     if "mappings-table" in config["data"] and config["data"]["mappings-table"]:
@@ -339,10 +391,8 @@ def get_mapping_result(sample, bai=False):
         if config["settings"]["recalibrate-base-qualities"]:
             f = "mapping/recal/{sample}.bam".format(sample=sample)
 
-    # Additionally, this function is run for getting bai files as well
-    if bai:
-        f += ".bai"
-
+    # Additionally, this function is run for getting bai/done files as well
+    f += ext
     return f
 
 
@@ -357,7 +407,12 @@ def get_sample_bams(sample):
 
 # Return the bai file(s) for a given sample
 def get_sample_bais(sample):
-    return get_mapping_result(sample, True)
+    return get_mapping_result(sample, ".bai")
+
+
+# Need the done file as well
+def get_sample_bams_done(sample):
+    return get_mapping_result(sample, ".done")
 
 
 # Return the bam file(s) for a sample, given a wildcard param from a rule.
@@ -368,6 +423,11 @@ def get_sample_bams_wildcards(wildcards):
 # Return the bai file(s) for a sample, given a wildcard param from a rule.
 def get_sample_bais_wildcards(wildcards):
     return get_sample_bais(wildcards.sample)
+
+
+# Need the done file as well
+def get_sample_bams_wildcards_done(wildcards):
+    return get_sample_bams_done(wildcards.sample)
 
 
 # Return the bam file(s) for all samples
@@ -383,7 +443,15 @@ def get_all_bams():
 def get_all_bais():
     res = list()
     for sample in config["global"]["sample-names"]:
-        res.append(get_mapping_result(sample, True))
+        res.append(get_mapping_result(sample, ".bai"))
+    return res
+
+
+# We also need a list of all the "done" files to trick snakmake into working properly.
+def get_all_bams_done():
+    res = list()
+    for sample in config["global"]["sample-names"]:
+        res.append(get_mapping_result(sample, ".done"))
     return res
 
 
@@ -405,7 +473,9 @@ def get_all_bais():
 
 rule all_bams:
     input:
+        merged=get_all_sorted_sample_bams(),
         bams=get_all_bams(),
+        done=get_all_bams_done(),
         qc="qc/multiqc.html",
     output:
         bams=expand("mapping/final/{sample}.bam", sample=config["global"]["sample-names"]),

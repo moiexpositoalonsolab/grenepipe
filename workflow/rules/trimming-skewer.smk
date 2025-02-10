@@ -14,7 +14,7 @@ rule trim_reads_se:
             else temp("trimming/{sample}-{unit}-se-trimmed.fastq.gz")
         ),
         "trimming/{sample}-{unit}-se-trimmed.log",
-        touch("trimming/{sample}-{unit}-se.done"),
+        touch("trimming/{sample}-{unit}-se-trimmed.fastq.gz.done"),
     params:
         extra="--format sanger --compress",
         params=config["params"]["skewer"]["se"],
@@ -47,7 +47,8 @@ rule trim_reads_pe:
             else temp("trimming/{sample}-{unit}-pe-trimmed-pair2.fastq.gz")
         ),
         log="trimming/{sample}-{unit}-pe-trimmed.log",
-        done=touch("trimming/{sample}-{unit}-pe.done"),
+        done1=touch("trimming/{sample}-{unit}-pe-trimmed-pair1.fastq.gz.done"),
+        done2=touch("trimming/{sample}-{unit}-pe-trimmed-pair2.fastq.gz.done"),
     params:
         extra="--format sanger --compress",
         params=config["params"]["skewer"]["pe"],
@@ -91,6 +92,12 @@ def get_trimmed_reads(wildcards):
             sample=wildcards.sample,
             unit=wildcards.unit,
         )
+
+
+def get_trimmed_reads_done(wildcards):
+    files = get_trimmed_reads(wildcards)
+    return [f + ".done" for f in files]
+
 
 
 def get_trimming_report(sample, unit):

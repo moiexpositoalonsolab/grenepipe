@@ -72,6 +72,11 @@ rule frequency_table:
             if not config["settings"]["filter-variants"] == "none"
             else "calling/genotyped-all.vcf.gz"
         ),
+        done=(
+            "calling/filtered-all.vcf.gz.done"
+            if not config["settings"]["filter-variants"] == "none"
+            else "calling/genotyped-all.vcf.gz.done"
+        ),
     output:
         "tables/frequencies.tsv",
     params:

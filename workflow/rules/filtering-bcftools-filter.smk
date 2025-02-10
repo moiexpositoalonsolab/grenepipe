@@ -11,13 +11,14 @@ def get_filter(wildcards):
 rule bcftools_filter_calls:
     input:
         vcf="calling/filtered/all.{vartype}.selected.vcf.gz",
+        don="calling/filtered/all.{vartype}.selected.vcf.gz.done",
     output:
         vcf=(
             "calling/filtered/all.{vartype}.filtered.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
             else temp("calling/filtered/all.{vartype}.filtered.vcf.gz")
         ),
-        done=touch("calling/filtered/all.{vartype}.filtered.done"),
+        done=touch("calling/filtered/all.{vartype}.filtered.vcf.gz.done"),
     params:
         tool=config["params"]["bcftools-filter"]["tool"],
         filters=get_filter,

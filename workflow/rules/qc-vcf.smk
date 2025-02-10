@@ -11,6 +11,11 @@ rule bcftools_stats:
             if not config["settings"]["filter-variants"] == "none"
             else "calling/genotyped-all.vcf.gz"
         ),
+        done=(
+            "calling/filtered-all.vcf.gz.done"
+            if not config["settings"]["filter-variants"] == "none"
+            else "calling/genotyped-all.vcf.gz.done"
+        ),
     output:
         "qc/bcftools-stats/stats.vchk",
     log:

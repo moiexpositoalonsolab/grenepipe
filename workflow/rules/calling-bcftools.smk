@@ -64,10 +64,11 @@ if config["settings"].get("contig-group-size"):
     rule sort_variants:
         input:
             vcf="calling/merged/merged-all.vcf.gz",
+            done="calling/merged/merged-all.vcf.gz.done",
             refdict=genome_dict(),
         output:
             vcf="calling/genotyped-all.vcf.gz",
-            done=touch("calling/genotyped-all.done"),
+            done=touch("calling/genotyped-all.vcf.gz.done"),
         params:
             # See duplicates-picard.smk for the reason whe need this on MacOS.
             extra=(

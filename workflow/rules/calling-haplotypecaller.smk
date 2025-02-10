@@ -25,6 +25,7 @@ rule call_variants:
         # Get the sample data.
         bam=get_sample_bams_wildcards,
         bai=get_sample_bais_wildcards,
+        done=get_sample_bams_wildcards_done,
         # Get the reference genome, as well as its indices.
         ref=config["data"]["reference-genome"],
         refidcs=expand(
@@ -60,7 +61,7 @@ rule call_variants:
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("calling/called/{sample}.{contig}.g.vcf.gz.tbi")
         ),
-        done=touch("calling/called/{sample}.{contig}.g.done"),
+        done=touch("calling/called/{sample}.{contig}.g.vcf.gz.done"),
     log:
         "logs/calling/gatk-haplotypecaller/{sample}.{contig}.log",
     benchmark:
@@ -135,13 +136,17 @@ rule combine_calls:
             "calling/called/{sample}.{{contig}}.g.vcf.gz.tbi",
             sample=config["global"]["sample-names"],
         ),
+        done=expand(
+            "calling/called/{sample}.{{contig}}.g.vcf.gz.done",
+            sample=config["global"]["sample-names"],
+        ),
     output:
         gvcf=(
             "calling/combined/all.{contig}.g.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("calling/combined/all.{contig}.g.vcf.gz")
         ),
-        done=touch("calling/combined/all.{contig}.g.done"),
+        done=touch("calling/combined/all.{contig}.g.vcf.gz.done"),
     params:
         extra=config["params"]["gatk"]["CombineGVCFs-extra"]
         + (
@@ -173,13 +178,14 @@ rule genotype_variants:
         ),
         refdict=genome_dict(),
         gvcf="calling/combined/all.{contig}.g.vcf.gz",
+        done="calling/combined/all.{contig}.g.vcf.gz.done",
     output:
         vcf=(
             "calling/genotyped/all.{contig}.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
             else temp("calling/genotyped/all.{contig}.vcf.gz")
         ),
-        done=touch("calling/genotyped/all.{contig}.done"),
+        done=touch("calling/genotyped/all.{contig}.vcf.gz.done"),
     params:
         extra=config["params"]["gatk"]["GenotypeGVCFs-extra"]
         + (
@@ -211,6 +217,12 @@ def merge_variants_vcfs_input(wildcards):
     return expand("calling/genotyped/all.{contig}.vcf.gz", contig=get_contigs(fai))
 
 
+# Also need to trick snakemake into completing all files...
+def merge_variants_vcfs_input_done(wildcards):
+    fai = checkpoints.samtools_faidx.get().output[0]
+    return expand("calling/genotyped/all.{contig}.vcf.gz.done", contig=get_contigs(fai))
+
+
 rule merge_variants:
     input:
         # fai is needed to calculate aggregation over contigs below.
@@ -221,9 +233,10 @@ rule merge_variants:
         contig_groups=contigs_groups_input,
         # vcfs=lambda w: expand("calling/genotyped/all.{contig}.vcf.gz", contig=get_contigs())
         vcfs=merge_variants_vcfs_input,
+        done=merge_variants_vcfs_input_done,
     output:
         vcf="calling/genotyped-all.vcf.gz",
-        done=touch("calling/genotyped-all.done"),
+        done=touch("calling/genotyped-all.vcf.gz.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(

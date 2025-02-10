@@ -76,6 +76,7 @@ rule gatk_variant_recalibrator:
         **get_variant_recalibrator_resource_files(),
         ref=config["data"]["reference-genome"],
         vcf="calling/filtered/all.{vartype}.selected.vcf.gz",
+        done="calling/filtered/all.{vartype}.selected.vcf.gz.done",
         refdict=genome_dict(),
         # Resources have to be given as named input files, we unpack the dict to get them.
         # We also request the tbi index files, so that users get a nice error message if missing.
@@ -88,7 +89,7 @@ rule gatk_variant_recalibrator:
         # We also might produce a plot PDF about the trances - but only for the SNPs,
         # not for the INDELs, so we do not specify it here for simplicity...
         # The avid user will find it in the `filtered` directory either way.
-        done=touch("calling/filtered/all.{vartype}.vqsr-recal.done"),
+        done=touch("calling/filtered/all.{vartype}.vqsr-recal.vcf.gz.done"),
     params:
         # set mode, must be either SNP, INDEL or BOTH
         mode="{vartype}",
@@ -127,15 +128,17 @@ rule gatk_apply_vqsr:
         ref=config["data"]["reference-genome"],
         refdict=genome_dict(),
         vcf="calling/filtered/all.{vartype}.selected.vcf.gz",
+        vcf_done="calling/filtered/all.{vartype}.selected.vcf.gz.done",
         recal="calling/filtered/all.{vartype}.vqsr-recal.vcf.gz",
         tranches="calling/filtered/all.{vartype}.vqsr-recal.tranches",
+        recal_done="calling/filtered/all.{vartype}.vqsr-recal.vcf.gz.done",
     output:
         vcf=(
             "calling/filtered/all.{vartype}.recalibrated.vcf.gz"
             if config["settings"]["keep-intermediate"]["filtering"]
             else temp("calling/filtered/all.{vartype}.recalibrated.vcf.gz")
         ),
-        done=touch("calling/filtered/all.{vartype}.recalibrated.done"),
+        done=touch("calling/filtered/all.{vartype}.recalibrated.vcf.gz.done"),
     log:
         "logs/calling/gatk-applyvqsr/{vartype}.log",
     benchmark:

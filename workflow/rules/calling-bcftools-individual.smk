@@ -14,6 +14,7 @@ rule call_variants:
         # Get the sample data.
         samples=get_sample_bams_wildcards,
         indices=get_sample_bais_wildcards,
+        done=get_sample_bams_wildcards_done,
         # If we use restricted regions, set them here. If not, empty, which will propagate to the
         # get_mpileup_params function as well. Same for small contig groups.
         # regions="calling/regions/{contig}.bed" if config["settings"].get("restrict-regions") else []
@@ -33,7 +34,7 @@ rule call_variants:
             else temp("calling/called/{sample}.{contig}.g.vcf.gz")
         ),
         gtbi="calling/called/{sample}.{contig}.g.vcf.gz.tbi",
-        done=touch("calling/called/{sample}.{contig}.g.done"),
+        done=touch("calling/called/{sample}.{contig}.g.vcf.gz.done"),
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
         mpileup=get_mpileup_params,
@@ -54,8 +55,6 @@ rule call_variants:
         "("
         "bcftools mpileup "
         "    {params.mpileup} --fasta-ref {input.ref} --output-type u {input.samples} "
-
-
         "    -a 'INFO/AD' -a 'FORMAT/AD' -a 'FORMAT/DP' --gvcf 0 | "
         "bcftools call "
         "    --threads {threads} {params.call} --gvcf 0 --output-type u | "
@@ -90,11 +89,15 @@ rule combine_contig:
             "calling/called/{sample}.{{contig}}.g.vcf.gz.tbi",
             sample=config["global"]["sample-names"],
         ),
+        done=expand(
+            "calling/called/{sample}.{{contig}}.g.vcf.gz.done",
+            sample=config["global"]["sample-names"],
+        ),
     output:
         gvcf="calling/combined/all.{contig}.g.vcf.gz",
         gtbi="calling/combined/all.{contig}.g.vcf.gz.tbi",
         gvcflist="calling/combined/all.{contig}.g.txt",
-        done=touch("calling/combined/all.{contig}.g.done"),
+        done=touch("calling/combined/all.{contig}.g.vcf.gz.done"),
     log:
         "logs/calling/bcftools/combine-contig-{contig}.log",
     benchmark:
@@ -131,6 +134,12 @@ def combined_contig_gvcfs(wildcards):
     return expand("calling/combined/all.{contig}.g.vcf.gz", contig=get_contigs(fai))
 
 
+# Also need the done files to make sure snakemake doesn't mess this up.
+def combined_contig_done(wildcards):
+    fai = checkpoints.samtools_faidx.get().output[0]
+    return expand("calling/called/all.{contig}.g.vcf.gz.done", contig=get_contigs(fai))
+
+
 # We also need a comma-separated list of the contigs, so that bcftools can output
 # the concatenated entries in the correct order as given in the fai.
 # For this, we use the same technique of using the fai checkpoint as before.
@@ -154,6 +163,7 @@ rule combine_all:
         ref=get_fai,
         contig_groups=contigs_groups_input,
         gvcfs=combined_contig_gvcfs,
+        dones=combined_contig_done,
     output:
         # vcf="calling/genotyped-all.vcf.gz",
         # tbi="calling/genotyped/all.vcf.gz.tbi",
@@ -175,9 +185,9 @@ rule combine_all:
             else "calling/genotyped-all.txt"
         ),
         done=(
-            touch("calling/merged/merged-all.done")
+            touch("calling/merged/merged-all.vcf.gz.done")
             if (config["settings"].get("contig-group-size"))
-            else touch("calling/genotyped-all.done")
+            else touch("calling/genotyped-all.vcf.gz.done")
         ),
     params:
         # Use a list of the chromosomes in the same order as the fai, for bcftools to sort the output.

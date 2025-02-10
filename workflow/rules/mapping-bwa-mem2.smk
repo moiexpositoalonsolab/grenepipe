@@ -16,6 +16,7 @@ def get_bwa_mem2_extra(wildcards):
 rule map_reads:
     input:
         reads=get_trimmed_reads,
+        reads_done=get_trimmed_reads_done,
         ref=config["data"]["reference-genome"],
         # Somehow, the wrapper expects the index extensions to be given,
         # instead of the underlying fasta file... Well, so let's do that.
@@ -31,7 +32,7 @@ rule map_reads:
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/sorted/{sample}-{unit}.bam")
         ),
-        touch("mapping/sorted/{sample}-{unit}.done"),
+        touch("mapping/sorted/{sample}-{unit}.bam.done"),
     params:
         extra=get_bwa_mem2_extra,
         # Sort as we need it.

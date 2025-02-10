@@ -16,7 +16,7 @@ dependencies:
   - numpy  ==2.0.0
 
   # Tools
-  - picard ==3.2.0
+  - picard ==3.3.0
 
   # Need tidyverse because of issue #9
   # We are now using the version that gets installed when specifying no version,

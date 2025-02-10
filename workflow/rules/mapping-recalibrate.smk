@@ -41,7 +41,7 @@ if config["settings"]["recalibrate-base-qualities"]:
         )
 
 
-def get_recal_input(bai=False):
+def get_recal_input(ext=""):
     # case 1: no duplicate removal
     f = "mapping/merged/{sample}.bam"
 
@@ -57,7 +57,7 @@ def get_recal_input(bai=False):
     if config["settings"]["remove-duplicates"]:
         f = "mapping/dedup/{sample}.bam"
 
-    if bai:
+    if ext == ".bai":
         if config["settings"].get("restrict-regions"):
             # case 5: need an index because random access is required
             f += ".bai"
@@ -66,13 +66,14 @@ def get_recal_input(bai=False):
             # case 6: no index needed
             return []
     else:
-        return f
+        return f + ext
 
 
 rule recalibrate_base_qualities:
     input:
         bam=get_recal_input(),
-        bai=get_recal_input(bai=True),
+        bai=get_recal_input(ext=".bai"),
+        done=get_recal_input(ext=".done"),
         ref=config["data"]["reference-genome"],
         refidcs=expand(
             config["data"]["reference-genome"] + ".{ext}",
@@ -86,7 +87,7 @@ rule recalibrate_base_qualities:
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/recal/{sample}.bam")
         ),
-        done=touch("mapping/recal/{sample}.done"),
+        done=touch("mapping/recal/{sample}.bam.done"),
         # bam=protected("mapping/recal/{sample}.bam")
     params:
         extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"],

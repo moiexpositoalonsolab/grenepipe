@@ -8,7 +8,7 @@ rule mpileup_merge_all:
         get_all_bams(),
     output:
         pipe("mpileup/all.merged.bam"),
-        touch("mpileup/all.merged.done"),
+        # touch("mpileup/all.merged.done"),
     params:
         # Need file overwrite flag, see above.
         extra=config["params"]["samtools"]["merge"] + " -f",

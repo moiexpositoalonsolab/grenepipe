@@ -38,6 +38,7 @@ rule call_variants:
         # Without bai files, freebayes claims that it recomputes them, but actually crashes...
         samples=get_all_bams(),
         indices=get_all_bais(),
+        dones=get_all_bams_done(),
         # If known variants are set, use this as input to ensure the file exists.
         # We use the file via the know_variants_extra() function call below,
         # but request it here as well to ensure that it and its index are present.
@@ -58,7 +59,7 @@ rule call_variants:
         ),
     output:
         pipe("calling/called/{contig}.vcf"),
-        touch("calling/called/{contig}.vcf.done"),
+        # touch("calling/called/{contig}.vcf.done"),
     log:
         "logs/calling/freebayes/{contig}.log",
     benchmark:
@@ -117,6 +118,12 @@ def merge_variants_vcfs_input(wildcards):
     return expand("calling/called/{contig}.vcf.gz", contig=get_contigs(fai))
 
 
+# Need to work around snakemake issues by requiring the done files
+def merge_variants_vcfs_input_done(wildcards):
+    fai = checkpoints.samtools_faidx.get().output[0]
+    return expand("calling/called/{contig}.vcf.gz.done", contig=get_contigs(fai))
+
+
 rule merge_variants:
     input:
         # fai is needed to calculate aggregation over contigs below.
@@ -128,9 +135,10 @@ rule merge_variants:
         # The wrapper expects input to be called `vcfs`, but we can use `vcf.gz` as well.
         # vcfs=lambda w: expand("calling/called/{contig}.vcf.gz", contig=get_contigs())
         vcfs=merge_variants_vcfs_input,
+        done=merge_variants_vcfs_input_done,
     output:
         vcf="calling/genotyped-all.vcf.gz",
-        done=touch("calling/genotyped-all.done"),
+        done=touch("calling/genotyped-all.vcf.gz.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(

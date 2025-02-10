@@ -28,6 +28,7 @@ rule mark_duplicates:
         # or the clipped ones, if those were requested.
         # We always use the merged units per sample here.
         get_mapped_reads,
+        get_mapped_reads_done,
     output:
         bam=temp("mapping/dedup/{sample}_rmdup.bam"),
         metrics="mapping/dedup/{sample}.dedup.json",
@@ -46,7 +47,7 @@ rule mark_duplicates:
     shell:
         # Dedup bases its output names on this, so we need some more trickery to make it
         # output the file names that we want.
-        "dedup -i {input} -o {params.out_dir} {params.extra} > {log} 2>&1 ; "
+        "dedup -i {input[0]} -o {params.out_dir} {params.extra} > {log} 2>&1 ; "
         # "mv"
         # "    dedup/{wildcards.sample}." + get_mapped_read_infix() + "_rmdup.bam"
         # "    dedup/{wildcards.sample}_rmdup.bam ; "
@@ -58,13 +59,14 @@ rule mark_duplicates:
 rule sort_reads_dedup:
     input:
         "mapping/dedup/{sample}_rmdup.bam",
+        "mapping/dedup/{sample}.dedup.done",
     output:
         (
             "mapping/dedup/{sample}.bam"
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/dedup/{sample}.bam")
         ),
-        touch("mapping/dedup/{sample}.done"),
+        touch("mapping/dedup/{sample}.bam.done"),
     params:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"],

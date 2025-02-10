@@ -245,6 +245,7 @@ if impmethod in ["simpute", "npute"]:
     rule hafpipe_impute_snp_table:
         input:
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
+            done=get_hafpipe_snp_table_dir() + "/{chrom}.done",
             bins=get_hafpipe_bins(),
         output:
             csv=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
@@ -276,6 +277,7 @@ elif impmethod != "":
     rule hafpipe_impute_snp_table:
         input:
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
+            done=get_hafpipe_snp_table_dir() + "/{chrom}.done",
         output:
             csv=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
             done=touch(get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done"),
@@ -316,6 +318,7 @@ if impmethod == "":
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
             alleleCts=get_hafpipe_snp_table_dir() + "/{chrom}.csv.alleleCts",
             numeric=get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz",
+            done=get_hafpipe_snp_table_dir() + "/{chrom}.done",
         output:
             flag=get_hafpipe_snp_table_dir() + "/{chrom}.csv.flag",
         shell:
@@ -331,6 +334,7 @@ else:
     rule hafpipe_snp_table_indices:
         input:
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
+            done=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done",
             bins=get_hafpipe_bins(),  # require that HAF-pipe scripts are there
         output:
             alleleCts=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".alleleCts",
@@ -399,6 +403,7 @@ rule hafpipe_sample_bams:
     input:
         bam=get_sample_bams_wildcards,  # provided in mapping.smk
         bai=get_sample_bais_wildcards,  # provided in mapping.smk
+        done=get_sample_bams_wildcards_done,
     output:
         bam="hafpipe/bam/{sample}.bam",
         bai="hafpipe/bam/{sample}.bam.bai",
@@ -466,6 +471,7 @@ rule hafpipe_allele_frequencies:
         snptable=get_hafpipe_snp_table,  # provided above
         flag=get_hafpipe_snp_table_flag,
         freqs="hafpipe/frequencies/{sample}.bam.{chrom}.freqs",  # from Task 3 above
+        dones="hafpipe/frequencies/{sample}.bam.{chrom}.freqs.done",
         bins=get_hafpipe_bins(),
     output:
         # Same as above: just expect the file name as produced by HAFpipe.
@@ -500,9 +506,10 @@ def collect_sample_hafpipe_allele_frequencies(wildcards):
     # Snakemake then needs an input function to work with the fai checkpoint here.
     fai = checkpoints.samtools_faidx.get().output[0]
     return expand(
-        "hafpipe/frequencies/{sample}.bam.{chrom}.afSite",
+        "hafpipe/frequencies/{sample}.bam.{chrom}.afSite{ext}",
         sample=wildcards.sample,
         chrom=get_hafpipe_chromosomes(fai),
+        ext=["", ".done"],
     )
 
 
@@ -536,6 +543,7 @@ rule hafpipe_collect_concat_samples:
             + (".gz" if config["params"]["hafpipe"].get("compress-sample-tables", False) else ""),
             sample=config["global"]["sample-names"],
         ),
+        done="hafpipe/samples/{sample}.done",
     output:
         done=touch("hafpipe/samples.done"),
 
@@ -557,9 +565,10 @@ def collect_all_hafpipe_allele_frequencies(wildcards):
     # Snakemake then needs an input function to work with the fai checkpoint here.
     fai = checkpoints.samtools_faidx.get().output[0]
     return expand(
-        "hafpipe/frequencies/{sample}.bam.{chrom}.afSite",
+        "hafpipe/frequencies/{sample}.bam.{chrom}.afSite{ext}",
         sample=config["global"]["sample-names"],
         chrom=get_hafpipe_chromosomes(fai),
+        ext=["", ".done"],
     )
 
 
@@ -627,8 +636,11 @@ localrules:
 rule all_hafpipe:
     input:
         "hafpipe/afSite.done",
+        [
         "hafpipe/all.csv"
-        + (".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else "")
+        + (".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""),
+        "hafpipe/all.done"
+        ]
         if config["params"]["hafpipe"].get("make-merged-table", False)
         else [],
         "hafpipe/samples.done"

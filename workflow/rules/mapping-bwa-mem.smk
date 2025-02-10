@@ -16,6 +16,7 @@ def get_bwa_mem_extra(wildcards):
 rule map_reads:
     input:
         reads=get_trimmed_reads,
+        reads_done=get_trimmed_reads_done,
         ref=config["data"]["reference-genome"],
         idx=expand(
             config["data"]["reference-genome"] + ".{ext}",
@@ -27,7 +28,7 @@ rule map_reads:
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/sorted/{sample}-{unit}.bam")
         ),
-        touch("mapping/sorted/{sample}-{unit}.done"),
+        touch("mapping/sorted/{sample}-{unit}.bam.done"),
     params:
         index=config["data"]["reference-genome"],
         extra=get_bwa_mem_extra,

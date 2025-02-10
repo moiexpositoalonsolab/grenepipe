@@ -15,6 +15,7 @@ rule call_variants:
         # similar to what our GATK HaplotypeCaller rule does.
         samples=get_all_bams(),
         indices=get_all_bais(),
+        done=get_all_bams_done(),
         # If we use restricted regions, set them here. If not, empty, which will propagate to the
         # get_mpileup_params function as well. Same for small contig groups.
         # regions="calling/regions/{contig}.bed" if config["settings"].get("restrict-regions") else []
@@ -34,7 +35,7 @@ rule call_variants:
             else temp("calling/called/{contig}.vcf.gz")
         ),
         # vcf=protected("calling/called/{contig}.vcf.gz")
-        done=touch("calling/called/{contig}.done"),
+        done=touch("calling/called/{contig}.vcf.gz.done"),
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
         mpileup=get_mpileup_params,
@@ -86,8 +87,17 @@ def merge_variants_vcfs_input(wildcards):
 # Need index files for some of the downstream tools.
 # Rational for the fai: see merge_variants_vcfs_input()
 def merge_variants_tbis_input(wildcards):
-    fai = checkpoints.samtools_faidx.get().output[0]
-    return expand("calling/called/{contig}.vcf.gz.tbi", contig=get_contigs(fai))
+    files = merge_variants_vcfs_input(wildcards)
+    return [f + ".tbi" for f in files]
+    # fai = checkpoints.samtools_faidx.get().output[0]
+    # return expand("calling/called/{contig}.vcf.gz.tbi", contig=get_contigs(fai))
+
+
+# Lastly, we want to make sure that all inputs are actually done,
+# as snakemake can mess this up still with slurm etc... :-(
+def merge_variants_done_input(wildcards):
+    files = merge_variants_vcfs_input(wildcards)
+    return [f + ".done" for f in files]
 
 
 # bcftools does not automatically create vcf index files, so we need a rule for that...
@@ -159,6 +169,7 @@ rule merge_variants:
         contig_groups=contigs_groups_input,
         vcfs=merge_variants_vcfs_input,
         tbis=merge_variants_tbis_input,
+        done=merge_variants_done_input,
     output:
         # With small contigs, we also need sorting, see below.
         # Unfortunately, we cannot pipe here, as Picard fails with that, so temp file it is...
@@ -169,9 +180,9 @@ rule merge_variants:
             else "calling/genotyped-all.vcf.gz"
         ),
         done=(
-            touch("calling/merged/merged-all.done")
+            touch("calling/merged/merged-all.vcf.gz.done")
             if (config["settings"].get("contig-group-size"))
-            else touch("calling/genotyped-all.done")
+            else touch("calling/genotyped-all.vcf.gz.done")
         ),
     log:
         "logs/calling/vcflib/merge-genotyped.log",

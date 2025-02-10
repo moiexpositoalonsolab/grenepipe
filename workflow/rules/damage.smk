@@ -10,6 +10,7 @@ rule mapdamage:
         # Get either the normal mapping output, or, if additional filtering via `samtools view`
         # is set in the config settings: filter-mapped-reads, use the filtered output instead.
         get_mapped_reads,
+        get_mapped_reads_done,
         # "mapping/sorted/{sample}-{unit}.bam"
         # Get the reference genome and its indices. Not sure if the indices are needed
         # for this particular rule, but doesn't hurt to include them as an input anyway.
@@ -60,6 +61,7 @@ rule damageprofiler:
         # Get either the normal mapping output, or, if additional filtering via `samtools view`
         # is set in the config settings: filter-mapped-reads, use the filtered output instead.
         get_mapped_reads,
+        get_mapped_reads_done,
         # "mapping/sorted/{sample}-{unit}.bam"
         # Get the reference genome and its indices. Not sure if the indices are needed
         # for this particular rule, but doesn't hurt to include them as an input anyway.

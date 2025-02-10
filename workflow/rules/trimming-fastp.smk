@@ -21,7 +21,7 @@ rule trim_reads_se:
         ),
         html="trimming/{sample}-{unit}-se-fastp.html",
         json="trimming/{sample}-{unit}-se-fastp.json",
-        done=touch("trimming/{sample}-{unit}-se.done"),
+        done=touch("trimming/{sample}-{unit}.fastq.gz.done"),
     log:
         "logs/trimming/fastp/{sample}-{unit}.log",
     benchmark:
@@ -46,7 +46,8 @@ rule trim_reads_pe:
         ),
         html="trimming/{sample}-{unit}-pe-fastp.html",
         json="trimming/{sample}-{unit}-pe-fastp.json",
-        done=touch("trimming/{sample}-{unit}-pe.done"),
+        done1=touch("trimming/{sample}-{unit}.1.fastq.gz.done"),
+        done2=touch("trimming/{sample}-{unit}.2.fastq.gz.done"),
     log:
         "logs/trimming/fastp/{sample}-{unit}.log",
     benchmark:
@@ -71,7 +72,7 @@ rule trim_reads_pe_merged:
         ),
         html="trimming/{sample}-{unit}-pe-merged-fastp.html",
         json="trimming/{sample}-{unit}-pe-merged-fastp.json",
-        done=touch("trimming/{sample}-{unit}-pe-merged.done"),
+        done=touch("trimming/{sample}-{unit}-merged.fastq.gz.done"),
     log:
         "logs/trimming/fastp/{sample}-{unit}.log",
     benchmark:
@@ -111,10 +112,15 @@ def get_trimmed_reads(wildcards):
         # paired-end sample
         return expand(
             "trimming/{sample}-{unit}.{pair}.fastq.gz",
-            pair=[1, 2],
             sample=wildcards.sample,
             unit=wildcards.unit,
+            pair=[1, 2],
         )
+
+
+def get_trimmed_reads_done(wildcards):
+    files = get_trimmed_reads(wildcards)
+    return [f + ".done" for f in files]
 
 
 def get_trimming_report(sample, unit):
