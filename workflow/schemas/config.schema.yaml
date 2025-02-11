@@ -203,6 +203,7 @@ properties:
             type: string
           CollectMultipleMetrics:
             properties:
+              # Old names
               AlignmentSummaryMetrics:
                 type: boolean
               BaseDistributionByCycle:
@@ -217,19 +218,28 @@ properties:
                 type: boolean
               QualityYieldMetrics:
                 type: boolean
-              # RnaSeqMetrics:
-              #   type: boolean
-            CollectMultipleMetrics-extra:
-              type: string
-            required:
-              - AlignmentSummaryMetrics
-              - BaseDistributionByCycle
-              - GcBiasMetrics
-              - InsertSizeMetrics
-              - QualityByCycleMetrics
-              - QualityScoreDistributionMetrics
-              - QualityYieldMetrics
-              # - RnaSeqMetrics
+
+              # New names
+              CollectAlignmentSummaryMetrics:
+                type: boolean
+              CollectBaseDistributionByCycle:
+                type: boolean
+              CollectGcBiasMetrics:
+                type: boolean
+              CollectInsertSizeMetrics:
+                type: boolean
+              CollectQualityYieldMetrics:
+                type: boolean
+              MeanQualityByCycle:
+                type: boolean
+              QualityScoreDistribution:
+                type: boolean
+              CollectSequencingArtifactMetrics:
+                type: boolean
+              RnaSeqMetrics:
+                type: boolean
+          CollectMultipleMetrics-extra:
+            type: string
         required:
           - MarkDuplicates
           - CollectMultipleMetrics

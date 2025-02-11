@@ -167,29 +167,46 @@ localrules:
 # Usable extensions (and which tools they implicitly call) are listed here:
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/picard/collectmultiplemetrics.html
 def picard_collectmultiplemetrics_exts():
+    # Helper function to check the existence of the key, and, if present, its value.
+    # We do this for backwards compatibility with older grenepipe versions,
+    # where we had remnants of old names for these tools, which do not exist any more,
+    # but we do not want to fail for old config files either.
+    def get_picard_CollectMultipleMetrics_config_key(key):
+        if not key in config["params"]["picard"]["CollectMultipleMetrics"]:
+            return false
+        return config["params"]["picard"]["CollectMultipleMetrics"][key]
+
     res = []
-    if config["params"]["picard"]["CollectMultipleMetrics"]["AlignmentSummaryMetrics"]:
+    if get_picard_CollectMultipleMetrics_config_key("CollectAlignmentSummaryMetrics"):
         res.append(".alignment_summary_metrics")
-    if config["params"]["picard"]["CollectMultipleMetrics"]["BaseDistributionByCycle"]:
+    if get_picard_CollectMultipleMetrics_config_key("CollectBaseDistributionByCycle"):
         res.append(".base_distribution_by_cycle_metrics")
         res.append(".base_distribution_by_cycle.pdf")
-    if config["params"]["picard"]["CollectMultipleMetrics"]["GcBiasMetrics"]:
+    if get_picard_CollectMultipleMetrics_config_key("CollectGcBiasMetrics"):
         res.append(".gc_bias.detail_metrics")
         res.append(".gc_bias.summary_metrics")
         res.append(".gc_bias.pdf")
-    if config["params"]["picard"]["CollectMultipleMetrics"]["InsertSizeMetrics"]:
+    if get_picard_CollectMultipleMetrics_config_key("CollectInsertSizeMetrics"):
         res.append(".insert_size_metrics")
         res.append(".insert_size_histogram.pdf")
-    if config["params"]["picard"]["CollectMultipleMetrics"]["QualityByCycleMetrics"]:
+    if get_picard_CollectMultipleMetrics_config_key("CollectQualityYieldMetrics"):
+        res.append(".quality_yield_metrics")
+    if get_picard_CollectMultipleMetrics_config_key("MeanQualityByCycle"):
         res.append(".quality_by_cycle_metrics")
         res.append(".quality_by_cycle.pdf")
-    if config["params"]["picard"]["CollectMultipleMetrics"]["QualityScoreDistributionMetrics"]:
+    if get_picard_CollectMultipleMetrics_config_key("QualityScoreDistribution"):
         res.append(".quality_distribution_metrics")
         res.append(".quality_distribution.pdf")
-    if config["params"]["picard"]["CollectMultipleMetrics"]["QualityYieldMetrics"]:
-        res.append(".quality_yield_metrics")
-    # if config["params"]["picard"]["CollectMultipleMetrics"]["RnaSeqMetrics"]:
-    #     res.append(".rna_metrics")
+    if get_picard_CollectMultipleMetrics_config_key("RnaSeqMetrics"):
+        res.append(".rna_metrics")
+    if get_picard_CollectMultipleMetrics_config_key("CollectSequencingArtifactMetrics"):
+        res.append(".bait_bias_detail_metrics")
+        res.append(".bait_bias_summary_metrics")
+        res.append(".error_summary_metrics")
+        res.append(".pre_adapter_detail_metrics")
+        res.append(".pre_adapter_summary_metrics")
+    if get_picard_CollectMultipleMetrics_config_key("RnaSeqMetrics"):
+        res.append(".rna_metrics")
     return res
 
 
@@ -215,14 +232,13 @@ rule picard_collectmultiplemetrics:
         + (" --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""),
     conda:
         "../envs/picard.yaml"
-    script:
+    # script:
         # We use our own version of the wrapper here, which fixes issues with missing files in cases
         # where Picard does not have enough data for a specific metric to run.
-        "../scripts/picard-collectmultiplemetrics.py"
-
-
-# wrapper:
-#     "0.72.0/bio/picard/collectmultiplemetrics"
+        # "../scripts/picard-collectmultiplemetrics.py"
+        # Update: fixed in the new wrapper now, so should be good.
+    wrapper:
+        "v5.7.0/bio/picard/collectmultiplemetrics"
 
 
 rule picard_collectmultiplemetrics_collect:

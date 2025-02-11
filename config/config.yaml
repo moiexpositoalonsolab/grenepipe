@@ -644,15 +644,17 @@ params:
 
     # Run several Picard QC tools, as needed, using Picard CollectMultipleMetrics.
     # See https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard
+    # and https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/picard/collectmultiplemetrics.html
     CollectMultipleMetrics:
-      AlignmentSummaryMetrics: true
-      BaseDistributionByCycle: true
-      GcBiasMetrics: true
-      InsertSizeMetrics: true
-      QualityByCycleMetrics: true
-      QualityScoreDistributionMetrics: true
-      QualityYieldMetrics: true
-      # RnaSeqMetrics: false
+      CollectAlignmentSummaryMetrics: true
+      CollectBaseDistributionByCycle: true
+      CollectGcBiasMetrics: true
+      CollectInsertSizeMetrics: true
+      CollectQualityYieldMetrics: true
+      MeanQualityByCycle: true
+      QualityScoreDistribution: true
+      CollectSequencingArtifactMetrics: false
+      RnaSeqMetrics: false
 
     # Extra parameters for CollectMultipleMetrics
     CollectMultipleMetrics-extra: "--VALIDATION_STRINGENCY LENIENT --METRIC_ACCUMULATION_LEVEL null --METRIC_ACCUMULATION_LEVEL SAMPLE"
@@ -665,10 +667,11 @@ params:
     CollectMultipleMetrics-bams: "processed"
 
     # For some specific error cases, it might be necessary to adjust java settings for the tools,
-    # such as `-Xmx10g` to increase the available memory within the Java virtual machine
-    # (because it limits itself otherwise, instead of using the available memory...),
-    # or `-Djava.io.tmpdir=/path/to/tmp` to set a directory for temporary data, in case that the
+    # such as `-Djava.io.tmpdir=/path/to/tmp` to set a directory for temporary data, in case that the
     # system-provided tmp dir is too small (which can happen on clusters).
+    # Note that the Java memory options, such as `-Xmx10g` to increase the available memory within
+    # the Java virtual machine are provided via the Snakemake memory management directly,
+    # for instance, via the memory specified in slurm jobs. Change the memory there as needed.
     # The last option, SortVcf-java-opts, is used by bcftools when using contig-group-size > 0.
     MarkDuplicates-java-opts: ""
     CollectMultipleMetrics-java-opts: ""
