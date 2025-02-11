@@ -212,7 +212,7 @@ rule picard_collectmultiplemetrics:
         config["params"]["picard"]["CollectMultipleMetrics-java-opts"]
         + " "
         + config["params"]["picard"]["CollectMultipleMetrics-extra"]
-        + (" USE_JDK_DEFLATER=true USE_JDK_INFLATER=true" if platform.system() == "Darwin" else ""),
+        + (" --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""),
     conda:
         "../envs/picard.yaml"
     script:

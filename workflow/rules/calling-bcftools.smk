@@ -72,7 +72,7 @@ if config["settings"].get("contig-group-size"):
         params:
             # See duplicates-picard.smk for the reason whe need this on MacOS.
             extra=(
-                " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true"
+                " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true"
                 if platform.system() == "Darwin"
                 else ""
             ),

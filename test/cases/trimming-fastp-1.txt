@@ -1,6 +1,6 @@
 trimming-tool: "trimmomatic"	trimming-tool: "fastp"
 clip-read-overlaps: false	clip-read-overlaps: true
-MarkDuplicates: "REMOVE_DUPLICATES=true"	MarkDuplicates: "REMOVE_DUPLICATES=true VALIDATION_STRINGENCY=SILENT"
+MarkDuplicates: "--REMOVE_DUPLICATES true"	MarkDuplicates: "--REMOVE_DUPLICATES true --VALIDATION_STRINGENCY SILENT"
 mapdamage: false	mapdamage: true
 damageprofiler: false	damageprofiler: true
 input: "samples"	input: "trimmed"

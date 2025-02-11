@@ -175,7 +175,7 @@ rule bwa_bam_clean:
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(
-            " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true" if platform.system() == "Darwin" else ""
+            " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""
         ),
     group:
         "mapping"
@@ -184,7 +184,7 @@ rule bwa_bam_clean:
     conda:
         "../envs/picard.yaml"
     shell:
-        "picard CleanSam INPUT={input[0]} OUTPUT={output[0]} {params.extra} &> {log}"
+        "picard CleanSam --INPUT {input[0]} --OUTPUT {output[0]} {params.extra} &> {log}"
         # Somehow, Picard has several active versions with different command line interfaces.
         # Lets' hope that we picked the one that works...
         # "picard CleanSam --INPUT {input} --OUTPUT {output}"

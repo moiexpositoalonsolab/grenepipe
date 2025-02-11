@@ -640,7 +640,7 @@ params:
 
     # Extra parameters for MarkDuplicates.
     # See https://gatk.broadinstitute.org/hc/en-us/articles/360057439771-MarkDuplicates-Picard
-    MarkDuplicates: "REMOVE_DUPLICATES=true"
+    MarkDuplicates: "--REMOVE_DUPLICATES true"
 
     # Run several Picard QC tools, as needed, using Picard CollectMultipleMetrics.
     # See https://gatk.broadinstitute.org/hc/en-us/articles/360042478112-CollectMultipleMetrics-Picard
@@ -655,7 +655,7 @@ params:
       # RnaSeqMetrics: false
 
     # Extra parameters for CollectMultipleMetrics
-    CollectMultipleMetrics-extra: "VALIDATION_STRINGENCY=LENIENT METRIC_ACCUMULATION_LEVEL=null METRIC_ACCUMULATION_LEVEL=SAMPLE"
+    CollectMultipleMetrics-extra: "--VALIDATION_STRINGENCY LENIENT --METRIC_ACCUMULATION_LEVEL null --METRIC_ACCUMULATION_LEVEL SAMPLE"
 
     # By default, we run the picard CollectMultipleMetrics QC tool on the processed bam files after
     # processing all (optional) steps (filtering, clipping, dedup, base recalibration).

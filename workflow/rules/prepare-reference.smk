@@ -255,7 +255,7 @@ rule sequence_dictionary:
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(
-            " USE_JDK_DEFLATER=true USE_JDK_INFLATER=true" if platform.system() == "Darwin" else ""
+            " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""
         ),
     #     base= lambda wc: os.path.splitext(genome)[0],
     log:
@@ -272,7 +272,7 @@ rule sequence_dictionary:
         '    echo -e "\\nAttempt $ITERATION\\n" >> {log} 2>&1 ; '
         "    rm -f {output} ; "
         "    picard CreateSequenceDictionary "
-        "        REFERENCE={input} OUTPUT={output} {params.extra} >> {log} 2>&1 ; "
+        "        --REFERENCE {input} --OUTPUT {output} {params.extra} >> {log} 2>&1 ; "
         "    LENGTH=`cat {output} | wc -l` ; "
         '    if [ "$LENGTH" -gt 1 ]; then '
         '        echo -e "\\n{output} has $LENGTH lines " >> {log} 2>&1 ; '
