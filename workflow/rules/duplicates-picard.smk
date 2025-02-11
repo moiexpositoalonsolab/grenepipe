@@ -36,8 +36,8 @@ rule mark_duplicates:
         extra=config["params"]["picard"]["MarkDuplicates"]
         + (" --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""),
         java_opts=config["params"]["picard"]["MarkDuplicates-java-opts"]
-    # resources:
-    #     mem_mb=1024,
+    resources:
+        mem_mb=config["params"]["picard"].get("MarkDuplicates-mem-mb", 5000),
     group:
         "mapping_extra"
     conda:

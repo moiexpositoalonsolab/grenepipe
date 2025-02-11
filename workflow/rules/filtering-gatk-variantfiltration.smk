@@ -29,6 +29,8 @@ rule gatk_hard_filter_calls:
         filters=get_filter,
         extra=config["params"]["gatk-variantfiltration"]["extra"],
         java_opts=config["params"]["gatk-variantfiltration"]["java-opts"],
+    resources:
+        mem_mb=config["params"]["gatk-variantfiltration"].get("mem-mb", 1024),
     log:
         "logs/calling/gatk-variantfiltration/{vartype}.log",
     benchmark:
@@ -38,4 +40,4 @@ rule gatk_hard_filter_calls:
     conda:
         "../envs/gatk.yaml"
     wrapper:
-        "0.85.0/bio/gatk/variantfiltration"
+        "v5.7.0/bio/gatk/variantfiltration"

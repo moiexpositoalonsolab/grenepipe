@@ -57,7 +57,7 @@ def get_variant_recalibrator_extra(wildcards):
     # config file dict retrieval. We additionally set the Rscript file, so that we get some plots.
     vartype = wildcards.vartype
     return (
-        config["params"]["gatk-vqsr"]["extra-variantrecalibrator-" + vartype]
+        config["params"]["gatk-vqsr"]["variantrecalibrator-extra-" + vartype]
         + " --rscript-file calling/filtered/all."
         + vartype
         + ".vqsr-recal.plots.R"
@@ -66,7 +66,7 @@ def get_variant_recalibrator_extra(wildcards):
 
 def get_apply_vqsr_extra(wildcards):
     # Same as above, need a function here for wildcard replacement
-    return config["params"]["gatk-vqsr"]["extra-applyvqsr-" + wildcards.vartype]
+    return config["params"]["gatk-vqsr"]["applyvqsr-extra-" + wildcards.vartype]
 
 
 # Use the GATK VQSR machine learning based recalibration of quality scores instead of hard filtering.
@@ -100,7 +100,7 @@ rule gatk_variant_recalibrator:
         annotation=config["params"]["gatk-vqsr"]["annotation"],
         # Extras
         extra=get_variant_recalibrator_extra,
-        java_opts=config["params"]["gatk-vqsr"]["java-variantrecalibrator"],
+        java_opts=config["params"]["gatk-vqsr"]["variantrecalibrator-java-opts"] + " -Xmx" + config["params"]["gatk-vqsr"].get("variantrecalibrator-mem-mb", 1024) + "m",
     log:
         "logs/calling/gatk-variantrecalibrator/{vartype}.log",
     benchmark:
@@ -147,7 +147,7 @@ rule gatk_apply_vqsr:
         # set mode, must be either SNP, INDEL or BOTH
         mode="{vartype}",
         extra=get_apply_vqsr_extra,
-        java_opts=config["params"]["gatk-vqsr"]["java-applyvqsr"],
+        java_opts=config["params"]["gatk-vqsr"]["applyvqsr-java-opts"] + " -Xmx" + config["params"]["gatk-vqsr"].get("applyvqsr-mem-mb", 1024) + "m",
     # resources:
     # mem_mb=50
     conda:

@@ -671,11 +671,21 @@ params:
     # system-provided tmp dir is too small (which can happen on clusters).
     # Note that the Java memory options, such as `-Xmx10g` to increase the available memory within
     # the Java virtual machine are provided via the Snakemake memory management directly,
-    # for instance, via the memory specified in slurm jobs. Change the memory there as needed.
+    # and hence cannot be specified here. Instead, use the below `*-mem-mb` options,
+    # or, if you are running grenepipe via slurm, use the slurm job configuration.
     # The last option, SortVcf-java-opts, is used by bcftools when using contig-group-size > 0.
     MarkDuplicates-java-opts: ""
     CollectMultipleMetrics-java-opts: ""
     SortVcf-java-opts: ""
+    MergeVcfs-java-opts: ""
+
+    # Memory for the Java virtual machine for the picard programs.
+    # Unfortunately, Java does not automatically use the available memory, and instead needs
+    # to be told that it is allowed to do that. Specify the memory here as needed, in MB.
+    MarkDuplicates-mem-mb: 5000
+    CollectMultipleMetrics-mem-mb: 1024
+    SortVcf-mem-mb: 1024
+    MergeVcfs-mem-mb: 1024
 
   # ----------------------------------------------------------------------
   #     dedup
@@ -770,9 +780,20 @@ params:
     GenotypeGVCFs-extra: ""
 
     # For some specific error cases, it might be necessary to adjust java settings for the tools.
+    # Note that the Java memory options, such as `-Xmx10g` to increase the available memory within
+    # the Java virtual machine are provided via the Snakemake memory management directly,
+    # and hence cannot be specified here. Instead, use the below `*-mem-mb` options,
+    # or, if you are running grenepipe via slurm, use the slurm job configuration.
     HaplotypeCaller-java-opts: ""
     CombineGVCFs-java-opts: ""
     GenotypeGVCFs-java-opts: ""
+
+    # Memory for the Java virtual machine for the GATK programs.
+    # Unfortunately, Java does not automatically use the available memory, and instead needs
+    # to be told that it is allowed to do that. Specify the memory here as needed, in MB.
+    HaplotypeCaller-mem-mb: 1024
+    CombineGVCFs-mem-mb: 1024
+    GenotypeGVCFs-mem-mb: 1024
 
     # Number of threads to use for the HaplotypeCaller. We recommend to keep this at 2,
     # as GATK does not seem to do a great job of parallelizing anyway.
@@ -797,6 +818,7 @@ params:
     # We also offer extra settings that are used for both.
     extra: ""
     java-opts: ""
+    mem-mb: 1024
 
   # ----------------------------------------------------------------------
   #     GATK VariantRecalibrator + ApplyVQSR
@@ -878,14 +900,16 @@ params:
     # We here set the gaussians to a very low value, simply for our test case to work, see
     # https://gatk.broadinstitute.org/hc/en-us/community/posts/4408833794587-Insufficient-variance-error-for-VariantRecalibrator
     # for details. We recommend to change this according to your actual needs.
-    extra-variantrecalibrator-SNP: "--max-gaussians 1"
-    extra-variantrecalibrator-INDEL: "--max-gaussians 1"
-    java-variantrecalibrator: ""
+    variantrecalibrator-extra-SNP: "--max-gaussians 1"
+    variantrecalibrator-extra-INDEL: "--max-gaussians 1"
+    variantrecalibrator-java-opts: ""
+    variantrecalibrator-mem-mb: 1024
 
     # Extra command line params, and optional Java runtime options to provide to GATK ApplyVQSR
-    extra-applyvqsr-SNP: "--truth-sensitivity-filter-level 99.0"
-    extra-applyvqsr-INDEL: "--truth-sensitivity-filter-level 99.0"
-    java-applyvqsr: ""
+    applyvqsr-extra-SNP: "--truth-sensitivity-filter-level 99.0"
+    applyvqsr-extra-INDEL: "--truth-sensitivity-filter-level 99.0"
+    applyvqsr-java-opts: ""
+    applyvqsr-mem-mb: 1024
 
   # ----------------------------------------------------------------------
   #     bcftools filter

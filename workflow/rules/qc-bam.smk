@@ -230,6 +230,8 @@ rule picard_collectmultiplemetrics:
         + " "
         + config["params"]["picard"]["CollectMultipleMetrics-extra"]
         + (" --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""),
+    resources:
+        mem_mb=config["params"]["picard"].get("CollectMultipleMetrics-mem-mb", 1024),
     conda:
         "../envs/picard.yaml"
     # script:

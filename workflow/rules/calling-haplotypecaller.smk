@@ -77,13 +77,15 @@ rule call_variants:
         # Contigs are used as long as no restrict-regions are given in the config file.
         extra=get_gatk_call_variants_params,
         java_opts=config["params"]["gatk"]["HaplotypeCaller-java-opts"],
+    resources:
+        mem_mb=config["params"]["gatk"].get("HaplotypeCaller-mem-mb", 1024),
     group:
         "call_variants"
     conda:
         # Need to specify, yet again...
         "../envs/gatk.yaml"
     wrapper:
-        "0.51.3/bio/gatk/haplotypecaller"
+        "v5.7.0/bio/gatk/haplotypecaller"
 
 
 # Deactivated the below, as this was causing trouble. Got the warning
@@ -155,6 +157,8 @@ rule combine_calls:
             else ""
         ),
         java_opts=config["params"]["gatk"]["CombineGVCFs-java-opts"],
+    resources:
+        mem_mb=config["params"]["gatk"].get("CombineGVCFs-mem-mb", 1024),
     log:
         "logs/calling/gatk-combine-gvcfs/{contig}.log",
     benchmark:
@@ -164,7 +168,7 @@ rule combine_calls:
     conda:
         "../envs/gatk.yaml"
     wrapper:
-        "0.51.3/bio/gatk/combinegvcfs"
+        "v5.7.0/bio/gatk/combinegvcfs"
 
 
 rule genotype_variants:
@@ -194,6 +198,8 @@ rule genotype_variants:
             else ""
         ),
         java_opts=config["params"]["gatk"]["GenotypeGVCFs-java-opts"],
+    resources:
+        mem_mb=config["params"]["gatk"].get("GenotypeGVCFs-mem-mb", 1024),
     log:
         "logs/calling/gatk-genotype-gvcfs/{contig}.log",
     benchmark:
@@ -203,7 +209,7 @@ rule genotype_variants:
     conda:
         "../envs/gatk.yaml"
     wrapper:
-        "0.51.3/bio/gatk/genotypegvcfs"
+        "v5.7.0/bio/gatk/genotypegvcfs"
 
 
 # =================================================================================================
@@ -239,9 +245,12 @@ rule merge_variants:
         done=touch("calling/genotyped-all.vcf.gz.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
+        java_opts=config["params"]["picard"]["MergeVcfs-java-opts"],
         extra=(
             " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""
         ),
+    resources:
+        mem_mb=config["params"]["picard"].get("MergeVcfs-mem-mb", 1024),
     log:
         "logs/calling/picard-merge-genotyped.log",
     benchmark:
@@ -249,4 +258,4 @@ rule merge_variants:
     conda:
         "../envs/picard.yaml"
     wrapper:
-        "0.51.3/bio/picard/mergevcfs"
+        "v5.7.0/bio/picard/mergevcfs"

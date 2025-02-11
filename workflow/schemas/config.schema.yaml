@@ -321,17 +321,17 @@ properties:
             type: [array, object]
           annotation:
             type: [array, object]
-          extra-variantrecalibrator-SNP:
+          variantrecalibrator-extra-SNP:
             type: string
-          extra-variantrecalibrator-INDEL:
+          variantrecalibrator-extra-INDEL:
             type: string
-          java-variantrecalibrator:
+          variantrecalibrator-java-opts:
             type: string
-          extra-applyvqsr-SNP:
+          applyvqsr-extra-SNP:
             type: string
-          extra-applyvqsr-INDEL:
+          applyvqsr-extra-INDEL:
             type: string
-          java-applyvqsr:
+          applyvqsr-java-opts:
             type: string
       bcftools-filter:
         type: object
