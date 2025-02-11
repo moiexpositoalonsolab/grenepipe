@@ -338,8 +338,10 @@ def get_bam_from_mappings_table(sample):
     # Touch all non-existing files. If they already exist,
     # we do nothing, to not mess with their time stamps.
     for f in bams:
-        if not os.path.isfile(f):
-            Path(f + ".done").touch()
+        fp = Path(f + ".done")
+        fp.parent.mkdir(parents=True, exist_ok=True)
+        if not fp.exists():
+            fp.touch(exist_ok=False)
 
     # Now we can return the bam file list to the caller.
     return bams

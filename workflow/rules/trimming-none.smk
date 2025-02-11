@@ -16,8 +16,10 @@ def get_trimmed_reads_done(wildcards):
     # Touch all non-existing files. If they already exist,
     # we do nothing, to not mess with their time stamps.
     for f in files:
-        if not os.path.isfile(f):
-            Path(f + ".done").touch()
+        fp = Path(f + ".done")
+        fp.parent.mkdir(parents=True, exist_ok=True)
+        if not fp.exists():
+            fp.touch(exist_ok=False)
 
     # Now we can return the fastq done file list to the caller.
     return [f + ".done" for f in files]

@@ -103,8 +103,11 @@ def get_sai(wildcards):
             pair=[1, 2],
         )
 
+
 def get_sai_done(wildcards):
-    return get_sai(wildcards) + ".done"
+    sais = get_sai(wildcards)
+    return [s + ".done" for s in sais]
+
 
 def get_bwa_aln_extra(wildcards):
     # We need the read group tags, including `ID` and `SM`, as downstream tools use these.
