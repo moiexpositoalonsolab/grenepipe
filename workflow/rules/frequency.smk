@@ -174,7 +174,7 @@ rule hafpipe_snp_table:
         # in order to better inform the user about the situation and how to fix this.
         numeric=get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric",
         numericbgz=get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz",
-        done=get_hafpipe_snp_table_dir() + "/{chrom}.done",
+        done=get_hafpipe_snp_table_dir() + "/{chrom}.csv.done",
     params:
         tasks="1",
         chrom="{chrom}",
@@ -197,7 +197,11 @@ def get_all_hafpipe_raw_snp_tables(wildcards):
     # We use a checkpoint to create the fai file from our ref genome, which gives us the chrom names.
     # Snakemake then needs an input function to work with the fai checkpoint here.
     fai = checkpoints.samtools_faidx.get().output[0]
-    return expand(get_hafpipe_snp_table_dir() + "/{chrom}.csv", chrom=get_hafpipe_chromosomes(fai))
+    return expand(
+        get_hafpipe_snp_table_dir() + "/{chrom}.csv{ext}",
+        chrom=get_hafpipe_chromosomes(fai),
+        ext=["", ".done"]
+    )
 
 
 # Rule that requests all HAFpipe SNP table files, so that users can impute them themselves.
@@ -245,7 +249,7 @@ if impmethod in ["simpute", "npute"]:
     rule hafpipe_impute_snp_table:
         input:
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
-            done=get_hafpipe_snp_table_dir() + "/{chrom}.done",
+            done=get_hafpipe_snp_table_dir() + "/{chrom}.csv.done",
             bins=get_hafpipe_bins(),
         output:
             csv=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
@@ -277,7 +281,7 @@ elif impmethod != "":
     rule hafpipe_impute_snp_table:
         input:
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
-            done=get_hafpipe_snp_table_dir() + "/{chrom}.done",
+            done=get_hafpipe_snp_table_dir() + "/{chrom}.csv.done",
         output:
             csv=get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod,
             done=touch(get_hafpipe_snp_table_dir() + "/{chrom}.csv." + impmethod + ".done"),
@@ -318,7 +322,7 @@ if impmethod == "":
             snptable=get_hafpipe_snp_table_dir() + "/{chrom}.csv",
             alleleCts=get_hafpipe_snp_table_dir() + "/{chrom}.csv.alleleCts",
             numeric=get_hafpipe_snp_table_dir() + "/{chrom}.csv.numeric.bgz",
-            done=get_hafpipe_snp_table_dir() + "/{chrom}.done",
+            done=get_hafpipe_snp_table_dir() + "/{chrom}.csv.done",
         output:
             flag=get_hafpipe_snp_table_dir() + "/{chrom}.csv.flag",
         shell:
@@ -522,7 +526,7 @@ rule hafpipe_concat_sample_allele_frequencies:
         # This is the file name produced by the script. For now we do not allow to change this.
         table="hafpipe/samples/{sample}.csv"
         + (".gz" if config["params"]["hafpipe"].get("compress-sample-tables", False) else ""),
-        done="hafpipe/samples/{sample}.done",
+        done="hafpipe/samples/{sample}.csv.done",
     params:
         # The rule needs access to the list of chromosomes, and to the sample.
         sample="{sample}",
@@ -543,7 +547,10 @@ rule hafpipe_collect_concat_samples:
             + (".gz" if config["params"]["hafpipe"].get("compress-sample-tables", False) else ""),
             sample=config["global"]["sample-names"],
         ),
-        done="hafpipe/samples/{sample}.done",
+        done=expand(
+            "hafpipe/samples/{sample}.csv.done",
+            sample=config["global"]["sample-names"],
+        ),
     output:
         done=touch("hafpipe/samples.done"),
 
@@ -588,7 +595,7 @@ rule hafpipe_merge_allele_frequencies:
         # This is the file name produced by the script. For now we do not allow to change this.
         table="hafpipe/all.csv"
         + (".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""),
-        done="hafpipe/all.done",
+        done="hafpipe/all.csv.done",
     params:
         # We are potentially dealing with tons of files, and cannot open all of them at the same
         # time, due to OS limitations, check `ulimit -n` for example. When this param is set to 0,
@@ -639,7 +646,7 @@ rule all_hafpipe:
         [
         "hafpipe/all.csv"
         + (".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""),
-        "hafpipe/all.done"
+        "hafpipe/all.csv.done"
         ]
         if config["params"]["hafpipe"].get("make-merged-table", False)
         else [],

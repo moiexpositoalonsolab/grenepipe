@@ -119,7 +119,7 @@ rule bwa_sai_to_bam:
     input:
         fastq=get_trimmed_reads,
         sai=get_sai,
-        done=get_sai_done
+        done=get_sai_done,
         ref=config["data"]["reference-genome"],
         # Somehow, the wrapper expects the index extensions to be given,
         # instead of the underlying fasta file... Well, so let's do that.

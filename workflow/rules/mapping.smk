@@ -134,13 +134,13 @@ def get_sorted_sample_bams_done(wildcards):
     return [b + ".done" for b in bams]
 
 
-def get_all_sorted_sample_bams():
-    res = list()
-    for sample in config["global"]["sample-names"]:
-        for unit in get_sample_units(sample):
-            bam = f"mapping/sorted/{sample}-{unit}.bam"
-            res.append(bam)
-    return res
+# def get_all_sorted_sample_bams():
+#     res = list()
+#     for sample in config["global"]["sample-names"]:
+#         for unit in get_sample_units(sample):
+#             bam = f"mapping/sorted/{sample}-{unit}.bam"
+#             res.append(bam)
+#     return res
 
 
 # This is where all units are merged together.
@@ -315,6 +315,7 @@ if not duplicates_tool_good:
 #     Base Quality Score Recalibration
 # =================================================================================================
 
+
 if config["settings"]["recalibrate-base-qualities"]:
 
     include: "mapping-recalibrate.smk"
@@ -334,16 +335,11 @@ def get_bam_from_mappings_table(sample):
     assert "mappings-table" in config["data"] and config["data"]["mappings-table"]
     bams = config["global"]["samples"].loc[sample, ["bam"]].dropna()
 
-    # Check if we have touched the bam done files already
-    if not hasattr(get_bam_from_mappings_table, "done"):
-        get_bam_from_mappings_table.done = False
-
-    # If not, touch all files, then set the internal flag
-    # so that we do not do this every time this function is called.
-    if not get_bam_from_mappings_table.done:
-        for f in bams:
+    # Touch all non-existing files. If they already exist,
+    # we do nothing, to not mess with their time stamps.
+    for f in bams:
+        if not os.path.isfile(f):
             Path(f + ".done").touch()
-    get_bam_from_mappings_table.done = True
 
     # Now we can return the bam file list to the caller.
     return bams
@@ -473,7 +469,7 @@ def get_all_bams_done():
 
 rule all_bams:
     input:
-        merged=get_all_sorted_sample_bams(),
+        # merged=get_all_sorted_sample_bams(),
         bams=get_all_bams(),
         done=get_all_bams_done(),
         qc="qc/multiqc.html",

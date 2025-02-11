@@ -101,7 +101,7 @@ rule combine_contig:
     log:
         "logs/calling/bcftools/combine-contig-{contig}.log",
     benchmark:
-        "benchmarks/calling/called/bcftools/combine-contig-{contig}.log"
+        "benchmarks/calling/combined/bcftools/combine-contig-{contig}.log"
     conda:
         "../envs/bcftools.yaml"
     shell:
@@ -137,7 +137,7 @@ def combined_contig_gvcfs(wildcards):
 # Also need the done files to make sure snakemake doesn't mess this up.
 def combined_contig_done(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]
-    return expand("calling/called/all.{contig}.g.vcf.gz.done", contig=get_contigs(fai))
+    return expand("calling/combined/all.{contig}.g.vcf.gz.done", contig=get_contigs(fai))
 
 
 # We also need a comma-separated list of the contigs, so that bcftools can output

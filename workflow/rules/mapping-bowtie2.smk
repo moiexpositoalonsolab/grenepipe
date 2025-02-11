@@ -58,6 +58,7 @@ rule map_reads:
             ext=["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2", "done"],
         ),
     output:
+        # Piping the file, so no done file here
         pipe("mapping/mapped/{sample}-{unit}.bam"),
         # touch("mapping/mapped/{sample}-{unit}.bam.done"),
     params:
@@ -88,8 +89,9 @@ rule map_reads:
 # At least, we can pipe the files from above to here, so this should not slow us down.
 rule sort_reads:
     input:
+        # Piping the file, so no done file here
         "mapping/mapped/{sample}-{unit}.bam",
-        "mapping/mapped/{sample}-{unit}.bam.done",
+        # "mapping/mapped/{sample}-{unit}.bam.done",
     output:
         (
             "mapping/sorted/{sample}-{unit}.bam"

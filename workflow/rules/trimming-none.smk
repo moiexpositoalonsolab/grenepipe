@@ -13,16 +13,11 @@ def get_trimmed_reads(wildcards):
 def get_trimmed_reads_done(wildcards):
     files = get_trimmed_reads(wildcards)
 
-    # Check if we have touched the fastq done files already
-    if not hasattr(get_trimmed_reads_done, "done"):
-        get_trimmed_reads_done.done = False
-
-    # If not, touch all files, then set the internal flag
-    # so that we do not do this every time this function is called.
-    if not get_trimmed_reads_done.done:
-        for f in files:
+    # Touch all non-existing files. If they already exist,
+    # we do nothing, to not mess with their time stamps.
+    for f in files:
+        if not os.path.isfile(f):
             Path(f + ".done").touch()
-    get_trimmed_reads_done.done = True
 
     # Now we can return the fastq done file list to the caller.
     return [f + ".done" for f in files]
