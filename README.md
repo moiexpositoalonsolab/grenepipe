@@ -9,7 +9,7 @@
 
 ![grenepipe logo](/doc/logo/grenepipe.png?raw=true)
 
-Snakemake workflow for variant calling from raw sample sequences, with lots of bells and whistles.
+Snakemake workflow for variant calling from raw sample sequences, with lots of bells and whistles - for sampled individuals, and for pool sequencing.
 
 **Advantages**:
 
