@@ -100,7 +100,7 @@ rule gatk_variant_recalibrator:
         annotation=config["params"]["gatk-vqsr"]["annotation"],
         # Extras
         extra=get_variant_recalibrator_extra,
-        java_opts=config["params"]["gatk-vqsr"]["variantrecalibrator-java-opts"] + " -Xmx" + config["params"]["gatk-vqsr"].get("variantrecalibrator-mem-mb", 1024) + "m",
+        java_opts=config["params"]["gatk-vqsr"]["variantrecalibrator-java-opts"] + " -Xmx" + str(config["params"]["gatk-vqsr"].get("variantrecalibrator-mem-mb", 1024)) + "m",
     log:
         "logs/calling/gatk-variantrecalibrator/{vartype}.log",
     benchmark:
@@ -147,7 +147,7 @@ rule gatk_apply_vqsr:
         # set mode, must be either SNP, INDEL or BOTH
         mode="{vartype}",
         extra=get_apply_vqsr_extra,
-        java_opts=config["params"]["gatk-vqsr"]["applyvqsr-java-opts"] + " -Xmx" + config["params"]["gatk-vqsr"].get("applyvqsr-mem-mb", 1024) + "m",
+        java_opts=config["params"]["gatk-vqsr"]["applyvqsr-java-opts"] + " -Xmx" + str(config["params"]["gatk-vqsr"].get("applyvqsr-mem-mb", 1024)) + "m",
     # resources:
     # mem_mb=50
     conda:

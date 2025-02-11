@@ -9,7 +9,7 @@ dependencies:
   - pandas ==2.2.2
   - numpy  ==2.0.0
   # Tools
-  - gatk4 ==4.5.0.0
+  - gatk4 ==4.6.1.0
   - snakemake-wrapper-utils ==0.6.2
   # For plotting the VSQR output, we need R
   - r #==4.1

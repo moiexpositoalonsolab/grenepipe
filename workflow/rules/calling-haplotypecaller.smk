@@ -13,8 +13,8 @@ def get_gatk_call_variants_params(wildcards, input):
         get_gatk_regions_param(
             regions=input.regions, default="--intervals '{}'".format(wildcards.contig)
         )
-        + " --native-pair-hmm-threads "
-        + str(config["params"]["gatk"]["HaplotypeCaller-threads"])
+        # + " --native-pair-hmm-threads "
+        # + str(config["params"]["gatk"]["HaplotypeCaller-threads"])
         + " "
         + config["params"]["gatk"]["HaplotypeCaller-extra"]
     )
@@ -68,9 +68,6 @@ rule call_variants:
         "benchmarks/calling/called/gatk-haplotypecaller/{sample}.{contig}.log"
     # Need to set threads here so that snakemake can plan the job scheduling properly
     threads: config["params"]["gatk"]["HaplotypeCaller-threads"]
-    # resources:
-    # Increase time limit in factors of 24h, if the job fails due to time limit.
-    # time = lambda wildcards, input, threads, attempt: int(1440 * int(attempt))
     params:
         # The function here is where the contig variable is propagated to haplotypecaller.
         # Took me a while to figure this one out...
@@ -79,6 +76,8 @@ rule call_variants:
         java_opts=config["params"]["gatk"]["HaplotypeCaller-java-opts"],
     resources:
         mem_mb=config["params"]["gatk"].get("HaplotypeCaller-mem-mb", 1024),
+        # Increase time limit in factors of 24h, if the job fails due to time limit.
+        # time = lambda wildcards, input, threads, attempt: int(1440 * int(attempt))
     group:
         "call_variants"
     conda:

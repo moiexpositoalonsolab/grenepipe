@@ -76,7 +76,7 @@ if config["settings"].get("contig-group-size"):
                 if platform.system() == "Darwin"
                 else ""
             ),
-            java_opts=config["params"]["picard"]["SortVcf-java-opts"] + " -Xmx" + config["params"]["picard"].get("SortVcf-mem-mb", 1024) + "m",
+            java_opts=config["params"]["picard"]["SortVcf-java-opts"] + " -Xmx" + str(config["params"]["picard"].get("SortVcf-mem-mb", 1024)) + "m",
         log:
             "logs/calling/picard/sort-genotyped.log",
         benchmark:
