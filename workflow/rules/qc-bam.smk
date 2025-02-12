@@ -226,19 +226,13 @@ rule picard_collectmultiplemetrics:
     log:
         "logs/qc/picard-collectmultiplemetrics/{sample}.log",
     params:
-        config["params"]["picard"]["CollectMultipleMetrics-java-opts"]
-        + " "
-        + config["params"]["picard"]["CollectMultipleMetrics-extra"]
+        java_opts = config["params"]["picard"]["CollectMultipleMetrics-java-opts"],
+        extra = config["params"]["picard"]["CollectMultipleMetrics-extra"]
         + (" --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""),
     resources:
         mem_mb=config["params"]["picard"].get("CollectMultipleMetrics-mem-mb", 1024),
     conda:
         "../envs/picard.yaml"
-    # script:
-        # We use our own version of the wrapper here, which fixes issues with missing files in cases
-        # where Picard does not have enough data for a specific metric to run.
-        # "../scripts/picard-collectmultiplemetrics.py"
-        # Update: fixed in the new wrapper now, so should be good.
     wrapper:
         "v5.7.0/bio/picard/collectmultiplemetrics"
 

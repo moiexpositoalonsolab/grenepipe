@@ -141,9 +141,12 @@ rule merge_variants:
         done=touch("calling/genotyped-all.vcf.gz.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
+        java_opts=config["params"]["picard"]["MergeVcfs-java-opts"],
         extra=(
             " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""
         ),
+    resources:
+        mem_mb=config["params"]["picard"].get("MergeVcfs-mem-mb", 1024),
     log:
         "logs/calling/picard/merge-genotyped.log",
     benchmark:
@@ -151,4 +154,4 @@ rule merge_variants:
     conda:
         "../envs/picard.yaml"
     wrapper:
-        "0.51.3/bio/picard/mergevcfs"
+        "v5.7.0/bio/picard/mergevcfs"

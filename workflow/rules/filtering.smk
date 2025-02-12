@@ -84,7 +84,7 @@ rule merge_calls:
         # We use different naming for the VQSR intermediate files,
         # to make it a bit more understandable to the user which file is which...
         # not sure if that helps, or is more confusing in the end :-O
-        vcf=expand(
+        vcfs=expand(
             "calling/filtered/all.{vartype}.{filtertype}.vcf.gz",
             vartype=["SNP", "INDEL"],
             filtertype=(
@@ -108,9 +108,12 @@ rule merge_calls:
         done=touch("calling/filtered-all.vcf.gz.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
+        java_opts=config["params"]["picard"]["MergeVcfs-java-opts"],
         extra=(
             " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""
         ),
+    resources:
+        mem_mb=config["params"]["picard"].get("MergeVcfs-mem-mb", 1024),
     log:
         "logs/calling/picard-mergevcfs.log",
     benchmark:
@@ -118,4 +121,4 @@ rule merge_calls:
     conda:
         "../envs/picard.yaml"
     wrapper:
-        "0.27.1/bio/picard/mergevcfs"
+        "v5.7.0/bio/picard/mergevcfs"
