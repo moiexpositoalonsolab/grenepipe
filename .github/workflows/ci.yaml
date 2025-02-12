@@ -111,8 +111,8 @@ jobs:
           # For now, we just test the base case to see if it's generally working.
           # This repeats one of the Ubuntu runs for the base case, but that's okay
           # to keep it future proof when the default ubuntu-latest changes.
-          - os: ubuntu-20.04
-            case: base
+          # - os: ubuntu-20.04
+          #   case: base
           - os: ubuntu-22.04
             case: base
           - os: ubuntu-24.04
@@ -234,10 +234,10 @@ jobs:
 
       matrix:
         os:
-          - ubuntu-20.04
           - ubuntu-22.04
           - ubuntu-24.04
           - macos-13
+          # - ubuntu-20.04
           # - macos-14
 
     # -------------------------------------------------------
@@ -305,10 +305,10 @@ jobs:
 
       matrix:
         os:
-          - ubuntu-20.04
           - ubuntu-22.04
           - ubuntu-24.04
           - macos-13
+          # - ubuntu-20.04
           # - macos-14
 
         installer:
