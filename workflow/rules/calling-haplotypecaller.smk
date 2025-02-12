@@ -73,8 +73,8 @@ rule call_variants:
         # The intervals param here is where the contig variable is propagated to haplotypecaller.
         # Contigs are used as long as no restrict-regions are given in the config file.
         intervals=get_gatk_intervals,
-        extra=config["params"]["gatk"]["HaplotypeCaller-extra"],
-        java_opts=config["params"]["gatk"]["HaplotypeCaller-java-opts"],
+        extra=config["params"]["gatk"].get("HaplotypeCaller-extra", ""),
+        java_opts=config["params"]["gatk"].get("HaplotypeCaller-java-opts", ""),
     resources:
         mem_mb=config["params"]["gatk"].get("HaplotypeCaller-mem-mb", 1024),
         # Increase time limit in factors of 24h, if the job fails due to time limit.
@@ -156,12 +156,12 @@ rule genomics_db_import:
         # Here, we actually use the intervals to provide them to the wrapper.
         intervals=get_gatk_intervals,
         db_action="create",
-        extra=" --reference " + config["data"]["reference-genome"] + " --sequence-dictionary " + genome_dict() + " " + config["params"]["gatk"]["GenomicsDBImport-extra"],
-        java_opts=config["params"]["gatk"]["GenomicsDBImport-java-opts"],
+        extra=" --reference " + config["data"]["reference-genome"] + " --sequence-dictionary " + genome_dict() + " " + config["params"]["gatk"].get("GenomicsDBImport-extra", ""),
+        java_opts=config["params"]["gatk"].get("GenomicsDBImport-java-opts", ""),
     # threads: 2
     resources:
-        mem_mb=config["params"]["gatk"]["GenomicsDBImport-mem-mb"],
-        tmpdir=config["params"]["gatk"]["GenomicsDBImport-temp-dir"],
+        mem_mb=config["params"]["gatk"].get("GenomicsDBImport-mem-mb", 1024),
+        tmpdir=config["params"]["gatk"].get("GenomicsDBImport-temp-dir", ""),
     conda:
         "../envs/gatk.yaml"
     wrapper:
@@ -238,16 +238,16 @@ rule genotype_variants:
         refdict=genome_dict(),
         # Get the GVCF or GenomicsDB input, depending on which tool is requested in the config.
         gvcf="calling/combined/all.{contig}.g.vcf.gz"
-        if not config["params"]["gatk"]["use-GenomicsDBImport"]
+        if not config["params"]["gatk"].get("use-GenomicsDBImport", True)
         else [],
         gvcf_done="calling/combined/all.{contig}.g.vcf.gz.done"
-        if not config["params"]["gatk"]["use-GenomicsDBImport"]
+        if not config["params"]["gatk"].get("use-GenomicsDBImport", True)
         else [],
         genomicsdb="calling/genomics_db/{contig}"
-        if config["params"]["gatk"]["use-GenomicsDBImport"]
+        if config["params"]["gatk"].get("use-GenomicsDBImport", True)
         else [],
         genomicsdb_done="calling/genomics_db/{contig}.done"
-        if config["params"]["gatk"]["use-GenomicsDBImport"]
+        if config["params"]["gatk"].get("use-GenomicsDBImport", True)
         else [],
         # If known variants are set in the config, use them, and require the index file as well.
         known=config["data"]["known-variants"],
@@ -315,7 +315,7 @@ rule merge_variants:
         done=touch("calling/genotyped-all.vcf.gz.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
-        java_opts=config["params"]["picard"]["MergeVcfs-java-opts"],
+        java_opts=config["params"]["picard"].get("MergeVcfs-java-opts", ""),
         extra=(
             " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""
         ),

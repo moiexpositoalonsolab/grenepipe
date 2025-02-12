@@ -108,7 +108,7 @@ rule merge_calls:
         done=touch("calling/filtered-all.vcf.gz.done"),
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
-        java_opts=config["params"]["picard"]["MergeVcfs-java-opts"],
+        java_opts=config["params"]["picard"].get("MergeVcfs-java-opts", ""),
         extra=(
             " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""
         ),

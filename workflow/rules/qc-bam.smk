@@ -173,7 +173,7 @@ def picard_collectmultiplemetrics_exts():
     # but we do not want to fail for old config files either.
     def get_picard_CollectMultipleMetrics_config_key(key):
         if not key in config["params"]["picard"]["CollectMultipleMetrics"]:
-            return false
+            return False
         return config["params"]["picard"]["CollectMultipleMetrics"][key]
 
     res = []
@@ -226,8 +226,8 @@ rule picard_collectmultiplemetrics:
     log:
         "logs/qc/picard-collectmultiplemetrics/{sample}.log",
     params:
-        java_opts = config["params"]["picard"]["CollectMultipleMetrics-java-opts"],
-        extra = config["params"]["picard"]["CollectMultipleMetrics-extra"]
+        java_opts = config["params"]["picard"].get("CollectMultipleMetrics-java-opts", ""),
+        extra = config["params"]["picard"].get("CollectMultipleMetrics-extra", "")
         + (" --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""),
     resources:
         mem_mb=config["params"]["picard"].get("CollectMultipleMetrics-mem-mb", 1024),
