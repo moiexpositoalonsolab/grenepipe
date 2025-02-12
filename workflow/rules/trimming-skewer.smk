@@ -99,7 +99,6 @@ def get_trimmed_reads_done(wildcards):
     return [f + ".done" for f in files]
 
 
-
 def get_trimming_report(sample, unit):
     """Get the report needed for MultiQC."""
     if is_single_end(sample, unit):

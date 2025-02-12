@@ -99,8 +99,8 @@ rule recalibrate_base_qualities:
             if config["settings"]["keep-intermediate"]["mapping"]
             else temp("mapping/recal/{sample}.bam")
         ),
-        done=touch("mapping/recal/{sample}.bam.done"),
         # bam=protected("mapping/recal/{sample}.bam")
+        done=touch("mapping/recal/{sample}.bam.done"),
     params:
         extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"],
     log:

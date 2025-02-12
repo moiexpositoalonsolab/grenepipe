@@ -17,7 +17,7 @@ rule bowtie2_index:
             config["data"]["reference-genome"] + ".{ext}",
             ext=["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2"],
         ),
-        done=touch(config["data"]["reference-genome"] + ".done")
+        done=touch(config["data"]["reference-genome"] + ".done"),
     params:
         # Bowtie expects the prefix, and creates the above output files automatically.
         # So, let's do some snakemake magic to make this work.
@@ -59,8 +59,8 @@ rule map_reads:
         ),
     output:
         # Piping the file, so no done file here
-        pipe("mapping/mapped/{sample}-{unit}.bam"),
         # touch("mapping/mapped/{sample}-{unit}.bam.done"),
+        pipe("mapping/mapped/{sample}-{unit}.bam"),
     params:
         # Prefix of reference genome index (built with bowtie2-build above)
         index=config["data"]["reference-genome"],
@@ -90,8 +90,8 @@ rule map_reads:
 rule sort_reads:
     input:
         # Piping the file, so no done file here
-        "mapping/mapped/{sample}-{unit}.bam",
         # "mapping/mapped/{sample}-{unit}.bam.done",
+        "mapping/mapped/{sample}-{unit}.bam",
     output:
         (
             "mapping/sorted/{sample}-{unit}.bam"

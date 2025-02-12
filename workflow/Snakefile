@@ -23,7 +23,9 @@ rule all:
         "calling/genotyped-all.vcf.gz",
         "calling/genotyped-all.vcf.gz.done",
         "calling/filtered-all.vcf.gz" if not config["settings"]["filter-variants"] == "none" else [],
-        "calling/filtered-all.vcf.gz.done" if not config["settings"]["filter-variants"] == "none" else [],
+        "calling/filtered-all.vcf.gz.done"
+        if not config["settings"]["filter-variants"] == "none"
+        else [],
         "annotation/snpeff.vcf.gz" if config["settings"]["snpeff"] else [],
         "annotation/snpeff.vcf.gz.done" if config["settings"]["snpeff"] else [],
         "annotation/vep.vcf.gz" if config["settings"]["vep"] else [],

@@ -76,9 +76,9 @@ rule call_variants:
         extra=config["params"]["gatk"].get("HaplotypeCaller-extra", ""),
         java_opts=config["params"]["gatk"].get("HaplotypeCaller-java-opts", ""),
     resources:
-        mem_mb=config["params"]["gatk"].get("HaplotypeCaller-mem-mb", 1024),
         # Increase time limit in factors of 24h, if the job fails due to time limit.
         # time = lambda wildcards, input, threads, attempt: int(1440 * int(attempt))
+        mem_mb=config["params"]["gatk"].get("HaplotypeCaller-mem-mb", 1024),
     group:
         "call_variants"
     conda:
@@ -156,7 +156,12 @@ rule genomics_db_import:
         # Here, we actually use the intervals to provide them to the wrapper.
         intervals=get_gatk_intervals,
         db_action="create",
-        extra=" --reference " + config["data"]["reference-genome"] + " --sequence-dictionary " + genome_dict() + " " + config["params"]["gatk"].get("GenomicsDBImport-extra", ""),
+        extra=" --reference "
+        + config["data"]["reference-genome"]
+        + " --sequence-dictionary "
+        + genome_dict()
+        + " "
+        + config["params"]["gatk"].get("GenomicsDBImport-extra", ""),
         java_opts=config["params"]["gatk"].get("GenomicsDBImport-java-opts", ""),
     # threads: 2
     resources:
@@ -237,18 +242,26 @@ rule genotype_variants:
         ),
         refdict=genome_dict(),
         # Get the GVCF or GenomicsDB input, depending on which tool is requested in the config.
-        gvcf="calling/combined/all.{contig}.g.vcf.gz"
-        if not config["params"]["gatk"].get("use-GenomicsDBImport", True)
-        else [],
-        gvcf_done="calling/combined/all.{contig}.g.vcf.gz.done"
-        if not config["params"]["gatk"].get("use-GenomicsDBImport", True)
-        else [],
-        genomicsdb="calling/genomics_db/{contig}"
-        if config["params"]["gatk"].get("use-GenomicsDBImport", True)
-        else [],
-        genomicsdb_done="calling/genomics_db/{contig}.done"
-        if config["params"]["gatk"].get("use-GenomicsDBImport", True)
-        else [],
+        gvcf=(
+            "calling/combined/all.{contig}.g.vcf.gz"
+            if not config["params"]["gatk"].get("use-GenomicsDBImport", True)
+            else []
+        ),
+        gvcf_done=(
+            "calling/combined/all.{contig}.g.vcf.gz.done"
+            if not config["params"]["gatk"].get("use-GenomicsDBImport", True)
+            else []
+        ),
+        genomicsdb=(
+            "calling/genomics_db/{contig}"
+            if config["params"]["gatk"].get("use-GenomicsDBImport", True)
+            else []
+        ),
+        genomicsdb_done=(
+            "calling/genomics_db/{contig}.done"
+            if config["params"]["gatk"].get("use-GenomicsDBImport", True)
+            else []
+        ),
         # If known variants are set in the config, use them, and require the index file as well.
         known=config["data"]["known-variants"],
         knownidx=(
@@ -266,7 +279,10 @@ rule genotype_variants:
     params:
         # Again, we here use the intervals to provide them to the wrapper.
         intervals=get_gatk_intervals,
-        extra=" --sequence-dictionary " + genome_dict() + " " + config["params"]["gatk"]["GenotypeGVCFs-extra"],
+        extra=" --sequence-dictionary "
+        + genome_dict()
+        + " "
+        + config["params"]["gatk"]["GenotypeGVCFs-extra"],
         java_opts=config["params"]["gatk"]["GenotypeGVCFs-java-opts"],
     resources:
         mem_mb=config["params"]["gatk"].get("GenotypeGVCFs-mem-mb", 1024),
@@ -317,7 +333,9 @@ rule merge_variants:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         java_opts=config["params"]["picard"].get("MergeVcfs-java-opts", ""),
         extra=(
-            " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""
+            " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true"
+            if platform.system() == "Darwin"
+            else ""
         ),
     resources:
         mem_mb=config["params"]["picard"].get("MergeVcfs-mem-mb", 1024),

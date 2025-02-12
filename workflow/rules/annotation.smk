@@ -82,7 +82,7 @@ rule snpeff:
         stats=report("annotation/snpeff.html", category="Calls"),
         # summary statistics in CSV, optional
         csvstats="annotation/snpeff.csv",
-        done=touch("annotation/snpeff.vcf.gz.done")
+        done=touch("annotation/snpeff.vcf.gz.done"),
     log:
         "logs/annotation/snpeff.log",
     group:
@@ -220,7 +220,7 @@ rule vep:
             caption="../report/stats.rst",
             category="Calls",
         ),
-        done=touch("annotation/vep.vcf.gz.done")
+        done=touch("annotation/vep.vcf.gz.done"),
     params:
         # Pass a list of plugins to use,
         # see https://www.ensembl.org/info/docs/tools/vep/script/vep_plugins.html

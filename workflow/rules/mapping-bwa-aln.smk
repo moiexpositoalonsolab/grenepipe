@@ -178,7 +178,9 @@ rule bwa_bam_clean:
     params:
         # See duplicates-picard.smk for the reason whe need this on MacOS.
         extra=(
-            " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true" if platform.system() == "Darwin" else ""
+            " --USE_JDK_DEFLATER true --USE_JDK_INFLATER true"
+            if platform.system() == "Darwin"
+            else ""
         ),
     group:
         "mapping"

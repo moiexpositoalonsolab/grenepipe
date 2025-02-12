@@ -200,7 +200,7 @@ def get_all_hafpipe_raw_snp_tables(wildcards):
     return expand(
         get_hafpipe_snp_table_dir() + "/{chrom}.csv{ext}",
         chrom=get_hafpipe_chromosomes(fai),
-        ext=["", ".done"]
+        ext=["", ".done"],
     )
 
 
@@ -644,9 +644,9 @@ rule all_hafpipe:
     input:
         "hafpipe/afSite.done",
         [
-        "hafpipe/all.csv"
-        + (".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""),
-        "hafpipe/all.csv.done"
+            "hafpipe/all.csv"
+            + (".gz" if config["params"]["hafpipe"].get("compress-merged-table", False) else ""),
+            "hafpipe/all.csv.done",
         ]
         if config["params"]["hafpipe"].get("make-merged-table", False)
         else [],
