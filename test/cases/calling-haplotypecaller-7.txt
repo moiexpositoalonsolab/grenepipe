@@ -1,0 +1,5 @@
+restrict-regions: ""	restrict-regions: "#BASEPATH#/test/reference/regions.bed"
+use-GenomicsDBImport: true	use-GenomicsDBImport: false
+mapping: true	mapping: false
+snpeff: false	snpeff: true
+vep: false	vep: true

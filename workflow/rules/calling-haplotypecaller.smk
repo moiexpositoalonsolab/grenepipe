@@ -5,19 +5,25 @@ import platform
 # =================================================================================================
 
 
-# Combine all params to call gatk. We may want to set regions, we set that bit of multithreading
-# that gatk is capable of (not much, but the best we can do without spark...), and we add
-# all additional params from the config file.
-def get_gatk_call_variants_params(wildcards, input):
-    return (
-        get_gatk_regions_param(
-            regions=input.regions, default="--intervals '{}'".format(wildcards.contig)
-        )
-        # + " --native-pair-hmm-threads "
-        # + str(config["params"]["gatk"]["HaplotypeCaller-threads"])
-        + " "
-        + config["params"]["gatk"]["HaplotypeCaller-extra"]
-    )
+# Depending on the config, we need to either specify the restricted regions, or the combined
+# contigs as the intervals in which to call. If neither is given, we call simply per contig
+# in the ref genome.
+def get_gatk_intervals(wildcards):
+    if config["settings"].get("restrict-regions"):
+        return "calling/regions/{}.bed".format(wildcards.contig)
+    if config["settings"].get("contig-group-size"):
+        return "calling/contig-groups/{}.bed".format(wildcards.contig)
+    return wildcards.contig
+
+
+# We also need a function that returns the file or an empty list, so that we can use this
+# in the inout of rules, in order to ensure that the files are present.
+def get_gatk_interval_files(wildcards):
+    if config["settings"].get("restrict-regions"):
+        return "calling/regions/{}.bed".format(wildcards.contig)
+    if config["settings"].get("contig-group-size"):
+        return "calling/contig-groups/{}.bed".format(wildcards.contig)
+    return []
 
 
 rule call_variants:
@@ -39,16 +45,11 @@ rule call_variants:
             config["data"]["known-variants"] + ".tbi" if config["data"]["known-variants"] else []
         ),
         # Further settings for region constraint filter.
-        # regions="calling/regions/{contig}.bed" if config["settings"].get("restrict-regions") else []
-        regions=(
-            "calling/regions/{contig}.bed"
-            if (config["settings"].get("restrict-regions"))
-            else (
-                "calling/contig-groups/{contig}.bed"
-                if (config["settings"].get("contig-group-size"))
-                else []
-            )
-        ),
+        # We need this here as an unused input, so that the bed files are guaranteed to be created
+        # beforehand if needed. They are however actually provided to the wrapper via the params.
+        # We cannot provide them here, in the default case, it's a contig name, which is not a file.
+        # Hence, this is only relevant with restrict regions or contig groups.
+        intervals_dummy=get_gatk_interval_files,
     output:
         gvcf=(
             "calling/called/{sample}.{contig}.g.vcf.gz"
@@ -65,14 +66,14 @@ rule call_variants:
     log:
         "logs/calling/gatk-haplotypecaller/{sample}.{contig}.log",
     benchmark:
-        "benchmarks/calling/called/gatk-haplotypecaller/{sample}.{contig}.log"
+        "benchmarks/calling/gatk-haplotypecaller/{sample}.{contig}.log"
     # Need to set threads here so that snakemake can plan the job scheduling properly
     threads: config["params"]["gatk"]["HaplotypeCaller-threads"]
     params:
-        # The function here is where the contig variable is propagated to haplotypecaller.
-        # Took me a while to figure this one out...
+        # The intervals param here is where the contig variable is propagated to haplotypecaller.
         # Contigs are used as long as no restrict-regions are given in the config file.
-        extra=get_gatk_call_variants_params,
+        intervals=get_gatk_intervals,
+        extra=config["params"]["gatk"]["HaplotypeCaller-extra"],
         java_opts=config["params"]["gatk"]["HaplotypeCaller-java-opts"],
     resources:
         mem_mb=config["params"]["gatk"].get("HaplotypeCaller-mem-mb", 1024),
@@ -119,6 +120,56 @@ rule call_variants:
 # =================================================================================================
 
 
+# Recommended way of GATK to combine GVCFs these days.
+rule genomics_db_import:
+    input:
+        # Get the reference genome and its indices. Not sure if the indices are needed
+        # for this particular rule, but doesn't hurt to include them as an input anyway.
+        ref=config["data"]["reference-genome"],
+        refidcs=expand(
+            config["data"]["reference-genome"] + ".{ext}",
+            ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
+        ),
+        refdict=genome_dict(),
+        # Get the sample data, including indices.
+        gvcfs=expand(
+            "calling/called/{sample}.{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]
+        ),
+        indices=expand(
+            "calling/called/{sample}.{{contig}}.g.vcf.gz.tbi",
+            sample=config["global"]["sample-names"],
+        ),
+        done=expand(
+            "calling/called/{sample}.{{contig}}.g.vcf.gz.done",
+            sample=config["global"]["sample-names"],
+        ),
+        # Same as above, we need a dummy for the intervals to ensure the files are present.
+        intervals_dummy=get_gatk_interval_files,
+    output:
+        db=directory("calling/genomics_db/{contig}"),
+        done=touch("calling/genomics_db/{contig}.done"),
+    log:
+        "logs/calling/genomicsdbimport/{contig}.log",
+    benchmark:
+        "benchmarks/calling/genomicsdbimport/{contig}.log"
+    params:
+        # Here, we actually use the intervals to provide them to the wrapper.
+        intervals=get_gatk_intervals,
+        db_action="create",
+        extra=" --reference " + config["data"]["reference-genome"] + " --sequence-dictionary " + genome_dict() + " " + config["params"]["gatk"]["GenomicsDBImport-extra"],
+        java_opts=config["params"]["gatk"]["GenomicsDBImport-java-opts"],
+    # threads: 2
+    resources:
+        mem_mb=config["params"]["gatk"]["GenomicsDBImport-mem-mb"],
+        tmpdir=config["params"]["gatk"]["GenomicsDBImport-temp-dir"],
+    conda:
+        "../envs/gatk.yaml"
+    wrapper:
+        "v5.7.0/bio/gatk/genomicsdbimport"
+
+
+# Old way, using GATK CombineGVCFs, which is slow when run on many samples.
+# We still offer it for compatibility and completeness, but recommend using GenomicsDBImport instead.
 rule combine_calls:
     input:
         # Get the reference genome and its indices. Not sure if the indices are needed
@@ -161,13 +212,18 @@ rule combine_calls:
     log:
         "logs/calling/gatk-combine-gvcfs/{contig}.log",
     benchmark:
-        "benchmarks/calling/called/gatk-combine-gvcfs/{contig}.log"
+        "benchmarks/calling/gatk-combine-gvcfs/{contig}.log"
     # group:
     #     "gatk_calls_combine"
     conda:
         "../envs/gatk.yaml"
     wrapper:
         "v5.7.0/bio/gatk/combinegvcfs"
+
+
+# =================================================================================================
+#     Genotype Variants
+# =================================================================================================
 
 
 rule genotype_variants:
@@ -180,8 +236,26 @@ rule genotype_variants:
             ext=["amb", "ann", "bwt", "pac", "sa", "fai"],
         ),
         refdict=genome_dict(),
-        gvcf="calling/combined/all.{contig}.g.vcf.gz",
-        done="calling/combined/all.{contig}.g.vcf.gz.done",
+        # Get the GVCF or GenomicsDB input, depending on which tool is requested in the config.
+        gvcf="calling/combined/all.{contig}.g.vcf.gz"
+        if not config["params"]["gatk"]["use-GenomicsDBImport"]
+        else [],
+        gvcf_done="calling/combined/all.{contig}.g.vcf.gz.done"
+        if not config["params"]["gatk"]["use-GenomicsDBImport"]
+        else [],
+        genomicsdb="calling/genomics_db/{contig}"
+        if config["params"]["gatk"]["use-GenomicsDBImport"]
+        else [],
+        genomicsdb_done="calling/genomics_db/{contig}.done"
+        if config["params"]["gatk"]["use-GenomicsDBImport"]
+        else [],
+        # If known variants are set in the config, use them, and require the index file as well.
+        known=config["data"]["known-variants"],
+        knownidx=(
+            config["data"]["known-variants"] + ".tbi" if config["data"]["known-variants"] else []
+        ),
+        # Same as above, we need a dummy for the intervals to ensure the files are present.
+        intervals_dummy=get_gatk_interval_files,
     output:
         vcf=(
             "calling/genotyped/all.{contig}.vcf.gz"
@@ -190,12 +264,9 @@ rule genotype_variants:
         ),
         done=touch("calling/genotyped/all.{contig}.vcf.gz.done"),
     params:
-        extra=config["params"]["gatk"]["GenotypeGVCFs-extra"]
-        + (
-            " --dbsnp " + config["data"]["known-variants"] + " "
-            if config["data"]["known-variants"]
-            else ""
-        ),
+        # Again, we here use the intervals to provide them to the wrapper.
+        intervals=get_gatk_intervals,
+        extra=" --sequence-dictionary " + genome_dict() + " " + config["params"]["gatk"]["GenotypeGVCFs-extra"],
         java_opts=config["params"]["gatk"]["GenotypeGVCFs-java-opts"],
     resources:
         mem_mb=config["params"]["gatk"].get("GenotypeGVCFs-mem-mb", 1024),

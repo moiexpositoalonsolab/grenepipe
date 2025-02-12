@@ -218,7 +218,8 @@ if "restrict-regions" in config["settings"]:
         conda:
             "../envs/bedops.yaml"
         shell:
-            "bedextract {wildcards.contig} {input} > {output}"
+            "sort-bed {input} > {input}.sorted ; "
+            "bedextract {wildcards.contig} {input}.sorted > {output}"
 
     # Rule is not submitted as a job to the cluster.
     localrules:

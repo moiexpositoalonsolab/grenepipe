@@ -65,18 +65,6 @@ def get_read_group_tags(wildcards):
     # )
 
 
-# Helper function needed by some of the GATK tools, here and in the calling.
-def get_gatk_regions_param(regions=config["settings"].get("restrict-regions"), default=""):
-    if regions:
-        params = "--intervals '{}' ".format(regions)
-        # Not used at the moment, as we deleted this config setting.
-        # padding = config["settings"].get("region-padding")
-        # if padding:
-        #     params += "--interval-padding {}".format(padding)
-        return params
-    return default
-
-
 # =================================================================================================
 #     Read Mapping
 # =================================================================================================

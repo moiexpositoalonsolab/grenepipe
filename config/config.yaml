@@ -772,10 +772,26 @@ params:
     # Others might work as well, depending on GATK BaseRecalibrator.
     platform: ""
 
+    # Number of threads to use for the HaplotypeCaller. We recommend to keep this at 2,
+    # as GATK does not seem to do a great job of parallelizing anyway.
+    HaplotypeCaller-threads: 2
+
+    # By default, starting in grenepipe v0.14.0, we are using GATK GenomicsDBImport instead of
+    # GATK CombineGVCFs to prepare the singular GVCF for GATK GenotypeGVCFs. However, for full
+    # compatibility, we also offer to use the old way with CombineGVCFs here, by setting
+    # the option to `false`.
+    use-GenomicsDBImport: true
+
+    # Temporary directory for GenomicsDBImport.
+    # If the default system temp dir does not have enough space, which can happen on cluster systems,
+    # use this to set to a directory with more space, or, with slurm, specify the temp dir there.
+    GenomicsDBImport-temp-dir: ""
+
     # Used only if settings:calling-tool == haplotypecaller
     # Extra parameters for HaplotypeCaller and surrounding steps,
     # see https://gatk.broadinstitute.org/hc/en-us/articles/360036803991-HaplotypeCaller
     HaplotypeCaller-extra: ""
+    GenomicsDBImport-extra: ""
     CombineGVCFs-extra: ""
     GenotypeGVCFs-extra: ""
 
@@ -785,6 +801,7 @@ params:
     # and hence cannot be specified here. Instead, use the below `*-mem-mb` options,
     # or, if you are running grenepipe via slurm, use the slurm job configuration.
     HaplotypeCaller-java-opts: ""
+    GenomicsDBImport-java-opts: ""
     CombineGVCFs-java-opts: ""
     GenotypeGVCFs-java-opts: ""
 
@@ -792,12 +809,9 @@ params:
     # Unfortunately, Java does not automatically use the available memory, and instead needs
     # to be told that it is allowed to do that. Specify the memory here as needed, in MB.
     HaplotypeCaller-mem-mb: 1024
+    GenomicsDBImport-mem-mb: 1024
     CombineGVCFs-mem-mb: 1024
     GenotypeGVCFs-mem-mb: 1024
-
-    # Number of threads to use for the HaplotypeCaller. We recommend to keep this at 2,
-    # as GATK does not seem to do a great job of parallelizing anyway.
-    HaplotypeCaller-threads: 2
 
   # ----------------------------------------------------------------------
   #     GATK VariantFiltration

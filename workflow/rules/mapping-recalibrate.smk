@@ -69,6 +69,18 @@ def get_recal_input(ext=""):
         return f + ext
 
 
+# Helper function needed below. Could probably be replaced by intervals.
+def get_gatk_regions_param(regions=config["settings"].get("restrict-regions"), default=""):
+    if regions:
+        params = "--intervals '{}' ".format(regions)
+        # Not used at the moment, as we deleted this config setting.
+        # padding = config["settings"].get("region-padding")
+        # if padding:
+        #     params += "--interval-padding {}".format(padding)
+        return params
+    return default
+
+
 rule recalibrate_base_qualities:
     input:
         bam=get_recal_input(),
