@@ -156,6 +156,24 @@ def get_mates(seqfiles):
                     if cand_idx > -1:
                         multiple_r = True
                     cand_idx = i
+                    continue
+                # We now also check if there is a match where the 1/2 are separated from the rest
+                # of the file name by punctuation, which we also take as a preferred match.
+                # This can for instance disambiguate between the following files:
+                # SRR01_1.fastq
+                # SRR01_2.fastq
+                # SRR02_1.fastq
+                # SRR02_2.fastq
+                assert cand.pos + 1 < len(cand.seq1)
+                p_is_punct = cand.seq1[ cand.pos - 1 ] in ['-', '_', '.']
+                n_is_punct = cand.seq1[ cand.pos + 1 ] in ['-', '_', '.']
+                if p_is_punct and n_is_punct:
+                    assert cand.pos + 1 < len(cand.seq2)
+                    assert cand.seq2[ cand.pos - 1 ] in ['-', '_', '.']
+                    assert cand.seq2[ cand.pos + 1 ] in ['-', '_', '.']
+                    if cand_idx > -1:
+                        multiple_r = True
+                    cand_idx = i
             if cand_idx == -1 or multiple_r:
                 # Here, we either found no 'R', or multiple ones. Either way, we fail.
                 print(colored("Found multiple conflicting match pair candidates.", "red"))
