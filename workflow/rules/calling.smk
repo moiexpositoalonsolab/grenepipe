@@ -1,4 +1,5 @@
 import json
+import math
 
 # =================================================================================================
 #     Get Contigs
@@ -66,7 +67,101 @@ if config["settings"].get("contig-group-size", 0) > 0:
         #     print(str(i) + ": [" + str(sums[i]) + "] " + str(bins[i]))
 
         # Return the bins with all contigs and their sizes
+        print("Success with", len(bins), "groups")
         return bins
+
+
+    # Alternative heuristic to assign contigs to groups, minimizing the number of groups created,
+    # while also respecting the max contig group size and the max contigs per group, and also
+    # trying to optimize the load balancing by distributing short and long contigs over groups.
+    # The result is a list of lists of tuples. The outer list are the groups. Each group then
+    # contains the list of tuples (contig name and length) of the group.
+    def optimize_contig_group(contigs, max_contig_group_size, max_contigs_per_group):
+        # First, sort by length, large ones first, decreasing.
+        contigs.sort(key=lambda x: x[1], reverse=True)
+
+        # First, fill the final group list with all contigs that are larger than the group size.
+        # We do not split existing chromsomes/contigs, so we have to live with them being too large.
+        # Also, collect all smaller contigs (smaller than the max group size), for further processing.
+        large_groups = []
+        small_contigs = []
+        for contig in contigs:
+            if contig[1] >= max_contig_group_size:
+                large_groups.append([])
+                large_groups[-1].append(contig)
+            else:
+                small_contigs.append(contig)
+        print("Found ", len(large_groups), "large contigs and", len(small_contigs), "small contigs")
+
+        # No small contigs: We are done
+        if len(small_contigs) == 0:
+            return large_groups
+
+        # Now we have a list of small contigs for which to create new groups.
+        # We do that in a loop until we succeed to fulfill all boundary conditions.
+        # In particular, we want to limit the number of contigs per group, and not exceed
+        # the sum of contig lengths per group. In each iteration, we increase the number
+        # of groups created by one, hence guaranteeing success at some point.
+        # There might be a better solution to this, but this is simple and works.
+        # We start with as many groups as we minimally need such that we can fulfill the max
+        # contigs per group constraint.
+        num_groups = max(1, int(math.ceil(len(small_contigs) / max_contigs_per_group)))
+        need_iteration = True
+        while need_iteration:
+            print("Evaluating with", num_groups, " small contig groups")
+            need_iteration = False
+
+            # We fill a temporary list for the small contigs, starting with as many empty lists
+            # as we have groups, and then fill each group's list with its contigs.
+            # We do this by alternating to fill forwards and backwards - that is the heuristic
+            # that is meant to avoid having groups with only small or only large contigs.
+            # By going back and forth instead of filling from the start, we get a more even spread.
+            # Let's call this the zig-zag round-robing assignment :-)
+            # For instance, we should get: [[1, 6, 7], [2, 5, 8], [3, 4, 9]]
+            small_groups = [[] for _ in range(num_groups)]
+            round_num = 0
+            index = 0
+
+            # Continue until all contigs have been distributed.
+            while index < len(small_contigs):
+                # Determine the order based on whether the round is even (forward) or odd (backward)
+                if round_num % 2 == 0:
+                    order = range(num_groups)
+                else:
+                    order = range(num_groups - 1, -1, -1)
+
+                # Distribute one element per group in the specified order.
+                for i in order:
+                    if index >= len(small_contigs):
+                        break
+                    small_groups[i].append(small_contigs[index])
+                    index += 1
+                round_num += 1
+
+            # Now we test if this was successful: Is each group small enough, both in terms
+            # of total length, and in terms of number of contigs per group?
+            small_contig_count = 0
+            for group in small_groups:
+                total_len = sum(contig[1] for contig in group)
+                if (total_len > max_contig_group_size) or (len(group) > max_contigs_per_group):
+                    print(
+                        "Not enough groups. Got group length", total_len, ">", max_contig_group_size,
+                        "and got contigs per group", len(group), ">", max_contigs_per_group
+                    )
+                    need_iteration = True
+                    num_groups += 1
+                    break
+                small_contig_count += len(group)
+
+        # Now we are done. Make sure that we have processed the right number of contigs.
+        # Then, add all small contigs as groups to our final result, and return it.
+        assert small_contig_count == len(small_contigs)
+        print(
+            "Success with", num_groups, "small contig groups, and",
+            (len(large_groups) + len(small_groups)), "total groups"
+        )
+        return large_groups + small_groups
+
 
     checkpoint contig_groups:
         input:
@@ -78,29 +173,42 @@ if config["settings"].get("contig-group-size", 0) > 0:
         params:
             min_contig_size=config["settings"].get("min-contig-size", 0),
             contig_group_size=config["settings"].get("contig-group-size", 0),
+            max_contigs_per_group=config["settings"].get("max-contigs-per-group", 0),
         run:
+            # Open the log file in write (or append) mode, and redirect both stdout and stderr
+            # to the log file. Snakemake does not do that for us...
+            log_file = open(log[0], "w")
+            sys.stdout = log_file
+            sys.stderr = log_file
+
             # Solve the bin packing for the contigs, to get a close to optimal solution
             # for putting them in groups. Large contigs (e.g., whole chromosomes) that are larger
             # than the bin size will simply get their own (overflowing...) bin.
             contig_list = read_contigs_from_fai(input.fai, params.min_contig_size)
-            contig_bins = solve_bin_packing(contig_list, params.contig_group_size)
+            if params.max_contigs_per_group == 0:
+                print("Running bin packing solver")
+                contig_groups = solve_bin_packing(contig_list, params.contig_group_size)
+            else:
+                print("Running heuristic optimizer")
+                contig_groups = optimize_contig_group(
+                    contig_list, params.contig_group_size, params.max_contigs_per_group
+                )
 
             # Now turn the contig bins into groups for the result of this function.
             # We store our resulting list of contigs containing all contigs,
             # in tuples with their sizes. The contigs is a dict from group name to a list
             # (over contings in the group) of tuples.
             contigs = {}
-            for bin in contig_bins:
+            for group in contig_groups:
                 groupname = "contig-group-" + str(len(contigs))
-                contigs[groupname] = bin
+                contigs[groupname] = group
 
-                # We need to store the result in a file, so that the rule that creates the per-contig
-                # files can access it.
+            # We need to store the result in a file, so that the rule that creates the per-contig
+            # files can access it.
             json.dump(contigs, open(output[0], "w"))
 
-            # Rule is not submitted as a job to the cluster.
 
-
+    # Rule is not submitted as a job to the cluster.
     localrules:
         contig_groups,
 
@@ -117,8 +225,8 @@ if config["settings"].get("contig-group-size", 0) > 0:
             contigs="calling/contig-groups/contigs.json",
         output:
             "calling/contig-groups/{contig}.bed",
-        log:
-            "logs/calling/contig-groups/{contig}.log",
+        # log:
+        #     "logs/calling/contig-groups/{contig}.log",
         run:
             # Get the contigs file that we created above.
             contigs = json.load(open(input.contigs))

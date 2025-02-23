@@ -242,6 +242,9 @@ settings:
   # number of bins that is approximately equal to the number of chromosomes (if they were fully
   # assembled), with each bin (that is, each computational job) containing contigs whose length in
   # sum is approximately the size of a chromosome.
+  # When you have some (almost) fully assembled chromosomes mixed with some small contigs,
+  # set this to the size of the smallest full chromosome. That way, all small contigs will be
+  # distributed into groups of maxmimally that size.
   #
   # Note that this contig group size is measured in basepairs (or nucleotides), and hence is not
   # the number of bins to create, but the size of each. So, for example, when your genome has a
@@ -251,6 +254,26 @@ settings:
   # of contigs. Then, each group contains about 5,000 / 10 = 10,000,000 / 20,000 = 500 contigs
   # (on average).
   contig-group-size: 0
+
+  # When using the GATK HaplotypeCaller with the above `contig-group-size` setting, on reference
+  # genomes with many (hundreds to thousands) of contigs, we might run into a performance issue.
+  # This is unfortunately due to GATK being very inefficiently implemented when working with many
+  # contigs at once. To alleviate this, we can limit the number of contigs per group here.
+  # See https://gatk.broadinstitute.org/hc/en-us/articles/360056138571-GenomicsDBImport-usage-and-performance-guidelines
+  # for some background on this.
+  #
+  # Following the advice of the GATK documentation, we recommend no more than 100 contigs per group
+  # (i.e., per execution of GenomicsDBImport). Default is 50, which will create a somewhat larger
+  # number of groups, but should run faster.
+  #
+  # On a technical note, when this option is set to a non-zero value (which it is by default), we
+  # employ a heuristic that tries to minimize the number of groups without exceeding the above
+  # `contig-group-size` (except for contigs that are already larger, such as fully assembled
+  # chromosomes) and without exeeding this `max-contigs-per-group`, while also heuristically
+  # optimizing the load balancing such that each group contains roughly the same number of larger
+  # and smaller contigs (to avoid having a group with too many small or too many large contigs).
+  # That's a lot of optimization, which hopefully leads to the best performance in most cases.
+  max-contigs-per-group: 50
 
   # EXPERIMENTAL.
   # Path to a `bed` file with, e.g., captured regions, in order to restrict the variant calling
