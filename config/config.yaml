@@ -208,26 +208,34 @@ settings:
   # below (see `filter-variants`), as it uses different VCF annotations than GATK for the filters.
   calling-tool: "haplotypecaller"
 
+  # For reference genomes that contain many small contigs, it might not be necessary to call
+  # variants on very small contigs. This option excludes all contigs smaller than the given size
+  # (in basepairs) from variant calling. Note that this does not affect the mapping, so that
+  # reads from these contigs can still be properly mapped.
+  min-contig-size: 0
+
   # For some reference genomes, not all chromosomes/contigs have been fully assembled yet,
   # and instead the reference genome consists of many small contigs/scaffolds.
   # As some of the steps in the workflow however parallelize over contigs (for speed),
-  # this can lead to a large number of jobs being created, which in particular can cause issues
-  # when running in cluster environments.
+  # this can lead to a large number of jobs being created, with uneven load balancing, and many
+  # intermediate files being created, which might give suboptimal performance when running
+  # in cluster environments.
   #
   # Hence, we offer this setting to combine small contigs/scaffolds for the computation.
   # This does not change the results (which will still contain each of them as a separate contig),
-  # but merely combines them for the computation.
+  # but merely combines them for the computation. It also takes the above `min-contig-size` into
+  # account, if set.
   #
   # If set to a size greater than 0, small contigs/scaffolds are combined into bins,
   # so that the sum of lengths (in basepairs) of contigs in each bin is smaller than the given size,
-  # while optimizing for a minimum number of bins (bin packing problem), that is, minimizing number
-  # of compute jobs that need to be executed. Contigs that are already longer than the given size
-  # (e.g., if some chromosomes are already fully assembled) are not affected by this, and will just
-  # get their own bin. We never split contigs further down, meaning that the computational resources
-  # needed for a particular dataset are lower bound by the largest contig. Combining contigs into
+  # while optimizing for a minimum number of bins, that is, minimizing number of compute jobs
+  # that need to be executed. Contigs that are already longer than the given size (e.g., if some
+  # chromosomes are already fully assembled) are not affected by this, and will just get their
+  # own bin. We never split contigs further down, meaning that the computational resources
+  # needed for a particular dataset are lower bounded by the largest contig. Combining contigs into
   # bins increases the resources (time and memory) needed to process the bin, but reduces the
-  # overall number of compute tasks/jobs, so this is a tradeoff to be made depending on your data
-  # and available compute resources.
+  # overall number of compute tasks/jobs and files, so this is a tradeoff to be made depending
+  # on your data and available compute resources.
   #
   # Rule of thumb: If you have many small contigs and want to use this feature, you can set the
   # value to roughly the size of an actual chromosome of your species. This should give a total

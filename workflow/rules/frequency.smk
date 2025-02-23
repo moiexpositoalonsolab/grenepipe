@@ -127,7 +127,9 @@ def check_hafpipe_founder_vcf(vcf):
 # in order to (a) make it clear that these need to be actual sequences from the reference genome,
 # and not our contig groups for example, and to (b) avoid accidents when matching the wildcards.
 def get_hafpipe_chromosomes(fai):
-    ref_chrs = get_chromosomes(fai)
+    # Get the list of contigs from the fai file.
+    # The function returns tuples with their sizes, which we do not need here, and can drop.
+    ref_chrs = [t[0] for t in read_contigs_from_fai(fai)]
     haf_chrs = list(config["params"]["hafpipe"]["chromosomes"])
     if len(haf_chrs) == 0:
         haf_chrs = ref_chrs

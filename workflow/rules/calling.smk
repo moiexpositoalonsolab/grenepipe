@@ -1,6 +1,29 @@
 import json
 
 # =================================================================================================
+#     Get Contigs
+# =================================================================================================
+
+
+# Get the list of chromosome names that are present in the fai file,
+# and their length, with a length filter if needed.
+def read_contigs_from_fai(fai, min_contig_size = 0):
+    # return list(pd.read_csv(fai, sep="\t", header=None, usecols=[0], dtype=str).squeeze())
+
+    # Read fai to get all contigs and their sizes.
+    contig_list = []
+    with open(fai, "r") as f:
+        for line in f:
+            contig, length_str = line.split("\t")[:2]
+            contig = contig.strip()
+            length = int(length_str.strip())
+            if length < min_contig_size:
+                continue
+            contig_list.append((contig, length))
+    return contig_list
+
+
+# =================================================================================================
 #     Grouping of (Small) Contigs
 # =================================================================================================
 
@@ -53,20 +76,13 @@ if config["settings"].get("contig-group-size", 0) > 0:
         log:
             "logs/calling/contig-groups/contigs.log",
         params:
+            min_contig_size=config["settings"].get("min-contig-size", 0),
             contig_group_size=config["settings"].get("contig-group-size", 0),
         run:
-            # Read fai to get all contigs and their sizes.
-            contig_list = []
-            with open(input.fai, "r") as f:
-                for line in f:
-                    contig, length_str = line.split("\t")[:2]
-                    contig = contig.strip()
-                    length = int(length_str.strip())
-                    contig_list.append((contig, length))
-
-                    # Solve the bin packing for the contigs, to get a close to optimal solution
-                    # for putting them in groups. Large contigs (e.g., whole chromosomes) that are larger
-                    # than the bin size will simply get their own (overflowing...) bin.
+            # Solve the bin packing for the contigs, to get a close to optimal solution
+            # for putting them in groups. Large contigs (e.g., whole chromosomes) that are larger
+            # than the bin size will simply get their own (overflowing...) bin.
+            contig_list = read_contigs_from_fai(input.fai, params.min_contig_size)
             contig_bins = solve_bin_packing(contig_list, params.contig_group_size)
 
             # Now turn the contig bins into groups for the result of this function.
@@ -162,12 +178,6 @@ if "contigs" in config["global"]:
     raise Exception("Config key 'global:contigs' already defined. Someone messed with our setup.")
 
 
-# Get the list of chromosome names that are present in the fai file.
-# This is just the first column of the file.
-def get_chromosomes(fai):
-    return list(pd.read_csv(fai, sep="\t", header=None, usecols=[0], dtype=str).squeeze())
-
-
 # Contigs in reference genome. This function gives the list of contig names that we want to
 # use for calling, that is, either all contigs of the reference genome, or, if contig grouping
 # is activated, the names for the contig groups that are sent as one job combining multiple contigs.
@@ -194,9 +204,13 @@ def get_contigs(fai):
         return config["global"]["contigs"]
 
     # Without contig groups, just read the fai and return its first column,
-    # which contains the ref sequence names (our contigs). Store it in the global variable
+    # which contains the ref sequence names (our contigs), except for the ones that are shorter
+    # than the user-provided min size (if given). Store it in the global variable
     # first to not have to do the reading each time.
-    config["global"]["contigs"] = get_chromosomes(fai)
+    min_contig_size = config["settings"].get("min-contig-size", 0)
+    contig_list = read_contigs_from_fai(fai, min_contig_size)
+    config["global"]["contigs"] = [t[0] for t in contig_list]
+    [t[0] for t in tuples_list]
     return config["global"]["contigs"]
 
 
