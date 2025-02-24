@@ -20,6 +20,8 @@ rule bcftools_stats:
         "qc/bcftools-stats/stats.vchk",
     log:
         "logs/qc/bcftools-stats.log",
+    benchmark:
+        "benchmarks/qc/bcftools-stats.log"
     params:
         config["params"]["bcftools"]["stats"],
     conda:
@@ -38,6 +40,8 @@ rule bcftools_stats_plot:
         "qc/bcftools-stats/summary.pdf",
     log:
         "logs/qc/bcftools-stats-plot.log",
+    benchmark:
+        "benchmarks/qc/bcftools-stats-plot.log"
     params:
         outdir="qc/bcftools-stats",
         extra=config["params"]["bcftools"]["stats-plot"],

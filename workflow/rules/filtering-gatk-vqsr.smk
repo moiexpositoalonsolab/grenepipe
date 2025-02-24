@@ -106,7 +106,7 @@ rule gatk_variant_recalibrator:
     log:
         "logs/calling/gatk-variantrecalibrator/{vartype}.log",
     benchmark:
-        "benchmarks/calling/filtered/gatk-variantrecalibrator/{vartype}.log"
+        "benchmarks/calling/gatk-variantrecalibrator/{vartype}.log"
     # Group deactivated, so that it can run in parallel for SNP and INDEL
     # group:
     #     "filtering"
@@ -144,7 +144,7 @@ rule gatk_apply_vqsr:
     log:
         "logs/calling/gatk-applyvqsr/{vartype}.log",
     benchmark:
-        "benchmarks/calling/filtered/gatk-applyvqsr/{vartype}.log"
+        "benchmarks/calling/gatk-applyvqsr/{vartype}.log"
     params:
         # set mode, must be either SNP, INDEL or BOTH
         mode="{vartype}",

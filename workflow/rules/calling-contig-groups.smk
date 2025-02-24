@@ -159,7 +159,7 @@ checkpoint contig_groups:
     output:
         "calling/contig-groups/contigs.json",
     log:
-        "logs/calling/contig-groups/contigs.log",
+        "logs/calling/contig-groups.log",
     params:
         min_contig_size=config["settings"].get("min-contig-size", 0),
         contig_group_size=config["settings"].get("contig-group-size", 0),

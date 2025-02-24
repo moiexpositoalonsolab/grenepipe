@@ -153,6 +153,8 @@ rule merge_sample_unit_bams:
     threads: config["params"]["samtools"]["merge-threads"]
     log:
         "logs/mapping/samtools-merge/{sample}.log",
+    benchmark:
+        "benchmarks/mapping/samtools-merge/{sample}.log"
     conda:
         # Need our own env again, because of conflicting numpy and pandas version...
         # Probably the cause of https://github.com/moiexpositoalonsolab/grenepipe/issues/58
@@ -181,6 +183,8 @@ rule filter_mapped_reads:
         extra=config["params"]["samtools"]["view"] + " -b",
     log:
         "logs/mapping/samtools-view/{sample}.log",
+    benchmark:
+        "benchmarks/mapping/samtools-view/{sample}.log"
     conda:
         # Need our own env again, because of conflicting numpy and pandas version...
         "../envs/samtools.yaml"
@@ -207,9 +211,9 @@ rule clip_read_overlaps:
     params:
         extra=config["params"]["bamutil"]["extra"],
     log:
-        "logs/mapping/bamutil/{sample}.log",
+        "logs/mapping/bamutil-clipoverlap/{sample}.log",
     benchmark:
-        "benchmarks/mapping/bamutil/{sample}.log"
+        "benchmarks/mapping/bamutil-clipoverlap/{sample}.log"
     conda:
         "../envs/bamutil.yaml"
     shell:

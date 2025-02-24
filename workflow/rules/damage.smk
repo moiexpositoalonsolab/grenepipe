@@ -27,6 +27,8 @@ rule mapdamage:
         outdir="damage/mapdamage/{sample}",
     log:
         "logs/damage/mapdamage/{sample}.log",
+    benchmark:
+        "benchmarks/damage/mapdamage/{sample}.log"
     conda:
         # We have two different env yaml files, depending on the platform.
         # This is because on Linux, a particular lib might be missing that is needed for mapdamage,
@@ -78,6 +80,8 @@ rule damageprofiler:
         outdir="damage/damageprofiler/{sample}",
     log:
         "logs/damage/damageprofiler/{sample}.log",
+    benchmark:
+        "benchmarks/damage/damageprofiler/{sample}.log"
     conda:
         "../envs/damageprofiler.yaml"
     shell:

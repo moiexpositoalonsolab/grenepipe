@@ -106,6 +106,8 @@ rule sort_reads:
     threads: 1  # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
         "logs/mapping/samtools-sort/{sample}-{unit}.log",
+    benchmark:
+        "benchmarks/mapping/samtools-sort/{sample}-{unit}.log"
     group:
         "mapping"
     conda:

@@ -81,9 +81,9 @@ if config["settings"].get("contig-group-size"):
             + str(config["params"]["picard"].get("SortVcf-mem-mb", 1024))
             + "m",
         log:
-            "logs/calling/picard/sort-genotyped.log",
+            "logs/calling/picard-sort-genotyped.log",
         benchmark:
-            "benchmarks/calling/genotyped/picard/sort-genotyped.log"
+            "benchmarks/calling/picard-sort-genotyped.log"
         conda:
             "../envs/picard.yaml"
         shell:

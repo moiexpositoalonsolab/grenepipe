@@ -149,9 +149,9 @@ rule genomics_db_import:
         db=directory("calling/genomics_db/{contig}"),
         done=touch("calling/genomics_db/{contig}.done"),
     log:
-        "logs/calling/genomicsdbimport/{contig}.log",
+        "logs/calling/gatk-genomicsdbimport/{contig}.log",
     benchmark:
-        "benchmarks/calling/genomicsdbimport/{contig}.log"
+        "benchmarks/calling/gatk-genomicsdbimport/{contig}.log"
     params:
         # Here, we actually use the intervals to provide them to the wrapper.
         intervals=get_gatk_intervals,
@@ -289,7 +289,7 @@ rule genotype_variants:
     log:
         "logs/calling/gatk-genotype-gvcfs/{contig}.log",
     benchmark:
-        "benchmarks/calling/genotyped/gatk-genotype-gvcfs/{contig}.log"
+        "benchmarks/calling/gatk-genotype-gvcfs/{contig}.log"
     # group:
     #     "gatk_calls_combine"
     conda:
@@ -342,7 +342,7 @@ rule merge_variants:
     log:
         "logs/calling/picard-merge-genotyped.log",
     benchmark:
-        "benchmarks/calling/genotyped/picard/merge-genotyped.log"
+        "benchmarks/calling/picard-merge-genotyped.log"
     conda:
         "../envs/picard.yaml"
     wrapper:

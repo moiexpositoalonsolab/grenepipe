@@ -41,9 +41,9 @@ rule call_variants:
         # Optional parameters for bcftools call (except -v, -o, -m).
         call=config["params"]["bcftools"]["call"],
     log:
-        "logs/calling/bcftools/call-{sample}.{contig}.log",
+        "logs/calling/bcftools-call/{sample}.{contig}.log",
     benchmark:
-        "benchmarks/calling/called/bcftools/call-{sample}.{contig}.log"
+        "benchmarks/calling/bcftools-call/{sample}.{contig}.log"
     conda:
         "../envs/bcftools.yaml"
     threads: config["params"]["bcftools"]["threads"]
@@ -99,9 +99,9 @@ rule combine_contig:
         gvcflist="calling/combined/all.{contig}.g.txt",
         done=touch("calling/combined/all.{contig}.g.vcf.gz.done"),
     log:
-        "logs/calling/bcftools/combine-contig-{contig}.log",
+        "logs/calling/bcftools-combine-contig/{contig}.log",
     benchmark:
-        "benchmarks/calling/combined/bcftools/combine-contig-{contig}.log"
+        "benchmarks/calling/bcftools-combine-contig/{contig}.log"
     conda:
         "../envs/bcftools.yaml"
     shell:
@@ -193,9 +193,9 @@ rule combine_all:
         # Use a list of the chromosomes in the same order as the fai, for bcftools to sort the output.
         regionorder=combined_contig_order,
     log:
-        "logs/calling/bcftools/combine-all.log",
+        "logs/calling/bcftools-combine-all.log",
     benchmark:
-        "benchmarks/calling/genotyped/bcftools/combine-all.log"
+        "benchmarks/calling/bcftools-combine-all.log"
     conda:
         "../envs/bcftools.yaml"
     shell:

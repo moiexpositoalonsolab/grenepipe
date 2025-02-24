@@ -186,6 +186,8 @@ rule bwa_bam_clean:
         "mapping"
     log:
         "logs/mapping/picard-cleansam/{sample}-{unit}.log",
+    benchmark:
+        "benchmarks/mapping/picard-cleansam/{sample}-{unit}.log"
     conda:
         "../envs/picard.yaml"
     shell:

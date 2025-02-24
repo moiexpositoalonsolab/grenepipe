@@ -90,7 +90,7 @@ if "restrict-regions" in config["settings"]:
         output:
             "calling/regions/{contig}.bed",
         log:
-            "logs/calling/regions/bedextract/{contig}.regions.log",
+            "logs/calling/restrict-regions-bedextract/{contig}.log",
         conda:
             "../envs/bedops.yaml"
         shell:

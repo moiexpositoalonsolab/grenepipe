@@ -34,7 +34,7 @@ rule gatk_hard_filter_calls:
     log:
         "logs/calling/gatk-variantfiltration/{vartype}.log",
     benchmark:
-        "benchmarks/calling/filtered/gatk-variantfiltration/{vartype}.log"
+        "benchmarks/calling/gatk-variantfiltration/{vartype}.log"
     group:
         "filtering"
     conda:

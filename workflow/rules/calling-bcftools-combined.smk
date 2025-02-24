@@ -42,9 +42,9 @@ rule call_variants:
         # Optional parameters for bcftools call (except -v, -o, -m).
         call=config["params"]["bcftools"]["call"],
     log:
-        "logs/calling/bcftools/call-{contig}.log",
+        "logs/calling/bcftools-call/{contig}.log",
     benchmark:
-        "benchmarks/calling/called/bcftools/call-{contig}.log"
+        "benchmarks/calling/bcftools-call/{contig}.log"
     conda:
         "../envs/bcftools.yaml"
     threads: config["params"]["bcftools"]["threads"]
@@ -113,6 +113,8 @@ rule called_vcf_index:
         "-p vcf",
     log:
         "logs/calling/tabix/{contig}.log",
+    benchmark:
+        "benchmarks/calling/tabix/{contig}.log"
     conda:
         "../envs/tabix.yaml"
     wrapper:
@@ -185,9 +187,9 @@ rule merge_variants:
             else touch("calling/genotyped-all.vcf.gz.done")
         ),
     log:
-        "logs/calling/vcflib/merge-genotyped.log",
+        "logs/calling/vcflib-merge-genotyped.log",
     benchmark:
-        "benchmarks/calling/genotyped/vcflib/merge-genotyped.log"
+        "benchmarks/calling/vcflib-merge-genotyped.log"
     conda:
         "../envs/vcflib.yaml"
     shell:

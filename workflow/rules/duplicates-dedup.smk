@@ -73,7 +73,9 @@ rule sort_reads_dedup:
     # Samtools takes additional threads through its option -@
     threads: 1  # This value - 1 will be sent to -@. Weird flex, but okay.
     log:
-        "logs/mapping/dedup/samtools-sort/{sample}.log",
+        "logs/mapping/dedup-samtools-sort/{sample}.log",
+    benchmark:
+        "benchmarks/mapping/dedup-samtools-sort/{sample}.log"
     group:
         "mapping_extra"
     conda:

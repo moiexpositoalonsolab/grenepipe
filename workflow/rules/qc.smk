@@ -61,6 +61,8 @@ rule multiqc:
         config["params"]["multiqc"]["extra"],
     log:
         "logs/qc/multiqc.log",
+    benchmark:
+        "benchmarks/qc/multiqc.log"
     conda:
         # We use a conda environment on top of the wrapper, as the wrapper always causes
         # issues with missing python modules and mismatching program versions and stuff...

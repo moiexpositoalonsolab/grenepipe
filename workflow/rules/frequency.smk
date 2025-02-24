@@ -187,6 +187,8 @@ rule hafpipe_snp_table:
     priority: 5
     log:
         "logs/hafpipe/snp-table/{chrom}.log",
+    benchmark:
+        "benchmarks/hafpipe/snp-table/{chrom}.log"
     conda:
         "../envs/hafpipe.yaml"
     script:
@@ -264,6 +266,8 @@ if impmethod in ["simpute", "npute"]:
         priority: 5
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}.log",
+        benchmark:
+            "benchmarks/hafpipe/impute-" + impmethod + "/{chrom}.log"
         conda:
             "../envs/hafpipe.yaml"
         script:
@@ -291,6 +295,8 @@ elif impmethod != "":
         priority: 5
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}.log",
+        benchmark:
+            "benchmarks/hafpipe/impute-" + impmethod + "/{chrom}.log"
         conda:
             # We use the custom conda env if the user provided it,
             # or just re-use the hafpipe env, for simplicity.
@@ -361,6 +367,8 @@ else:
         priority: 5
         log:
             "logs/hafpipe/impute-" + impmethod + "/{chrom}-indices.log",
+        benchmark:
+            "benchmarks/hafpipe/impute-" + impmethod + "/{chrom}-indices.log"
         conda:
             "../envs/hafpipe.yaml"
         shell:
@@ -413,8 +421,6 @@ rule hafpipe_sample_bams:
     output:
         bam="hafpipe/bam/{sample}.bam",
         bai="hafpipe/bam/{sample}.bam.bai",
-    log:
-        "logs/samtools/hafpipe/bam-{sample}.log",
     shell:
         # This is a bit... hacky... but dealing with absolute paths seems even worse
         # (and would need hacks as well to get to work on Linux and MacOS with the same commands).
@@ -463,7 +469,9 @@ rule hafpipe_haplotype_frequencies:
         outdir="hafpipe/frequencies",
         extra=config["params"]["hafpipe"]["haplotype-frequencies-extra"],
     log:
-        "logs/hafpipe/frequencies/haplotype-{sample}.{chrom}.log",
+        "logs/hafpipe/haplotype-frequencies/{sample}.{chrom}.log",
+    benchmark:
+        "benchmarks/hafpipe/haplotype-frequencies/{sample}.{chrom}.log"
     conda:
         "../envs/hafpipe.yaml"
     script:
@@ -492,7 +500,9 @@ rule hafpipe_allele_frequencies:
         outdir="hafpipe/frequencies",
         extra=config["params"]["hafpipe"]["allele-frequencies-extra"],
     log:
-        "logs/hafpipe/frequencies/allele-{sample}.{chrom}.log",
+        "logs/hafpipe/allele-frequencies/{sample}.{chrom}.log",
+    benchmark:
+        "benchmarks/hafpipe/allele-frequencies/{sample}.{chrom}.log"
     conda:
         "../envs/hafpipe.yaml"
     script:
@@ -536,7 +546,9 @@ rule hafpipe_concat_sample_allele_frequencies:
         # We might want to compress the output per sample.
         compress=config["params"]["hafpipe"].get("compress-sample-tables", False),
     log:
-        "logs/hafpipe/samples/{sample}.log",
+        "logs/hafpipe/concat-samples/{sample}.log",
+    benchmark:
+        "benchmarks/hafpipe/concat-samples/{sample}.log"
     script:
         "../scripts/hafpipe-concat.py"
 
@@ -616,6 +628,8 @@ rule hafpipe_merge_allele_frequencies:
         compress=config["params"]["hafpipe"].get("compress-merged-table", False),
     log:
         "logs/hafpipe/merge-all.log",
+    benchmark:
+        "benchmarks/hafpipe/merge-all.log"
     script:
         "../scripts/hafpipe-merge.py"
 

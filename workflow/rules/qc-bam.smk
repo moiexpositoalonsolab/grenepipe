@@ -115,6 +115,8 @@ rule qualimap_sample:
     threads: config["params"]["qualimap"]["threads"]
     log:
         "logs/qc/qualimap/{sample}_qualimap.log",
+    benchmark:
+        "benchmarks/qc/qualimap/{sample}_qualimap.log"
     group:
         "qualimap"
     conda:
@@ -225,6 +227,8 @@ rule picard_collectmultiplemetrics:
         expand("qc/picard/{{sample}}{ext}", ext=picard_collectmultiplemetrics_exts()),
     log:
         "logs/qc/picard-collectmultiplemetrics/{sample}.log",
+    benchmark:
+        "benchmarks/qc/picard-collectmultiplemetrics/{sample}.log"
     params:
         java_opts=config["params"]["picard"].get("CollectMultipleMetrics-java-opts", ""),
         extra=config["params"]["picard"].get("CollectMultipleMetrics-extra", "")

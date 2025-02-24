@@ -63,7 +63,7 @@ rule call_variants:
     log:
         "logs/calling/freebayes/{contig}.log",
     benchmark:
-        "benchmarks/calling/called/freebayes/{contig}.log"
+        "benchmarks/calling/freebayes/{contig}.log"
     params:
         # Optional extra parameters.
         extra=config["params"]["freebayes"]["extra"] + know_variants_extra(),
@@ -95,7 +95,7 @@ rule compress_vcf:
         # protected("calling/called/{contig}.vcf.gz")
         touch("calling/called/{contig}.vcf.gz.done"),
     log:
-        "logs/calling/compress_vcf/{contig}.log",
+        "logs/calling/compress-vcf/{contig}.log",
     threads: config["params"]["freebayes"]["compress-threads"]
     group:
         "call_variants"
@@ -150,9 +150,9 @@ rule merge_variants:
     resources:
         mem_mb=config["params"]["picard"].get("MergeVcfs-mem-mb", 1024),
     log:
-        "logs/calling/picard/merge-genotyped.log",
+        "logs/calling/picard-merge-genotyped.log",
     benchmark:
-        "benchmarks/calling/genotyped/picard/merge-genotyped.log"
+        "benchmarks/calling/picard-merge-genotyped.log"
     conda:
         "../envs/picard.yaml"
     wrapper:

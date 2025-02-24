@@ -24,9 +24,9 @@ rule bcftools_filter_calls:
         filters=get_filter,
         extra=config["params"]["bcftools-filter"]["extra"],
     log:
-        "logs/calling/bcftools/filter-{vartype}.log",
+        "logs/calling/bcftools-filter/{vartype}.log",
     benchmark:
-        "benchmarks/calling/filtered/bcftools/filter-{vartype}.log"
+        "benchmarks/calling/bcftools-filter/{vartype}.log"
     group:
         "filtering"
     conda:

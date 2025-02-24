@@ -27,7 +27,7 @@ rule select_calls:
     log:
         "logs/calling/gatk-selectvariants/{vartype}.log",
     benchmark:
-        "benchmarks/calling/filtered/gatk-selectvariants/{vartype}.log"
+        "benchmarks/calling/gatk-selectvariants/{vartype}.log"
     group:
         "filtering"
     conda:
@@ -119,7 +119,7 @@ rule merge_calls:
     log:
         "logs/calling/picard-mergevcfs.log",
     benchmark:
-        "benchmarks/calling/filtered/picard-mergevcfs.log"
+        "benchmarks/calling/picard-mergevcfs.log"
     conda:
         "../envs/picard.yaml"
     wrapper:

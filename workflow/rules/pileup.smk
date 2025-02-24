@@ -16,7 +16,9 @@ rule mpileup_merge_all:
     # This value - 1 will be sent to -@
     threads: config["params"]["samtools"]["merge-threads"]
     log:
-        "logs/samtools/mpileup/merge-all.log",
+        "logs/mpileup/merge-all.log",
+    benchmark:
+        "benchmarks/mpileup/merge-all.log"
     conda:
         "../envs/samtools.yaml"
     wrapper:
@@ -68,7 +70,9 @@ rule mpileup_individual_sample:
     params:
         extra=config["params"]["samtools"]["pileup"],
     log:
-        "logs/samtools/mpileup/samples-{sample}.log",
+        "logs/mpileup/samples/{sample}.log",
+    benchmark:
+        "benchmarks/mpileup/samples/{sample}.log"
     conda:
         "../envs/samtools.yaml"
     wrapper:
@@ -85,7 +89,9 @@ rule mpileup_all_samples:
     params:
         extra=config["params"]["samtools"]["pileup"],
     log:
-        "logs/samtools/mpileup/all-merged-units.log",
+        "logs/mpileup/all-merged-units.log",
+    benchmark:
+        "benchmarks/mpileup/all-merged-units.log"
     conda:
         "../envs/samtools.yaml"
     wrapper:
@@ -101,7 +107,9 @@ rule mpileup_all_merged_samples:
     params:
         extra=config["params"]["samtools"]["pileup"],
     log:
-        "logs/samtools/mpileup/all-merged-samples.log",
+        "logs/mpileup/all-merged-samples.log",
+    benchmark:
+        "benchmarks/mpileup/all-merged-samples.log"
     conda:
         "../envs/samtools.yaml"
     wrapper:
