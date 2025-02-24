@@ -29,21 +29,21 @@ rule call_variants:
         ),
     output:
         gvcf=(
-            "calling/called/{sample}.{contig}.g.vcf.gz"
+            "calling/called/{sample}-{contig}.g.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("calling/called/{sample}.{contig}.g.vcf.gz")
+            else temp("calling/called/{sample}-{contig}.g.vcf.gz")
         ),
-        gtbi="calling/called/{sample}.{contig}.g.vcf.gz.tbi",
-        done=touch("calling/called/{sample}.{contig}.g.vcf.gz.done"),
+        gtbi="calling/called/{sample}-{contig}.g.vcf.gz.tbi",
+        done=touch("calling/called/{sample}-{contig}.g.vcf.gz.done"),
     params:
         # Optional parameters for bcftools mpileup (except -g, -f).
         mpileup=get_mpileup_params,
         # Optional parameters for bcftools call (except -v, -o, -m).
         call=config["params"]["bcftools"]["call"],
     log:
-        "logs/calling/bcftools-call/{sample}.{contig}.log",
+        "logs/calling/bcftools-call/{sample}-{contig}.log",
     benchmark:
-        "benchmarks/calling/bcftools-call/{sample}.{contig}.log"
+        "benchmarks/calling/bcftools-call/{sample}-{contig}.log"
     conda:
         "../envs/bcftools.yaml"
     threads: config["params"]["bcftools"]["threads"]
@@ -83,14 +83,14 @@ rule combine_contig:
         ),
         # Get the sample data, including indices, which are produced above.
         gvcfs=expand(
-            "calling/called/{sample}.{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]
+            "calling/called/{sample}-{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]
         ),
         indices=expand(
-            "calling/called/{sample}.{{contig}}.g.vcf.gz.tbi",
+            "calling/called/{sample}-{{contig}}.g.vcf.gz.tbi",
             sample=config["global"]["sample-names"],
         ),
         done=expand(
-            "calling/called/{sample}.{{contig}}.g.vcf.gz.done",
+            "calling/called/{sample}-{{contig}}.g.vcf.gz.done",
             sample=config["global"]["sample-names"],
         ),
     output:

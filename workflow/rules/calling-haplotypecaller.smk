@@ -52,21 +52,21 @@ rule call_variants:
         intervals_dummy=get_gatk_interval_files,
     output:
         gvcf=(
-            "calling/called/{sample}.{contig}.g.vcf.gz"
+            "calling/called/{sample}-{contig}.g.vcf.gz"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("calling/called/{sample}.{contig}.g.vcf.gz")
+            else temp("calling/called/{sample}-{contig}.g.vcf.gz")
         ),
-        # gvcf=protected("calling/called/{sample}.{contig}.g.vcf.gz")
+        # gvcf=protected("calling/called/{sample}-{contig}.g.vcf.gz")
         gtbi=(
-            "calling/called/{sample}.{contig}.g.vcf.gz.tbi"
+            "calling/called/{sample}-{contig}.g.vcf.gz.tbi"
             if config["settings"]["keep-intermediate"]["calling"]
-            else temp("calling/called/{sample}.{contig}.g.vcf.gz.tbi")
+            else temp("calling/called/{sample}-{contig}.g.vcf.gz.tbi")
         ),
-        done=touch("calling/called/{sample}.{contig}.g.vcf.gz.done"),
+        done=touch("calling/called/{sample}-{contig}.g.vcf.gz.done"),
     log:
-        "logs/calling/gatk-haplotypecaller/{sample}.{contig}.log",
+        "logs/calling/gatk-haplotypecaller/{sample}-{contig}.log",
     benchmark:
-        "benchmarks/calling/gatk-haplotypecaller/{sample}.{contig}.log"
+        "benchmarks/calling/gatk-haplotypecaller/{sample}-{contig}.log"
     # Need to set threads here so that snakemake can plan the job scheduling properly
     threads: config["params"]["gatk"]["HaplotypeCaller-threads"]
     params:
@@ -133,14 +133,14 @@ rule genomics_db_import:
         refdict=genome_dict(),
         # Get the sample data, including indices.
         gvcfs=expand(
-            "calling/called/{sample}.{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]
+            "calling/called/{sample}-{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]
         ),
         indices=expand(
-            "calling/called/{sample}.{{contig}}.g.vcf.gz.tbi",
+            "calling/called/{sample}-{{contig}}.g.vcf.gz.tbi",
             sample=config["global"]["sample-names"],
         ),
         done=expand(
-            "calling/called/{sample}.{{contig}}.g.vcf.gz.done",
+            "calling/called/{sample}-{{contig}}.g.vcf.gz.done",
             sample=config["global"]["sample-names"],
         ),
         # Same as above, we need a dummy for the intervals to ensure the files are present.
@@ -187,14 +187,14 @@ rule combine_calls:
         refdict=genome_dict(),
         # Get the sample data, including indices.
         gvcfs=expand(
-            "calling/called/{sample}.{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]
+            "calling/called/{sample}-{{contig}}.g.vcf.gz", sample=config["global"]["sample-names"]
         ),
         indices=expand(
-            "calling/called/{sample}.{{contig}}.g.vcf.gz.tbi",
+            "calling/called/{sample}-{{contig}}.g.vcf.gz.tbi",
             sample=config["global"]["sample-names"],
         ),
         done=expand(
-            "calling/called/{sample}.{{contig}}.g.vcf.gz.done",
+            "calling/called/{sample}-{{contig}}.g.vcf.gz.done",
             sample=config["global"]["sample-names"],
         ),
     output:

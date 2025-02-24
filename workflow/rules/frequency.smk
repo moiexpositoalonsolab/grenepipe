@@ -469,9 +469,9 @@ rule hafpipe_haplotype_frequencies:
         outdir="hafpipe/frequencies",
         extra=config["params"]["hafpipe"]["haplotype-frequencies-extra"],
     log:
-        "logs/hafpipe/haplotype-frequencies/{sample}.{chrom}.log",
+        "logs/hafpipe/haplotype-frequencies/{sample}-{chrom}.log",
     benchmark:
-        "benchmarks/hafpipe/haplotype-frequencies/{sample}.{chrom}.log"
+        "benchmarks/hafpipe/haplotype-frequencies/{sample}-{chrom}.log"
     conda:
         "../envs/hafpipe.yaml"
     script:
@@ -500,9 +500,9 @@ rule hafpipe_allele_frequencies:
         outdir="hafpipe/frequencies",
         extra=config["params"]["hafpipe"]["allele-frequencies-extra"],
     log:
-        "logs/hafpipe/allele-frequencies/{sample}.{chrom}.log",
+        "logs/hafpipe/allele-frequencies/{sample}-{chrom}.log",
     benchmark:
-        "benchmarks/hafpipe/allele-frequencies/{sample}.{chrom}.log"
+        "benchmarks/hafpipe/allele-frequencies/{sample}-{chrom}.log"
     conda:
         "../envs/hafpipe.yaml"
     script:
