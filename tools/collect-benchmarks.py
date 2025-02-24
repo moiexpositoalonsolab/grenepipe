@@ -328,7 +328,7 @@ def main():
             # Name the plot based on the TSV filename,
             # e.g. "ruleA_subdir.tsv" -> "ruleA_subdir_plots.png"
             base_name = os.path.splitext(os.path.basename(cf))[0]
-            plot_path = os.path.join(output_dir, base_name + "_plots.png")
+            plot_path = os.path.join(output_dir, base_name + ".png")
             fig.savefig(plot_path, dpi=150)
             plt.close(fig)  # free memory
             print(f"Created scatter plot: {plot_path}")
