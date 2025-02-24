@@ -17,6 +17,7 @@ def solve_bin_packing(values, max_bin_size):
     # Fill the bins as needed, using first-fit on the sorted list, and keeping track of
     # how much we already put in each of them. We can have at most as many bins as elements,
     # so use this to initialize the sums, to keep it simple.
+    print("Distributing contigs into groups")
     bins = []
     sums = [0] * len(values)
     for cont in values:
@@ -81,10 +82,11 @@ def optimize_contig_group(contigs, max_contig_group_size, max_contigs_per_group)
     # There might be a better solution to this, but this is simple and works.
     # We start with as many groups as we minimally need such that we can fulfill the max
     # contigs per group constraint.
-    num_groups = max(1, int(math.ceil(len(small_contigs) / max_contigs_per_group)))
+    print("Distributing small contigs into groups")
+    num_small_groups = max(1, int(math.ceil(len(small_contigs) / max_contigs_per_group)))
     need_iteration = True
     while need_iteration:
-        print("Evaluating with", num_groups, " small contig groups")
+        print("Evaluating with", num_small_groups, "small contig groups")
         need_iteration = False
 
         # We fill a temporary list for the small contigs, starting with as many empty lists
@@ -92,9 +94,9 @@ def optimize_contig_group(contigs, max_contig_group_size, max_contigs_per_group)
         # We do this by alternating to fill forwards and backwards - that is the heuristic
         # that is meant to avoid having groups with only small or only large contigs.
         # By going back and forth instead of filling from the start, we get a more even spread.
-        # Let's call this the zig-zag round-robing assignment :-)
+        # Let's call this the zig-zag round-robin assignment :-)
         # For instance, we should get: [[1, 6, 7], [2, 5, 8], [3, 4, 9]]
-        small_groups = [[] for _ in range(num_groups)]
+        small_groups = [[] for _ in range(num_small_groups)]
         round_num = 0
         index = 0
 
@@ -102,9 +104,9 @@ def optimize_contig_group(contigs, max_contig_group_size, max_contigs_per_group)
         while index < len(small_contigs):
             # Determine the order based on whether the round is even (forward) or odd (backward)
             if round_num % 2 == 0:
-                order = range(num_groups)
+                order = range(num_small_groups)
             else:
-                order = range(num_groups - 1, -1, -1)
+                order = range(num_small_groups - 1, -1, -1)
 
             # Distribute one element per group in the specified order.
             for i in order:
@@ -116,6 +118,7 @@ def optimize_contig_group(contigs, max_contig_group_size, max_contigs_per_group)
 
         # Now we test if this was successful: Is each group small enough, both in terms
         # of total length, and in terms of number of contigs per group?
+        # If not, we need to do another iteration, with one more group to distribute the contigs to.
         small_contig_count = 0
         for group in small_groups:
             total_len = sum(contig[1] for contig in group)
@@ -131,16 +134,18 @@ def optimize_contig_group(contigs, max_contig_group_size, max_contigs_per_group)
                     max_contigs_per_group,
                 )
                 need_iteration = True
-                num_groups += 1
+                num_small_groups += 1
                 break
             small_contig_count += len(group)
 
-    # Now we are done. Make sure that we have processed the right number of contigs.
+    # Now we are done, and have groups that fulfill all requirements.
+    # Make sure that we have processed the right number of contigs.
     # Then, add all small contigs as groups to our final result, and return it.
     assert small_contig_count == len(small_contigs)
+    assert num_small_groups == len(small_groups)
     print(
         "Success with",
-        num_groups,
+        num_small_groups,
         "small contig groups, and",
         (len(large_groups) + len(small_groups)),
         "total groups",
