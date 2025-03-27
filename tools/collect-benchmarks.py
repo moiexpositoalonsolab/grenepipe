@@ -113,7 +113,7 @@ def combine_benchmarks(top_level_dir, output_dir):
     combined_files = []  # to store the paths to the combined TSVs
 
     for root, dirs, files in os.walk(top_level_dir):
-        print("Processing:", root)
+        print(f"Processing: {root}")
 
         # If there are no files in this directory, skip it
         if not files:
@@ -164,7 +164,7 @@ def combine_benchmarks(top_level_dir, output_dir):
         if os.path.exists(output_file_path) and os.path.getsize(output_file_path) == 0:
             os.remove(output_file_path)
         else:
-            print(f"Created: {output_file_path}")
+            print(f"Created:    {output_file_path}")
             combined_files.append(output_file_path)
 
     return combined_files
