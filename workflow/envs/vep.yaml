@@ -26,3 +26,7 @@ dependencies:
   # issues concerning compression. So for now, we don't change the running system.
   # - perl-dbi
   # - perl-dbd-mysql
+
+  # Latest error appearing in our GitHub Actions CI: Can't locate List/MoreUtils.pm in @INC
+  # To fix this, we try to install the missind dependency:
+  - perl-list-moreutils
