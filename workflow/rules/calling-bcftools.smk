@@ -86,7 +86,7 @@ if config["settings"].get("contig-group-size"):
         shell:
             # Weird new picard syntax...
             "picard SortVcf "
-            "{params.java_opts} -Xmx{resources.mem_mb}m"
+            "{params.java_opts} -Xmx{resources.mem_mb}m "
             "--INPUT {input.vcf} "
             "--OUTPUT {output.vcf} "
             "--SEQUENCE_DICTIONARY {input.refdict} "
