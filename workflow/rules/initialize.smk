@@ -9,6 +9,7 @@ import subprocess
 from datetime import datetime
 import logging
 from pathlib import Path
+import yaml
 
 from snakemake_interface_executor_plugins.settings import ExecMode
 
@@ -74,8 +75,32 @@ else:
 
 
 # =================================================================================================
+#     Resource Configuration
+# =================================================================================================
+
+
+# Obtain the resource.yaml file. First, we check the path specified in the config.yaml.
+# If that is empty, we check the working directory. If that also does not contain a resources
+# file, we fall back to the default one in the grenepipe directory.
+resources_file = config["settings"].get("resources-yaml", "")
+if resources_file and not os.path.isfile(resources_file):
+    raise Exception("Invalid path to resource.yaml specified in config.yaml: " + resources_file)
+if not resources_file:
+    if os.path.isfile("resources.yaml"):
+        resources_file = "resources.yaml"
+    else:
+        resources_file = workflow.basedir + "/../config/resources.yaml"
+if not resources_file or not os.path.isfile(resources_file):
+    raise Exception("Coud not find resource.yaml")
+
+with open(resources_file) as f:
+    resources_config = yaml.safe_load(f)
+
+
+# =================================================================================================
 #     Pipeline User Output
 # =================================================================================================
+
 
 # The final output is tabular, we might need to indent subsequent lines correctly.
 indent = 24
@@ -176,6 +201,8 @@ for i in range(1, len(sys.argv)):
 cfgfiles = []
 for cfg in workflow.configfiles:
     cfgfiles.append(os.path.abspath(cfg))
+if resources_file:
+    cfgfiles.append(os.path.abspath(resources_file))
 cfgfiles = "\n                        ".join(cfgfiles)
 
 # Main grenepipe header, helping with debugging etc for user issues

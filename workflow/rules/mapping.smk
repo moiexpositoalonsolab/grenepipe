@@ -150,7 +150,6 @@ rule merge_sample_unit_bams:
         touch("mapping/merged/{sample}.bam.done"),
     params:
         extra=config["params"]["samtools"]["merge"],
-    threads: config["params"]["samtools"]["merge-threads"]
     log:
         "logs/mapping/samtools-merge/{sample}.log",
     benchmark:

@@ -19,7 +19,6 @@ rule trim_reads_se:
         extra="--format sanger --compress",
         params=config["params"]["skewer"]["se"],
         outpref="trimming/{sample}-{unit}-se",
-    threads: config["params"]["skewer"]["threads"]
     log:
         "logs/trimming/skewer/{sample}-{unit}.log",
     benchmark:
@@ -53,7 +52,6 @@ rule trim_reads_pe:
         extra="--format sanger --compress",
         params=config["params"]["skewer"]["pe"],
         outpref="trimming/{sample}-{unit}-pe",
-    threads: config["params"]["skewer"]["threads"]
     log:
         "logs/trimming/skewer/{sample}-{unit}.log",
     benchmark:

@@ -90,9 +90,6 @@ rule snpeff:
     params:
         # For finding the chromosome names used by snpeff, add `-v` here
         extra=config["params"]["snpeff"]["extra"],
-    resources:
-        # Use get() for backwards compatibilty with older config files pre v0.13.0
-        mem_mb=config["params"]["snpeff"].get("mem", 2000),
     conda:
         "../envs/snpeff.yaml"
     wrapper:
@@ -229,7 +226,6 @@ rule vep:
         extra=config["params"]["vep"]["extra"],
     log:
         "logs/annotation/vep-annotate.log",
-    threads: 4
     conda:
         # Use our own env definition here, to ensure that we are working with the same vep
         # versions across the different rules here. This is not the case in the original wrapper...

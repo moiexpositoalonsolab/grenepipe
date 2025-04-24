@@ -101,8 +101,6 @@ rule gatk_variant_recalibrator:
         # Extras
         extra=get_variant_recalibrator_extra,
         java_opts=config["params"]["gatk-vqsr"]["variantrecalibrator-java-opts"],
-    resources:
-        mem_mb=config["params"]["gatk-vqsr"].get("variantrecalibrator-mem-mb", 1024),
     log:
         "logs/calling/gatk-variantrecalibrator/{vartype}.log",
     benchmark:
@@ -110,13 +108,6 @@ rule gatk_variant_recalibrator:
     # Group deactivated, so that it can run in parallel for SNP and INDEL
     # group:
     #     "filtering"
-    # resources:
-    # optional specification of memory usage of the JVM that snakemake will respect with global
-    # resource restrictions
-    # (https://snakemake.readthedocs.io/en/latest/snakefiles/rules.html#resources)
-    # and which can be used to request RAM during cluster job submission as `{resources.mem_mb}`:
-    # https://snakemake.readthedocs.io/en/latest/executing/cluster.html#job-properties
-    # mem_mb=1024
     conda:
         # We overwrite the original yaml, as it does not contain the R specifications,
         # which we want in order to also plot the trances file for SNPs... because why not.
@@ -150,8 +141,6 @@ rule gatk_apply_vqsr:
         mode="{vartype}",
         extra=get_apply_vqsr_extra,
         java_opts=config["params"]["gatk-vqsr"]["applyvqsr-java-opts"],
-    resources:
-        mem_mb=config["params"]["gatk-vqsr"].get("applyvqsr-mem-mb", 1024),
     conda:
         # We overwrite the original yaml, as this wrapper here (version 0.85.0) and the one above
         # for the variantrecalibrator (also 0.85.0) use different GATK versions originally...

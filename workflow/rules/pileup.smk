@@ -12,9 +12,6 @@ rule mpileup_merge_all:
     params:
         # Need file overwrite flag, see above.
         extra=config["params"]["samtools"]["merge"] + " -f",
-    # Samtools takes additional threads through its option -@
-    # This value - 1 will be sent to -@
-    threads: config["params"]["samtools"]["merge-threads"]
     log:
         "logs/mpileup/merge-all.log",
     benchmark:

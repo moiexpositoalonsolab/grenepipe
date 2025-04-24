@@ -1,3 +1,8 @@
+import yaml
+from pathlib import Path
+# from snakemake import workflow
+
+
 # =================================================================================================
 #     Common
 # =================================================================================================
@@ -73,3 +78,62 @@ include: "rules/stats.smk"
 include: "rules/damage.smk"
 include: "rules/pileup.smk"
 include: "rules/frequency.smk"
+
+
+# =================================================================================================
+#     Resources
+# =================================================================================================
+
+
+# Helper function to compute the resources needed for rule
+# based on the input file sizes and the resource config.
+def make_resource_fn(rule_name, kind):
+    """
+    returns fn(wildcards, input_files) -> int(resource)
+    which will:
+      - sum up sizes of input files
+      - pick an offset and scaler (rule override or default)
+      - return int(offset + size * scaler), scaled by attempt
+    kind should be "mem" or "time", and expects in resources_config:
+    - <kind>_offset
+    - <kind>_scaler
+    - <kind>_max
+    """
+    def _fn(wildcards, inputs=[], threads=None, attempt=1):
+        # Config keys (mem or time)
+        o_key = f"{kind}-offset"
+        s_key = f"{kind}-scaler"
+        m_key = f"{kind}-max"
+        f_key = f"attempt-factor"
+
+        # Look up the config values or their defaults.
+        rule_cfg = resources_config.get(rule_name, {})
+        scaler = rule_cfg.get(s_key, resources_config["default"][s_key])
+        offset = rule_cfg.get(o_key, resources_config["default"][o_key])
+        factor = rule_cfg.get(f_key, resources_config["default"][f_key])
+        capped = rule_cfg.get(m_key, resources_config["default"][m_key])
+
+        # Compute the total file size in MB
+        total = sum(Path(f).stat().st_size for f in inputs) / 1000000.0
+
+        # Compute the resource value, capping it at the max.
+        mul = factor ** (attempt - 1)
+        val = mul * (offset + total * scaler)
+        if capped is not None and val > capped:
+            logger.warning(f"[{rule_name}] {kind} {val:.1f} exceeds max {capped}; capping")
+            val = capped
+        return int(val)
+    return _fn
+
+
+def get_cpus(rule_name):
+    return int(resources_config.get(rule_name, {}).get("cpus", resources_config["default"]["cpus"]))
+
+
+# Set the resources for all rules automatically,
+# without having to specify this for all of them individually.
+# Cannot name the iteration variable `rule` here, as that conflicts...
+for wf_rule in workflow.rules:
+    wf_rule.resources["mem_mb"]  = make_resource_fn(wf_rule.name, "mem")
+    wf_rule.resources["runtime"] = make_resource_fn(wf_rule.name, "time")
+    wf_rule.threads = get_cpus(wf_rule.name)

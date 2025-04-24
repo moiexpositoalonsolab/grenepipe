@@ -67,18 +67,12 @@ rule call_variants:
         "logs/calling/gatk-haplotypecaller/{sample}-{contig}.log",
     benchmark:
         "benchmarks/calling/gatk-haplotypecaller/{sample}-{contig}.log"
-    # Need to set threads here so that snakemake can plan the job scheduling properly
-    threads: config["params"]["gatk"]["HaplotypeCaller-threads"]
     params:
         # The intervals param here is where the contig variable is propagated to haplotypecaller.
         # Contigs are used as long as no restrict-regions are given in the config file.
         intervals=get_gatk_intervals,
         extra=config["params"]["gatk"].get("HaplotypeCaller-extra", ""),
         java_opts=config["params"]["gatk"].get("HaplotypeCaller-java-opts", ""),
-    resources:
-        # Increase time limit in factors of 24h, if the job fails due to time limit.
-        # time = lambda wildcards, input, threads, attempt: int(1440 * int(attempt))
-        mem_mb=config["params"]["gatk"].get("HaplotypeCaller-mem-mb", 1024),
     group:
         "call_variants"
     conda:
@@ -163,9 +157,7 @@ rule genomics_db_import:
         + " "
         + config["params"]["gatk"].get("GenomicsDBImport-extra", ""),
         java_opts=config["params"]["gatk"].get("GenomicsDBImport-java-opts", ""),
-    # threads: 2
     resources:
-        mem_mb=config["params"]["gatk"].get("GenomicsDBImport-mem-mb", 1024),
         tmpdir=config["params"]["gatk"].get("GenomicsDBImport-temp-dir", ""),
     conda:
         "../envs/gatk.yaml"
@@ -212,8 +204,6 @@ rule combine_calls:
             else ""
         ),
         java_opts=config["params"]["gatk"]["CombineGVCFs-java-opts"],
-    resources:
-        mem_mb=config["params"]["gatk"].get("CombineGVCFs-mem-mb", 1024),
     log:
         "logs/calling/gatk-combine-gvcfs/{contig}.log",
     benchmark:
@@ -284,8 +274,6 @@ rule genotype_variants:
         + " "
         + config["params"]["gatk"]["GenotypeGVCFs-extra"],
         java_opts=config["params"]["gatk"]["GenotypeGVCFs-java-opts"],
-    resources:
-        mem_mb=config["params"]["gatk"].get("GenotypeGVCFs-mem-mb", 1024),
     log:
         "logs/calling/gatk-genotype-gvcfs/{contig}.log",
     benchmark:
@@ -337,8 +325,6 @@ rule merge_variants:
             if platform.system() == "Darwin"
             else ""
         ),
-    resources:
-        mem_mb=config["params"]["picard"].get("MergeVcfs-mem-mb", 1024),
     log:
         "logs/calling/picard-merge-genotyped.log",
     benchmark:

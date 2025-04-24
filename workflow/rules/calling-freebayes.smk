@@ -12,16 +12,6 @@ def know_variants_extra():
         return ""
 
 
-# Need to calculate the threads to be used for freebayes here already,
-# see https://github.com/snakemake/snakefmt/issues/240
-# Need to exclude threads that we need for compression:
-freebayes_threads = max(
-    1,
-    int(config["params"]["freebayes"]["threads"])
-    - int(config["params"]["freebayes"]["compress-threads"]),
-)
-
-
 rule call_variants:
     input:
         # Our custom script needs the genome, with index files, and its fai file.
@@ -69,7 +59,6 @@ rule call_variants:
         extra=config["params"]["freebayes"]["extra"] + know_variants_extra(),
         # Reference genome chunk size for parallelization (default: 100000)
         chunksize=config["params"]["freebayes"]["chunksize"],
-    threads: freebayes_threads
     group:
         "call_variants"
     # wrapper:
@@ -94,9 +83,9 @@ rule compress_vcf:
         ),
         # protected("calling/called/{contig}.vcf.gz")
         touch("calling/called/{contig}.vcf.gz.done"),
+    threads: 1 # Dummy, but will be overwritten by our automatic resources
     log:
         "logs/calling/compress-vcf/{contig}.log",
-    threads: config["params"]["freebayes"]["compress-threads"]
     group:
         "call_variants"
     conda:
@@ -147,8 +136,6 @@ rule merge_variants:
             if platform.system() == "Darwin"
             else ""
         ),
-    resources:
-        mem_mb=config["params"]["picard"].get("MergeVcfs-mem-mb", 1024),
     log:
         "logs/calling/picard-merge-genotyped.log",
     benchmark:

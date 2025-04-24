@@ -40,8 +40,6 @@ rule mark_duplicates:
             else ""
         ),
         java_opts=config["params"]["picard"]["MarkDuplicates-java-opts"],
-    resources:
-        mem_mb=config["params"]["picard"].get("MarkDuplicates-mem-mb", 5000),
     group:
         "mapping_extra"
     conda:

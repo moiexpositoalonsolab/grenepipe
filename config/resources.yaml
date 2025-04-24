@@ -1,0 +1,116 @@
+# resources.yaml
+
+# This file defines the computational resources used by grenepipe. These are
+# mostly relevant on computer clusters, such as when using slurm to execute
+# individual rule jobs. For these, we need to specify memory and runtime,
+# and the number of CPU cores to use. The latter is also relevant when running
+# grenepipe locally on a single machine - in that case, only the CPU specified
+# below will be used.
+
+# Note that there is a bug in the snakemake slurm submission, where the number
+# of cores on the login node (where typically snakemake is being run, and from which
+# the slurm jobs are hence submitted) is used as a limitation check for the number
+# of cores a job can request, in order to avoid over-allocation.
+# Of course, on many clusters, the login node might have way fewer cores than the
+# compute nodes, and so this prevents us of submitting jobs that need more cores
+# than the login node has. Silly.
+# See: https://github.com/snakemake/snakemake/issues/2997
+# The workaround for this is to run snakemake with `--cores 1024` or some other
+# large number - those cores might then be used for some local rules, which
+# however should not lead to issues on the login node, as there are few such rules.
+
+# =================================================================================================
+#     Default Resources
+# =================================================================================================
+
+# Default resources, used for all job submissions, unless overwritten by values
+# for individual rules below. All values here are inherited by each rule unless
+# explicitly overwritten for a rule (in the second half of this file).
+# Resources need to be specified in MB and minutes. The resources are computed
+# based on the input file sizes of each rule, using a fixed offset plus the
+# scaled file sizes, up to a maximum value (to avoid breaking computer clusters).
+# They are then further scaled linearily for each subsequent attempt of running
+# the rule, should it have failed previously. Note that sometimes snakemake/slurm
+# can fail running a job for reasons other than too little resources; the attempt
+# will still be increased and give the rule more resources, as we cannot determine
+# automatically why the job failed, and so assume it was due to resources.
+default:
+
+  # Fixed offset of the required memory, in MB. This accounts for basic memory
+  # needed by the rule (independent of input sizes), and is needed for small files
+  # where the scaling might be too little.
+  mem-offset: 1000
+
+  # Scaling of the memory needed for the computation. That is, for each MB of combined
+  # input file sizes, how many MB of memory are needed for the processing?
+  # The default of 1 should work in most cases, but can tightly be adapted as needed
+  # if rules run out of memory.
+  mem-scaler: 1
+
+  # Maximum memory, in MB, defaulting to 1TB. This is provided as a safety mechanism,
+  # so as to not overwhelm cluster environments with invalid resource requests.
+  # If a rule wants more memory based on the above scaling, a warning is triggered,
+  # and it is submitted with this maximum instead, to give it a try at succeeding.
+  # Set this to the memory limit available on your cluster.
+  mem-max: 1000000
+
+  # Fixed offset of the required runtime, in minutes. Similar to above.
+  time-offset: 60
+
+  # Scaling of the runtime, from MB to minutes. That is, how many minuts are needed
+  # for each additional MB of input files? The default of 0.1 for instance would give
+  # 100 minutes per GB of input data.
+  time-scaler: 0.1
+
+  # Maximum runtime, in minutes. Defaults to one week. If you have large datasets
+  # and your cluster allows longer wall times, adjust this accordingly.
+  # Generally, set this to the maximum allowed wall time on your cluster.
+  time-max: 10080
+
+  # Default number of CPU cores per task/job. Most programs and scripts in
+  # bioinformatics are unfortunately not paralellized well, so 1 is the default.
+  cpus: 1
+
+  # If a rule job failed (for whatever reason), snakemake can automatically re-try.
+  # A typical reason for failure is a lack of resources. In that case, re-running
+  # with exactly the same resources would lead to the same issue though.
+  # So we want to give any subsequent attempt at running a job more resources.
+  # This factor here determines how much extra we give it each time, as an exponential
+  # base multiplied with the overall resulting resources as determined by the above
+  # specifications. That is, by default we give it 1x, 2x, 4x... the resources for
+  # the first to third attempt. When setting this step to, e.g., 1.5, we would instead
+  # give it 1x, 1.5x, 2.25x... of the resources for the attempts.
+  # Note that if your jobs often fail due to lack of resources, it is better to
+  # adjust the above settings instead, such that the jobs are more likely to
+  # succeed on their first attempt, and thus avoid wasting computation.
+  attempt-factor: 2.0
+
+# =================================================================================================
+#     Per-Rule Resources
+# =================================================================================================
+
+# Here, you can specify the resources for individual job rules in grenepipe.
+# All values not given here are simply using the above defaults instead.
+# You might need to have a look at the snakemake log or even the workflow code
+# in order to figure out the rule names needed. We provide some defaults here
+# for rules that we now already can benefit from different resources.
+
+# Read trimming tools can typically use multiple CPUs, so let's give them more!
+trim_reads_se:
+  cpus: 4
+trim_reads_pe:
+  cpus: 4
+trim_reads_pe_merged:
+  cpus: 4
+
+# Even better for the mapping! More cores! Note that we internally
+# might assign  an additional cpu thread for sorting the bam files.
+map_reads:
+  cpus: 10
+
+# The usable cpu threads for the actual variant calling step depends on the tool.
+# Freebayes and bcftools can make efficient use of threads, so if you are using those,
+# increase the value here to, e.g., 10. However, the GATK HaplotypeCaller is
+# notoriously bad and inefficient, and seems to not benefit from more than 2 threads.
+call_variants:
+  cpus: 2

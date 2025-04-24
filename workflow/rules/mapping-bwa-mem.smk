@@ -44,12 +44,8 @@ rule map_reads:
         "logs/mapping/bwa-mem/{sample}-{unit}.log",
     benchmark:
         "benchmarks/mapping/bwa-mem/{sample}-{unit}.log"
-    threads: config["params"]["bwamem"]["threads"]
     conda:
         "../envs/bwa.yaml"
-    # resources:
-    # Increase time limit in factors of 2h, if the job fails due to time limit.
-    # time = lambda wildcards, input, threads, attempt: int(120 * int(attempt))
 
     # This wrapper version uses a proper tmp dir, so that the below shadow rule is not needed.
     # It caused trouble when running large cluster jobs with high number of parallel jobs,

@@ -114,8 +114,6 @@ rule merge_calls:
             if platform.system() == "Darwin"
             else ""
         ),
-    resources:
-        mem_mb=config["params"]["picard"].get("MergeVcfs-mem-mb", 1024),
     log:
         "logs/calling/picard-mergevcfs.log",
     benchmark:

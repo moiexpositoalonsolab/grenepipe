@@ -41,13 +41,13 @@ rule call_variants:
         mpileup=get_mpileup_params,
         # Optional parameters for bcftools call (except -v, -o, -m).
         call=config["params"]["bcftools"]["call"],
+    threads: 1 # Dummy, but will be overwritten by our automatic resources
     log:
         "logs/calling/bcftools-call/{contig}.log",
     benchmark:
         "benchmarks/calling/bcftools-call/{contig}.log"
     conda:
         "../envs/bcftools.yaml"
-    threads: config["params"]["bcftools"]["threads"]
     shell:
         # We run an additional norm step after the calling, in order to clear any calls that
         # contain ambiguity chars. As always, no idea how they end up in the vcf in the first place.

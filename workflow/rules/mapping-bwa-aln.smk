@@ -58,10 +58,6 @@ rule map_reads:
         "logs/mapping/bwa-aln/{sample}-{unit}-{pair}.log",
     benchmark:
         "benchmarks/mapping/bwa-aln/{sample}-{unit}-{pair}.log"
-    threads: config["params"]["bwaaln"]["threads"]
-    # resources:
-    # Increase time limit in factors of 2h, if the job fails due to time limit.
-    # time = lambda wildcards, input, threads, attempt: int(120 * int(attempt))
     conda:
         "../envs/bwa.yaml"
     wrapper:

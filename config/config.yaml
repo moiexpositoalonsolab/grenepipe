@@ -123,6 +123,24 @@ data:
 # See later in the "params" category for the parameters of each tool.
 settings:
 
+  # Computational resources.
+  # Next to this `config.yaml` file, we provide a system-independent `resources.yaml`, which
+  # specifies all computational resources (time, memory, CPUs, etc) to use. This is mostly relevant
+  # in cluster environments (such as when using slurm to submit individual jobs), as those systems
+  # need to know in advance how much of each resource a job will need. However, we do not want to
+  # clutter this config file here will all this information - this file here is meant to describe
+  # the data and tool settings, but should not be concerned with "practical" aspects such as how to
+  # run them. So instead, these are specified in the `resources.yaml`.
+  # We search for this file in three places, in this order: First, in the path specified here.
+  # Second, in the working directory (where you copy this `config.yaml` file to as well, and which
+  # is provided to snakemake as `--directory`). Third, in the `config` directory within grenepipe,
+  # which is where the default file lives.
+  # We hence recommend to set up the `resources.yaml` by copying it to your working directory
+  # (where you also copied this `config.yaml` to), and adapt it there as needed. However,
+  # if you have multiple runs of grenepipe with the same resource requirements, you can instead
+  # specify a path to a shared `resources.yaml` file here.
+  resources-yaml: ""
+
   # ----------------------------------------------------------------------
   #     Basic Steps
   # ----------------------------------------------------------------------
@@ -423,7 +441,6 @@ params:
   # See adapterremoval manual: https://adapterremoval.readthedocs.io/en/latest/
   # and https://adapterremoval.readthedocs.io/en/latest/manpage.html
   adapterremoval:
-    threads: 4
 
     # Extra parameters for single reads. Param `--gzip` is alreaday set internally.
     se: ""
@@ -439,7 +456,6 @@ params:
   # Used only if settings:trimming-tool == cutadapt
   # See cutadapt manual: https://cutadapt.readthedocs.io/en/stable/guide.html#adapter-types
   cutadapt:
-    threads: 4
 
     # Set the adapters and any extra parameters.
     # For example, adapters: "-a AGAGCACACGTCTGAACTCCAGTCAC -g AGATCGGAAGAGCACACGT -A AGAGCACACGTCTGAACTCCAGTCAC -G AGATCGGAAGAGCACACGT"
@@ -462,7 +478,6 @@ params:
   # Used only if settings:trimming-tool == fastp
   # See fastp manual: https://github.com/OpenGene/fastp
   fastp:
-    threads: 4
 
     # Extra parameters for single reads.
     se: ""
@@ -490,7 +505,6 @@ params:
   # See skewer manual: https://github.com/relipmoc/skewer
   # By default, we internally already set the options `--format sanger --compress`
   skewer:
-    threads: 4
 
     # Extra parameters for single reads.
     se: "--mode any"
@@ -506,7 +520,8 @@ params:
   # See trimmomatic manual: http://www.usadellab.org/cms/?page=trimmomatic
   # Download adapters here: https://github.com/usadellab/Trimmomatic/tree/main/adapters
   trimmomatic:
-    threads: 6
+
+    # Extra parameters for single reads.
     se:
       extra: ""
       trimmer:
@@ -521,6 +536,8 @@ params:
         - "TRAILING:3"
         - "SLIDINGWINDOW:4:15"
         - "MINLEN:36"
+
+    # Extra parameters for paired end reads.
     pe:
       extra: ""
       trimmer:
@@ -538,7 +555,6 @@ params:
   # Used only if settings:mapping-tool == bowtie2
   # See bowtie2 manual: http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
   bowtie2:
-    threads: 10
 
     # Extra parameters. We internally already set `--rg` and `--rg-id`, using read group ("@RG")
     # tags "ID" and "SM", and potentially "PL".
@@ -554,7 +570,6 @@ params:
   # Used only if settings:mapping-tool == bwaaln
   # See bwa manual: http://bio-bwa.sourceforge.net/
   bwaaln:
-    threads: 10
 
     # Extra parameters for bwa aln, which maps the reads and produces intermediate *.sai files.
     extra: ""
@@ -575,7 +590,6 @@ params:
   # Used only if settings:mapping-tool == bwamem
   # See bwa manual: http://bio-bwa.sourceforge.net/
   bwamem:
-    threads: 10
 
     # Extra parameters for bwa mem.
     # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM",
@@ -592,7 +606,6 @@ params:
   # Used only if settings:mapping-tool == bwamem2
   # See bwa manual: https://github.com/bwa-mem2/bwa-mem2
   bwamem2:
-    threads: 10
 
     # Extra parameters for bwa mem.
     # We internally already set `-R` to use read group ("@RG") tags "ID" and "SM",
@@ -615,7 +628,6 @@ params:
     # in order to streamline the process, and to make sure that all tools understand that all units
     # of a sample belong to the same sample.
     merge: ""
-    merge-threads: 4
 
     # Extra parameters for samtools/view.
     # Used only if settings:filter-mapped-reads == true, in order to filter the mapped samples
@@ -702,21 +714,12 @@ params:
     # system-provided tmp dir is too small (which can happen on clusters).
     # Note that the Java memory options, such as `-Xmx10g` to increase the available memory within
     # the Java virtual machine are provided via the Snakemake memory management directly,
-    # and hence cannot be specified here. Instead, use the below `*-mem-mb` options,
-    # or, if you are running grenepipe via slurm, use the slurm job configuration.
+    # and hence cannot be specified here. Instead, use the resources.yaml config file for this.
     # The last option, SortVcf-java-opts, is used by bcftools when using contig-group-size > 0.
     MarkDuplicates-java-opts: ""
     CollectMultipleMetrics-java-opts: ""
     SortVcf-java-opts: ""
     MergeVcfs-java-opts: ""
-
-    # Memory for the Java virtual machine for the picard programs.
-    # Unfortunately, Java does not automatically use the available memory, and instead needs
-    # to be told that it is allowed to do that. Specify the memory here as needed, in MB.
-    MarkDuplicates-mem-mb: 5000
-    CollectMultipleMetrics-mem-mb: 1024
-    SortVcf-mem-mb: 1024
-    MergeVcfs-mem-mb: 1024
 
   # ----------------------------------------------------------------------
   #     dedup
@@ -740,7 +743,6 @@ params:
   # Note that the bcftools filter step (if configured above via `settings: filter-variants`)
   # is configured below in the `bcftools-filter` setting, instead of here.
   bcftools:
-    threads: 8
 
     # We offer two ways to run bcftools call: Combined on all samples at the same time,
     # or on each sample individually, merging the calls later.
@@ -779,8 +781,6 @@ params:
     extra: ""
 
     # Settings for parallelization
-    threads: 8
-    compress-threads: 2
     chunksize: 100000
 
   # ----------------------------------------------------------------------
@@ -802,10 +802,6 @@ params:
     # "CAPILLARY", "LS454", "ILLUMINA", "SOLID", "HELICOS", "IONTORRENT", "ONT", "PACBIO"
     # Others might work as well, depending on GATK BaseRecalibrator.
     platform: ""
-
-    # Number of threads to use for the HaplotypeCaller. We recommend to keep this at 2,
-    # as GATK does not seem to do a great job of parallelizing anyway.
-    HaplotypeCaller-threads: 2
 
     # By default, starting in grenepipe v0.14.0, we are using GATK GenomicsDBImport instead of
     # GATK CombineGVCFs to prepare the singular GVCF for GATK GenotypeGVCFs. However, for full
@@ -829,20 +825,11 @@ params:
     # For some specific error cases, it might be necessary to adjust java settings for the tools.
     # Note that the Java memory options, such as `-Xmx10g` to increase the available memory within
     # the Java virtual machine are provided via the Snakemake memory management directly,
-    # and hence cannot be specified here. Instead, use the below `*-mem-mb` options,
-    # or, if you are running grenepipe via slurm, use the slurm job configuration.
+    # and hence cannot be specified here. Instead, use the resources.yaml config file for this.
     HaplotypeCaller-java-opts: ""
     GenomicsDBImport-java-opts: ""
     CombineGVCFs-java-opts: ""
     GenotypeGVCFs-java-opts: ""
-
-    # Memory for the Java virtual machine for the GATK programs.
-    # Unfortunately, Java does not automatically use the available memory, and instead needs
-    # to be told that it is allowed to do that. Specify the memory here as needed, in MB.
-    HaplotypeCaller-mem-mb: 1024
-    GenomicsDBImport-mem-mb: 1024
-    CombineGVCFs-mem-mb: 1024
-    GenotypeGVCFs-mem-mb: 1024
 
   # ----------------------------------------------------------------------
   #     GATK VariantFiltration
@@ -863,7 +850,6 @@ params:
     # We also offer extra settings that are used for both.
     extra: ""
     java-opts: ""
-    mem-mb: 1024
 
   # ----------------------------------------------------------------------
   #     GATK VariantRecalibrator + ApplyVQSR
@@ -948,13 +934,11 @@ params:
     variantrecalibrator-extra-SNP: "--max-gaussians 1"
     variantrecalibrator-extra-INDEL: "--max-gaussians 1"
     variantrecalibrator-java-opts: ""
-    variantrecalibrator-mem-mb: 1024
 
     # Extra command line params, and optional Java runtime options to provide to GATK ApplyVQSR
     applyvqsr-extra-SNP: "--truth-sensitivity-filter-level 99.0"
     applyvqsr-extra-INDEL: "--truth-sensitivity-filter-level 99.0"
     applyvqsr-java-opts: ""
-    applyvqsr-mem-mb: 1024
 
   # ----------------------------------------------------------------------
   #     bcftools filter
@@ -1002,9 +986,6 @@ params:
     # If set, the two options above, `name` and `download-dir`, are ignored, and instead,
     # this local path is used, which is expected to contain a valid snpEff database.
     custom-db-dir: ""
-
-    # Memory (in MB) to be given to SnpEFF. Increase this if the command fails.
-    mem: 4000
 
     # Additional parameters for snpeff, see https://pcingola.github.io/SnpEff/se_commandline/
     extra: ""
@@ -1112,8 +1093,7 @@ params:
     bams: "processed"
 
     # Additional parameters for qualimap, see http://qualimap.conesalab.org/
-    extra: "--java-mem-size=10G"
-    threads: 2
+    extra: ""
 
   # ----------------------------------------------------------------------
   #     SeqKit

@@ -65,11 +65,6 @@ rule map_reads:
         # Prefix of reference genome index (built with bowtie2-build above)
         index=config["data"]["reference-genome"],
         extra=get_bowtie2_extra,
-    # Use at least two threads
-    threads: config["params"]["bowtie2"]["threads"]
-    # resources:
-    # Increase time limit in factors of 2h, if the job fails due to time limit.
-    # time = lambda wildcards, input, threads, attempt: int(120 * int(attempt))
     log:
         "logs/mapping/bowtie2/{sample}-{unit}.log",
     benchmark:

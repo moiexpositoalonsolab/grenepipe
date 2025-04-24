@@ -40,13 +40,13 @@ rule call_variants:
         mpileup=get_mpileup_params,
         # Optional parameters for bcftools call (except -v, -o, -m).
         call=config["params"]["bcftools"]["call"],
+    threads: 1 # Dummy, but will be overwritten by our automatic resources
     log:
         "logs/calling/bcftools-call/{sample}-{contig}.log",
     benchmark:
         "benchmarks/calling/bcftools-call/{sample}-{contig}.log"
     conda:
         "../envs/bcftools.yaml"
-    threads: config["params"]["bcftools"]["threads"]
     shell:
         # We need a normalization step in between, because somehow bcftools spits out data
         # in some non-normal format by default... see https://www.biostars.org/p/404061/#404245

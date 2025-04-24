@@ -76,10 +76,7 @@ if config["settings"].get("contig-group-size"):
                 if platform.system() == "Darwin"
                 else ""
             ),
-            java_opts=config["params"]["picard"]["SortVcf-java-opts"]
-            + " -Xmx"
-            + str(config["params"]["picard"].get("SortVcf-mem-mb", 1024))
-            + "m",
+            java_opts=config["params"]["picard"]["SortVcf-java-opts"],
         log:
             "logs/calling/picard-sort-genotyped.log",
         benchmark:
@@ -89,7 +86,7 @@ if config["settings"].get("contig-group-size"):
         shell:
             # Weird new picard syntax...
             "picard SortVcf "
-            "{params.java_opts} "
+            "{params.java_opts} -Xmx{resources.mem_mb}m"
             "--INPUT {input.vcf} "
             "--OUTPUT {output.vcf} "
             "--SEQUENCE_DICTIONARY {input.refdict} "

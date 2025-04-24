@@ -28,7 +28,6 @@ rule trim_reads_se:
         "benchmarks/trimming/fastp/{sample}-{unit}.log"
     params:
         extra=config["params"]["fastp"]["se"],
-    threads: config["params"]["fastp"]["threads"]
     wrapper:
         "0.64.0/bio/fastp"
 
@@ -54,7 +53,6 @@ rule trim_reads_pe:
         "benchmarks/trimming/fastp/{sample}-{unit}.log"
     params:
         extra=config["params"]["fastp"]["pe"],
-    threads: config["params"]["fastp"]["threads"]
     wrapper:
         "0.64.0/bio/fastp"
 
@@ -84,7 +82,6 @@ rule trim_reads_pe_merged:
         + " --out2 trimming/{sample}-{unit}-unmerged.pass-2.fastq.gz"
         + " --unpaired1 trimming/{sample}-{unit}-unmerged.unpaired-1.fastq.gz"
         + " --unpaired2 trimming/{sample}-{unit}-unmerged.unpaired-2.fastq.gz",
-    threads: config["params"]["fastp"]["threads"]
     wrapper:
         "0.64.0/bio/fastp"  # this runs fastp 0.20.0
 

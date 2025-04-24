@@ -46,7 +46,6 @@ rule map_reads:
         "logs/mapping/bwa-mem2/{sample}-{unit}.log",
     benchmark:
         "benchmarks/mapping/bwa-mem2/{sample}-{unit}.log"
-    threads: config["params"]["bwamem2"]["threads"]
     conda:
         # As always, we need our own env here that overwrites the python/pandas/numpy stack
         # to make sure that we do not run into a version conflict.

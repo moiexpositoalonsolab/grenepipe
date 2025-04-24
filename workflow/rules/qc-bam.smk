@@ -112,7 +112,7 @@ rule qualimap_sample:
     params:
         extra=config["params"]["qualimap"]["extra"],
         outdir="qc/qualimap/{sample}",
-    threads: config["params"]["qualimap"]["threads"]
+    threads: 1 # Dummy, but will be overwritten by our automatic resources
     log:
         "logs/qc/qualimap/{sample}_qualimap.log",
     benchmark:
@@ -124,7 +124,7 @@ rule qualimap_sample:
     shell:
         "unset DISPLAY; qualimap bamqc -bam {input} -nt {threads} "
         "-outdir {params.outdir} -outformat HTML "
-        "{params.extra} > {log} 2>&1"
+        "{params.extra} --java-mem-size={resources.mem_mb}M > {log} 2>&1"
 
 
 rule qualimap_collect:
@@ -237,8 +237,6 @@ rule picard_collectmultiplemetrics:
             if platform.system() == "Darwin"
             else ""
         ),
-    resources:
-        mem_mb=config["params"]["picard"].get("CollectMultipleMetrics-mem-mb", 1024),
     conda:
         "../envs/picard.yaml"
     wrapper:
