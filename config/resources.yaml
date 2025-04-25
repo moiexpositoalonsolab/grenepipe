@@ -39,12 +39,13 @@ default:
   # Fixed offset of the required memory, in MB. This accounts for basic memory
   # needed by the rule (independent of input sizes), and is needed for small files
   # where the scaling might be too little.
-  mem-offset: 1000
+  mem-offset: 5000
 
   # Scaling of the memory needed for the computation. That is, for each MB of combined
   # input file sizes, how many MB of memory are needed for the processing?
-  # The default of 1 should work in most cases, but can tightly be adapted as needed
-  # if rules run out of memory.
+  # The default of 1 should work in most cases, as it simply gives memory equal to
+  # the input file sizes. This can easily be an overestimate, and can tightly be
+  # adapted as needed if rules run out of memory.
   mem-scaler: 1
 
   # Maximum memory, in MB, defaulting to 1TB. This is provided as a safety mechanism,
@@ -57,17 +58,17 @@ default:
   # Fixed offset of the required runtime, in minutes. Similar to above.
   time-offset: 60
 
-  # Scaling of the runtime, from MB to minutes. That is, how many minuts are needed
-  # for each additional MB of input files? The default of 0.1 for instance would give
-  # 100 minutes per GB of input data.
-  time-scaler: 0.1
+  # Scaling of the runtime, from MB to minutes. That is, how many minutes are needed
+  # for each additional MB of input files? The default of 0.01 for instance would give
+  # an addiitonal 10 minutes per GB of input data.
+  time-scaler: 0.01
 
   # Maximum runtime, in minutes. Defaults to one week. If you have large datasets
   # and your cluster allows longer wall times, adjust this accordingly.
   # Generally, set this to the maximum allowed wall time on your cluster.
   time-max: 10080
 
-  # Default number of CPU cores per task/job. Most programs and scripts in
+  # Default number of CPU cores (threads) per task/job. Most programs and scripts in
   # bioinformatics are unfortunately not paralellized well, so 1 is the default.
   cpus: 1
 
@@ -96,21 +97,58 @@ default:
 # for rules that we now already can benefit from different resources.
 
 # Read trimming tools can typically use multiple CPUs, so let's give them more!
+# They however are very fast, so we don't need as much scaling for time.
 trim_reads_se:
   cpus: 4
+  time-scaler: 0.005
 trim_reads_pe:
   cpus: 4
+  time-scaler: 0.005
 trim_reads_pe_merged:
   cpus: 4
+  time-scaler: 0.005
 
 # Even better for the mapping! More cores! Note that we internally
-# might assign  an additional cpu thread for sorting the bam files.
+# might assign an additional cpu thread for sorting the bam files.
+# We however set different scalers here based on empirical experience.
+# The memory needs are mostly depending on the reference genome size.
 map_reads:
-  cpus: 10
+  cpus: 8
+  time-scaler: 0.02
 
 # The usable cpu threads for the actual variant calling step depends on the tool.
 # Freebayes and bcftools can make efficient use of threads, so if you are using those,
 # increase the value here to, e.g., 10. However, the GATK HaplotypeCaller is
 # notoriously bad and inefficient, and seems to not benefit from more than 2 threads.
 call_variants:
+  # GATK HaplotypeCaller
   cpus: 2
+  time-scaler: 0.05
+  mem-offset: 5000
+  mem-scaler: 0
+
+  # Freebayes and bcfcalls. You can comment out the above and use these defaults
+  # here if you are using either of those callers. Adjust as needed for your data.
+  # cpus: 8
+  # time-scaler: 0.01
+
+# FastQC never seems to use more than 1GB, so let's cap it there.
+fastqc:
+  mem-offset: 1000
+  mem-scaler: 0
+
+# Same for samtools statistics
+samtools_stats:
+  mem-offset: 1000
+  mem-scaler: 0
+samtools_flagstat:
+  mem-offset: 1000
+  mem-scaler: 0
+
+# Multiqc takes a lot of files as input, but we want to run it idependently
+# of their sizes, as it solely looks at logs etc, and not the actual file contents.
+multiqc:
+  mem-offset: 5000
+  mem-scaler: 0
+  time-offset: 60
+  time-scaler: 0
