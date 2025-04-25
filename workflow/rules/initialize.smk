@@ -80,19 +80,19 @@ else:
 # =================================================================================================
 
 
-# Obtain the resource.yaml file. First, we check the path specified in the config.yaml.
+# Obtain the resources.yaml file. First, we check the path specified in the config.yaml.
 # If that is empty, we check the working directory. If that also does not contain a resources
 # file, we fall back to the default one in the grenepipe directory.
 resources_file = config["settings"].get("resources-yaml", "")
 if resources_file and not os.path.isfile(resources_file):
-    raise Exception("Invalid path to resource.yaml specified in config.yaml: " + resources_file)
+    raise Exception("Invalid path to resources.yaml specified in config.yaml: " + resources_file)
 if not resources_file:
     if os.path.isfile("resources.yaml"):
         resources_file = "resources.yaml"
     else:
         resources_file = workflow.basedir + "/../config/resources.yaml"
 if not resources_file or not os.path.isfile(resources_file):
-    raise Exception("Coud not find resource.yaml")
+    raise Exception("Coud not find resources.yaml")
 
 with open(resources_file) as f:
     resources_config = yaml.safe_load(f)
