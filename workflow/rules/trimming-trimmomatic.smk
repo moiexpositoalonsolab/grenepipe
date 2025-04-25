@@ -18,6 +18,7 @@ rule trim_reads_se:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         extra=config["params"]["trimmomatic"]["se"]["extra"],
         trimmer=config["params"]["trimmomatic"]["se"]["trimmer"],
+    threads: get_rule_threads("trim_reads_se")
     log:
         "logs/trimming/trimmomatic/{sample}-{unit}.log",
     benchmark:
@@ -60,6 +61,7 @@ rule trim_reads_pe:
         # extra=lambda w, output: "-trimlog {}".format(output.trimlog),
         extra=config["params"]["trimmomatic"]["se"]["extra"],
         trimmer=config["params"]["trimmomatic"]["pe"]["trimmer"],
+    threads: get_rule_threads("trim_reads_pe")
     log:
         "logs/trimming/trimmomatic/{sample}-{unit}.log",
     benchmark:

@@ -12,6 +12,7 @@ rule mpileup_merge_all:
     params:
         # Need file overwrite flag, see above.
         extra=config["params"]["samtools"]["merge"] + " -f",
+    threads: get_rule_threads("mpileup_merge_all")
     log:
         "logs/mpileup/merge-all.log",
     benchmark:

@@ -126,14 +126,11 @@ def make_resource_fn(rule_name, kind):
     return _fn
 
 
-def get_cpus(rule_name):
-    return int(resources_config.get(rule_name, {}).get("cpus", resources_config["default"]["cpus"]))
-
-
 # Set the resources for all rules automatically,
 # without having to specify this for all of them individually.
+# We also re-set the threads here, just in case.
 # Cannot name the iteration variable `rule` here, as that conflicts...
 for wf_rule in workflow.rules:
     wf_rule.resources["mem_mb"]  = make_resource_fn(wf_rule.name, "mem")
     wf_rule.resources["runtime"] = make_resource_fn(wf_rule.name, "time")
-    wf_rule.threads = get_cpus(wf_rule.name)
+    wf_rule.threads = get_rule_threads(wf_rule.name)

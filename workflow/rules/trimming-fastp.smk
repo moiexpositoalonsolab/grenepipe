@@ -22,12 +22,13 @@ rule trim_reads_se:
         html="trimming/{sample}-{unit}-se-fastp.html",
         json="trimming/{sample}-{unit}-se-fastp.json",
         done=touch("trimming/{sample}-{unit}.fastq.gz.done"),
+    params:
+        extra=config["params"]["fastp"]["se"],
+    threads: get_rule_threads("trim_reads_se")
     log:
         "logs/trimming/fastp/{sample}-{unit}.log",
     benchmark:
         "benchmarks/trimming/fastp/{sample}-{unit}.log"
-    params:
-        extra=config["params"]["fastp"]["se"],
     wrapper:
         "0.64.0/bio/fastp"
 
@@ -47,12 +48,13 @@ rule trim_reads_pe:
         json="trimming/{sample}-{unit}-pe-fastp.json",
         done1=touch("trimming/{sample}-{unit}.1.fastq.gz.done"),
         done2=touch("trimming/{sample}-{unit}.2.fastq.gz.done"),
+    params:
+        extra=config["params"]["fastp"]["pe"],
+    threads: get_rule_threads("trim_reads_pe")
     log:
         "logs/trimming/fastp/{sample}-{unit}.log",
     benchmark:
         "benchmarks/trimming/fastp/{sample}-{unit}.log"
-    params:
-        extra=config["params"]["fastp"]["pe"],
     wrapper:
         "0.64.0/bio/fastp"
 
@@ -71,10 +73,6 @@ rule trim_reads_pe_merged:
         html="trimming/{sample}-{unit}-pe-merged-fastp.html",
         json="trimming/{sample}-{unit}-pe-merged-fastp.json",
         done=touch("trimming/{sample}-{unit}-merged.fastq.gz.done"),
-    log:
-        "logs/trimming/fastp/{sample}-{unit}.log",
-    benchmark:
-        "benchmarks/trimming/fastp/{sample}-{unit}.log"
     params:
         extra=config["params"]["fastp"]["pe"]
         + " --merge --merged_out trimming/{sample}-{unit}-merged.fastq.gz"
@@ -82,6 +80,11 @@ rule trim_reads_pe_merged:
         + " --out2 trimming/{sample}-{unit}-unmerged.pass-2.fastq.gz"
         + " --unpaired1 trimming/{sample}-{unit}-unmerged.unpaired-1.fastq.gz"
         + " --unpaired2 trimming/{sample}-{unit}-unmerged.unpaired-2.fastq.gz",
+    threads: get_rule_threads("trim_reads_pe_merged")
+    log:
+        "logs/trimming/fastp/{sample}-{unit}.log",
+    benchmark:
+        "benchmarks/trimming/fastp/{sample}-{unit}.log"
     wrapper:
         "0.64.0/bio/fastp"  # this runs fastp 0.20.0
 

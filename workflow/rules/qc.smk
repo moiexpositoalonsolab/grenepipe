@@ -59,6 +59,7 @@ rule multiqc:
         "qc/multiqc.zip",
     params:
         config["params"]["multiqc"]["extra"],
+    threads: get_rule_threads("multiqc")
     log:
         "logs/qc/multiqc.log",
     benchmark:

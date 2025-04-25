@@ -18,6 +18,7 @@ rule trim_reads_se:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["se"],
         basename="trimming/{sample}-{unit}",
+    threads: get_rule_threads("trim_reads_se")
     log:
         "logs/trimming/adapterremoval/{sample}-{unit}.log",
     benchmark:
@@ -50,6 +51,7 @@ rule trim_reads_pe:
         extra="--gzip",
         params=config["params"]["adapterremoval"]["pe"],
         basename="trimming/{sample}-{unit}",
+    threads: get_rule_threads("trim_reads_pe")
     log:
         "logs/trimming/adapterremoval/{sample}-{unit}.log",
     benchmark:
@@ -105,6 +107,7 @@ rule trim_reads_pe_merged:
         extra="--gzip --collapse",
         params=config["params"]["adapterremoval"]["pe"],
         basename="trimming/{sample}-{unit}",
+    threads: get_rule_threads("trim_reads_pe_merged")
     log:
         "logs/trimming/adapterremoval/{sample}-{unit}.log",
     benchmark:

@@ -2,13 +2,14 @@
 #     Dependencies
 # =================================================================================================
 
-import pandas as pd
+from datetime import datetime
+from pathlib import Path
+import inspect
+import logging
 import os, sys, pwd, re
+import pandas as pd
 import socket, platform
 import subprocess
-from datetime import datetime
-import logging
-from pathlib import Path
 import yaml
 
 from snakemake_interface_executor_plugins.settings import ExecMode
@@ -95,6 +96,17 @@ if not resources_file or not os.path.isfile(resources_file):
 
 with open(resources_file) as f:
     resources_config = yaml.safe_load(f)
+
+
+# Helper function to get the number of cpus specified i nthe resource config.
+# Unfortunately, we need to set this for every rule, as snakemake processes the threads
+# on the first pass already, and so we cannot set it later any more. Any later changes
+# would not correctly affect the thread allocations.
+# For the mem and time resources, this is different, as those are not first-class resources
+# of snakemake, and so we can set them in bulk later (at the end of the main Snakefile).
+def get_rule_threads(rule_name):
+    default = resources_config["default"]["cpus"]
+    return int(resources_config.get(rule_name, {}).get("cpus", default))
 
 
 # =================================================================================================

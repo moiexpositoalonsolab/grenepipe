@@ -32,6 +32,7 @@ rule samtools_stats:
         lambda wildcards: bam_qc_input("samtools", "stats-bams", wildcards),
     output:
         "qc/samtools-stats/{sample}.txt",
+    threads: get_rule_threads("samtools_stats")
     log:
         "logs/qc/samtools-stats/{sample}.log",
     benchmark:
@@ -61,6 +62,7 @@ rule samtools_flagstat:
         lambda wildcards: bam_qc_input("samtools", "flagstat-bams", wildcards),
     output:
         "qc/samtools-flagstat/{sample}.txt",
+    threads: get_rule_threads("samtools_flagstat")
     log:
         "logs/qc/samtools-flagstat/{sample}.log",
     benchmark:
@@ -112,7 +114,7 @@ rule qualimap_sample:
     params:
         extra=config["params"]["qualimap"]["extra"],
         outdir="qc/qualimap/{sample}",
-    threads: 1 # Dummy, but will be overwritten by our automatic resources
+    threads: get_rule_threads("qualimap_sample")
     log:
         "logs/qc/qualimap/{sample}_qualimap.log",
     benchmark:
@@ -225,10 +227,6 @@ rule picard_collectmultiplemetrics:
         ref=config["data"]["reference-genome"],
     output:
         expand("qc/picard/{{sample}}{ext}", ext=picard_collectmultiplemetrics_exts()),
-    log:
-        "logs/qc/picard-collectmultiplemetrics/{sample}.log",
-    benchmark:
-        "benchmarks/qc/picard-collectmultiplemetrics/{sample}.log"
     params:
         java_opts=config["params"]["picard"].get("CollectMultipleMetrics-java-opts", ""),
         extra=config["params"]["picard"].get("CollectMultipleMetrics-extra", "")
@@ -237,6 +235,11 @@ rule picard_collectmultiplemetrics:
             if platform.system() == "Darwin"
             else ""
         ),
+    threads: get_rule_threads("picard_collectmultiplemetrics")
+    log:
+        "logs/qc/picard-collectmultiplemetrics/{sample}.log",
+    benchmark:
+        "benchmarks/qc/picard-collectmultiplemetrics/{sample}.log"
     conda:
         "../envs/picard.yaml"
     wrapper:

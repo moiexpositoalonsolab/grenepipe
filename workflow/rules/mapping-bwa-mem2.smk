@@ -40,6 +40,7 @@ rule map_reads:
         sort_order="coordinate",
         sort_extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"],
+    threads: get_rule_threads("map_reads")
     group:
         "mapping"
     log:

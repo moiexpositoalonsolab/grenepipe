@@ -50,15 +50,16 @@ rule call_variants:
     output:
         # touch("calling/called/{contig}.vcf.done"),
         pipe("calling/called/{contig}.vcf"),
-    log:
-        "logs/calling/freebayes/{contig}.log",
-    benchmark:
-        "benchmarks/calling/freebayes/{contig}.log"
     params:
         # Optional extra parameters.
         extra=config["params"]["freebayes"]["extra"] + know_variants_extra(),
         # Reference genome chunk size for parallelization (default: 100000)
         chunksize=config["params"]["freebayes"]["chunksize"],
+    threads: get_rule_threads("call_variants")
+    log:
+        "logs/calling/freebayes/{contig}.log",
+    benchmark:
+        "benchmarks/calling/freebayes/{contig}.log"
     group:
         "call_variants"
     # wrapper:
@@ -83,7 +84,7 @@ rule compress_vcf:
         ),
         # protected("calling/called/{contig}.vcf.gz")
         touch("calling/called/{contig}.vcf.gz.done"),
-    threads: 1 # Dummy, but will be overwritten by our automatic resources
+    threads: 1  # Dummy, but will be overwritten by our automatic resources
     log:
         "logs/calling/compress-vcf/{contig}.log",
     group:

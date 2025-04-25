@@ -65,6 +65,7 @@ rule map_reads:
         # Prefix of reference genome index (built with bowtie2-build above)
         index=config["data"]["reference-genome"],
         extra=get_bowtie2_extra,
+    threads: get_rule_threads("map_reads")
     log:
         "logs/mapping/bowtie2/{sample}-{unit}.log",
     benchmark:
@@ -98,7 +99,7 @@ rule sort_reads:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"],
     # Samtools takes additional threads through its option -@
-    threads: 1  # This value - 1 will be sent to -@. Weird flex, but okay.
+    threads: get_rule_threads("sort_reads")
     log:
         "logs/mapping/samtools-sort/{sample}-{unit}.log",
     benchmark:

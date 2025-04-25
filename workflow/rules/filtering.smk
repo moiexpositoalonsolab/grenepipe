@@ -24,6 +24,7 @@ rule select_calls:
         done=touch("calling/filtered/all.{vartype}.selected.vcf.gz.done"),
     params:
         extra="--select-type-to-include {vartype}",
+    threads: get_rule_threads("select_calls")
     log:
         "logs/calling/gatk-selectvariants/{vartype}.log",
     benchmark:
@@ -114,6 +115,7 @@ rule merge_calls:
             if platform.system() == "Darwin"
             else ""
         ),
+    threads: get_rule_threads("merge_calls")
     log:
         "logs/calling/picard-mergevcfs.log",
     benchmark:

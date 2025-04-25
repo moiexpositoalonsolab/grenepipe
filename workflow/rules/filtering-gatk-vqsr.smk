@@ -101,6 +101,7 @@ rule gatk_variant_recalibrator:
         # Extras
         extra=get_variant_recalibrator_extra,
         java_opts=config["params"]["gatk-vqsr"]["variantrecalibrator-java-opts"],
+    threads: get_rule_threads("gatk_variant_recalibrator")
     log:
         "logs/calling/gatk-variantrecalibrator/{vartype}.log",
     benchmark:
@@ -132,15 +133,16 @@ rule gatk_apply_vqsr:
             else temp("calling/filtered/all.{vartype}.recalibrated.vcf.gz")
         ),
         done=touch("calling/filtered/all.{vartype}.recalibrated.vcf.gz.done"),
-    log:
-        "logs/calling/gatk-applyvqsr/{vartype}.log",
-    benchmark:
-        "benchmarks/calling/gatk-applyvqsr/{vartype}.log"
     params:
         # set mode, must be either SNP, INDEL or BOTH
         mode="{vartype}",
         extra=get_apply_vqsr_extra,
         java_opts=config["params"]["gatk-vqsr"]["applyvqsr-java-opts"],
+    threads: get_rule_threads("gatk_apply_vqsr")
+    log:
+        "logs/calling/gatk-applyvqsr/{vartype}.log",
+    benchmark:
+        "benchmarks/calling/gatk-applyvqsr/{vartype}.log"
     conda:
         # We overwrite the original yaml, as this wrapper here (version 0.85.0) and the one above
         # for the variantrecalibrator (also 0.85.0) use different GATK versions originally...

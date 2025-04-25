@@ -52,6 +52,7 @@ rule map_reads:
     params:
         index=config["data"]["reference-genome"],
         extra=config["params"]["bwaaln"]["extra"],
+    threads: get_rule_threads("map_reads")
     group:
         "mapping"
     log:

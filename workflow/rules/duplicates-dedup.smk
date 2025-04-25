@@ -71,7 +71,7 @@ rule sort_reads_dedup:
         extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"],
     # Samtools takes additional threads through its option -@
-    threads: 1  # This value - 1 will be sent to -@. Weird flex, but okay.
+    threads: get_rule_threads("sort_reads_dedup")
     log:
         "logs/mapping/dedup-samtools-sort/{sample}.log",
     benchmark:

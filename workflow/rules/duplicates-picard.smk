@@ -23,10 +23,6 @@ rule mark_duplicates:
         ),
         metrics="qc/dedup/{sample}.metrics.txt",
         done=touch("mapping/dedup/{sample}.bam.done"),
-    log:
-        "logs/mapping/picard-markduplicates/{sample}.log",
-    benchmark:
-        "benchmarks/mapping/picard-markduplicates/{sample}.log"
     params:
         # Take the params from the config.
         # On MacOS (we experienced it with 10.16, 11, and 12 so far), there is an issue between Java
@@ -40,6 +36,11 @@ rule mark_duplicates:
             else ""
         ),
         java_opts=config["params"]["picard"]["MarkDuplicates-java-opts"],
+    threads: get_rule_threads("mark_duplicates")
+    log:
+        "logs/mapping/picard-markduplicates/{sample}.log",
+    benchmark:
+        "benchmarks/mapping/picard-markduplicates/{sample}.log"
     group:
         "mapping_extra"
     conda:

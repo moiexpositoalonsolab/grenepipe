@@ -90,6 +90,7 @@ rule snpeff:
     params:
         # For finding the chromosome names used by snpeff, add `-v` here
         extra=config["params"]["snpeff"]["extra"],
+    threads: get_rule_threads("snpeff")
     conda:
         "../envs/snpeff.yaml"
     wrapper:
@@ -224,6 +225,7 @@ rule vep:
         # Plugin args can be added as well, e.g. via an entry "MyPlugin,1,FOO", see docs.
         plugins=config["params"]["vep"]["plugins"],
         extra=config["params"]["vep"]["extra"],
+    threads: get_rule_threads("vep")
     log:
         "logs/annotation/vep-annotate.log",
     conda:

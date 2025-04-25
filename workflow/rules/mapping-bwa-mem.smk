@@ -38,6 +38,7 @@ rule map_reads:
         sort_order="coordinate",
         sort_extra=config["params"]["samtools"]["sort"],
         tmp_dir=config["params"]["samtools"]["temp-dir"],
+    threads: get_rule_threads("map_reads")
     group:
         "mapping"
     log:
@@ -46,7 +47,6 @@ rule map_reads:
         "benchmarks/mapping/bwa-mem/{sample}-{unit}.log"
     conda:
         "../envs/bwa.yaml"
-
     # This wrapper version uses a proper tmp dir, so that the below shadow rule is not needed.
     # It caused trouble when running large cluster jobs with high number of parallel jobs,
     # as the number of symlinks created for the shadow directory crashed our cluster max file

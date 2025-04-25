@@ -63,16 +63,17 @@ rule call_variants:
             else temp("calling/called/{sample}-{contig}.g.vcf.gz.tbi")
         ),
         done=touch("calling/called/{sample}-{contig}.g.vcf.gz.done"),
-    log:
-        "logs/calling/gatk-haplotypecaller/{sample}-{contig}.log",
-    benchmark:
-        "benchmarks/calling/gatk-haplotypecaller/{sample}-{contig}.log"
     params:
         # The intervals param here is where the contig variable is propagated to haplotypecaller.
         # Contigs are used as long as no restrict-regions are given in the config file.
         intervals=get_gatk_intervals,
         extra=config["params"]["gatk"].get("HaplotypeCaller-extra", ""),
         java_opts=config["params"]["gatk"].get("HaplotypeCaller-java-opts", ""),
+    threads: get_rule_threads("call_variants")
+    log:
+        "logs/calling/gatk-haplotypecaller/{sample}-{contig}.log",
+    benchmark:
+        "benchmarks/calling/gatk-haplotypecaller/{sample}-{contig}.log"
     group:
         "call_variants"
     conda:
@@ -142,10 +143,6 @@ rule genomics_db_import:
     output:
         db=directory("calling/genomics_db/{contig}"),
         done=touch("calling/genomics_db/{contig}.done"),
-    log:
-        "logs/calling/gatk-genomicsdbimport/{contig}.log",
-    benchmark:
-        "benchmarks/calling/gatk-genomicsdbimport/{contig}.log"
     params:
         # Here, we actually use the intervals to provide them to the wrapper.
         intervals=get_gatk_intervals,
@@ -157,6 +154,11 @@ rule genomics_db_import:
         + " "
         + config["params"]["gatk"].get("GenomicsDBImport-extra", ""),
         java_opts=config["params"]["gatk"].get("GenomicsDBImport-java-opts", ""),
+    threads: get_rule_threads("genomics_db_import")
+    log:
+        "logs/calling/gatk-genomicsdbimport/{contig}.log",
+    benchmark:
+        "benchmarks/calling/gatk-genomicsdbimport/{contig}.log"
     resources:
         tmpdir=config["params"]["gatk"].get("GenomicsDBImport-temp-dir", ""),
     conda:
@@ -204,6 +206,7 @@ rule combine_calls:
             else ""
         ),
         java_opts=config["params"]["gatk"]["CombineGVCFs-java-opts"],
+    threads: get_rule_threads("combine_calls")
     log:
         "logs/calling/gatk-combine-gvcfs/{contig}.log",
     benchmark:
@@ -274,6 +277,7 @@ rule genotype_variants:
         + " "
         + config["params"]["gatk"]["GenotypeGVCFs-extra"],
         java_opts=config["params"]["gatk"]["GenotypeGVCFs-java-opts"],
+    threads: get_rule_threads("genotype_variants")
     log:
         "logs/calling/gatk-genotype-gvcfs/{contig}.log",
     benchmark:
@@ -325,6 +329,7 @@ rule merge_variants:
             if platform.system() == "Darwin"
             else ""
         ),
+    threads: get_rule_threads("merge_variants")
     log:
         "logs/calling/picard-merge-genotyped.log",
     benchmark:

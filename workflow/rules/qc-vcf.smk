@@ -18,12 +18,13 @@ rule bcftools_stats:
         ),
     output:
         "qc/bcftools-stats/stats.vchk",
+    params:
+        config["params"]["bcftools"]["stats"],
+    threads: get_rule_threads("bcftools_stats")
     log:
         "logs/qc/bcftools-stats.log",
     benchmark:
         "benchmarks/qc/bcftools-stats.log"
-    params:
-        config["params"]["bcftools"]["stats"],
     conda:
         "../envs/bcftools.yaml"
     group:

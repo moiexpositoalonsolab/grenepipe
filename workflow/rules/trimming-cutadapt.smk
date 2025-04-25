@@ -17,6 +17,7 @@ rule trim_reads_se:
     params:
         adapters=config["params"]["cutadapt"]["se"]["adapters"],
         extra=config["params"]["cutadapt"]["se"]["extra"],
+    threads: get_rule_threads("trim_reads_se")
     log:
         "logs/trimming/cutadapt/{sample}-{unit}.log",
     benchmark:
@@ -48,6 +49,7 @@ rule trim_reads_pe:
     params:
         adapters=config["params"]["cutadapt"]["pe"]["adapters"],
         extra=config["params"]["cutadapt"]["pe"]["extra"],
+    threads: get_rule_threads("trim_reads_pe")
     log:
         "logs/trimming/cutadapt/{sample}-{unit}.log",
     benchmark:

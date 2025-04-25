@@ -113,7 +113,7 @@ if snakemake.input.get("regions", ""):
         )
 
 if snakemake.threads == 1:
-    freebayes = "freebayes --region <(" + regions + ")"
+    freebayes = "freebayes --region " + regions
 else:
     # Ideally, we'd be using bamtools coverage and coverage_to_regions.py here,
     # as suggsted in the freebayes-parallel script, but this runs a long time and had some errors

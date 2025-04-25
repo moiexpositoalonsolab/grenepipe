@@ -150,6 +150,7 @@ rule merge_sample_unit_bams:
         touch("mapping/merged/{sample}.bam.done"),
     params:
         extra=config["params"]["samtools"]["merge"],
+    threads: get_rule_threads("merge_sample_unit_bams")
     log:
         "logs/mapping/samtools-merge/{sample}.log",
     benchmark:
@@ -180,6 +181,7 @@ rule filter_mapped_reads:
         touch("mapping/filtered/{sample}.bam.done"),
     params:
         extra=config["params"]["samtools"]["view"] + " -b",
+    threads: get_rule_threads("filter_mapped_reads")
     log:
         "logs/mapping/samtools-view/{sample}.log",
     benchmark:

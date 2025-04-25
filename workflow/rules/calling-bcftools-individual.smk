@@ -40,7 +40,7 @@ rule call_variants:
         mpileup=get_mpileup_params,
         # Optional parameters for bcftools call (except -v, -o, -m).
         call=config["params"]["bcftools"]["call"],
-    threads: 1 # Dummy, but will be overwritten by our automatic resources
+    threads: get_rule_threads("call_variants")
     log:
         "logs/calling/bcftools-call/{sample}-{contig}.log",
     benchmark:

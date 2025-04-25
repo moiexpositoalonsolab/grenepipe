@@ -103,6 +103,7 @@ rule recalibrate_base_qualities:
         done=touch("mapping/recal/{sample}.bam.done"),
     params:
         extra=get_gatk_regions_param() + " " + config["params"]["gatk"]["BaseRecalibrator"],
+    threads: get_rule_threads("recalibrate_base_qualities")
     log:
         "logs/mapping/gatk-bqsr/{sample}.log",
     benchmark:

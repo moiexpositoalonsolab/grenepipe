@@ -44,6 +44,7 @@ rule trim_reads_pe:
         done2=touch("trimming/{sample}-{unit}.2.fastq.gz.done"),
     params:
         extra=config["params"]["seqprep"]["extra"],
+    threads: get_rule_threads("trim_reads_pe")
     log:
         "logs/trimming/seqprep/{sample}-{unit}.log",
     benchmark:
