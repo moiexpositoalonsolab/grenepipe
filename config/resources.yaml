@@ -7,6 +7,29 @@
 # grenepipe locally on a single machine - in that case, only the CPU specified
 # below will be used.
 
+# This file specifies the typical resources needed for submitting jobs to a cluster:
+#
+#     (1) number of cores/threads,
+#     (2) memory, and
+#     (3) wall time (run time).
+#
+# We scale the memory and time with file sizes, such that larger inputs get more
+# resources. This makes the approach flexible for optimization, but of course can
+# feel a bit hard to get right. We hope that the defaults work for most cases.
+# If not, please let us know: https://github.com/moiexpositoalonsolab/grenepipe/issues
+
+# Note that most academic clusters use slurm. In that case, things should work fine
+# with the snakemake slurm cluster executor. If your cluster is using a different
+# workload manager (such as Torque), you might need to forward the resources properly
+# to the cluster submission script in order for snakemake to know how to call
+# the cluster submission correctly.
+# See https://github.com/moiexpositoalonsolab/grenepipe/issues/62 for a discussion.
+# Generally, if you want to adapt this to other clusters: We use the below resource
+# settings to define the "standardized" snakemake resources, which means that each
+# rule gets `threads`, `resources.mem_mb`, and `resources.runtime` set based
+# on the values specified here. Use these standard snakemake resources for forwarding
+# to your cluster execution script.
+
 # Note that there is a bug in the snakemake slurm submission, where the number
 # of cores on the login node (where typically snakemake is being run, and from which
 # the slurm jobs are hence submitted) is used as a limitation check for the number
@@ -91,7 +114,11 @@ default:
 # =================================================================================================
 
 # Here, you can specify the resources for individual job rules in grenepipe.
-# All values not given here are simply using the above defaults instead.
+# All values _not_ given here are simply using the above defaults instead.
+# Then, if you want to add specific resources for a partcicular rule/job,
+# you can add the rule name (or rule group name) here, following the below
+# examples, and add the resource specifications for that rule as needed.
+
 # You might need to have a look at the snakemake log or even the workflow code
 # in order to figure out the rule names needed. We provide some defaults here
 # for rules that we now already can benefit from different resources.
