@@ -18,12 +18,21 @@ from snakemake_interface_executor_plugins.settings import ExecMode
 snakemake.utils.min_version("8.15.2")
 basedir = workflow.basedir
 
+# =================================================================================================
+#     Fix Snakemake Logging
+# =================================================================================================
+
 # We are currently setting up our own extra log file, so that the below banner is shown.
 # Snakemake currently only activates logging to the `.snakemake/log` files _after_ having
 # processed all snakefiles, which is not really how logging should work...
 # See https://github.com/snakemake/snakemake/issues/2974 for the issue.
+# Furthermore, it does not respeced info messages any more in Snakemake 9.3.3,
+# see https://github.com/snakemake/snakemake/issues/3558
+# Hence, yet again, we need our own tooling to fix other people's mistakes...
+
+# First, set up a customg log file that we can present to our users.
 # We need to distinguish between the main instance, and the instances of each rule job.
-if logger.mode == ExecMode.DEFAULT:
+if logger_manager.mode is None or logger_manager.mode == ExecMode.DEFAULT:
     extra_logdir = "snakemake"
 else:
     extra_logdir = "snakemake-jobs"
@@ -35,8 +44,24 @@ extra_logfile = os.path.abspath(
         datetime.now().isoformat().replace(":", "") + ".log",
     )
 )
-logger.logger.addHandler(logging.FileHandler(extra_logfile))
+logger_manager.logger.addHandler(logging.FileHandler(extra_logfile))
 
+
+# For now, we define our own wrapper around the wrapper of the snakemake logging...
+# That allows us to use this as a single point of modification should they finally
+# manage to get the logging to work properly.
+# Right now as of snakemake 9.3.3, info level is not printed at all...
+# See https://github.com/snakemake/snakemake/issues/3558
+# So for now, we promote everything to a warning... that sucks, but otherwise,
+# our users would not be able to see the grenepipe header etc.
+# Furthermore, we print everything to terminal as well, because we have to.
+def fix_log_warn(message):
+    logger.warning(message)
+    print(message)
+
+def fix_log_info(message):
+    logger.warning(message)
+    print(message)
 
 # =================================================================================================
 #     Basic Configuration
@@ -218,33 +243,34 @@ if resources_file:
 cfgfiles = "\n                        ".join(cfgfiles)
 
 # Main grenepipe header, helping with debugging etc for user issues
-logger.info("=====================================================================================")
-logger.info(r"       _____         _______ __   __   _______ ______  ___   ______   _______ ")
-logger.info(r"      /  ___\ ____  /  ____//  \ /  / /  ____/|   _  \ \  \ |   _  \ /  ____/ ")
-logger.info(r"     /  /____|  _ \|  |___  |   \|  ||  |___  |  |_]  ||  | |  |_]  |  |___   ")
-logger.info(r"    |  /|__  | |_) |   ___| |       ||   ___| |   ___/ |  | |   ___/|   ___|  ")
-logger.info(r"    \  \__|  |  _ <|  |____ |  |\   ||  |____ |  |     |  | |  |    |  |____  ")
-logger.info(r"     \______/|_| \_\_______\/__| \__|\_______\|__|     \___\|__|    \_______\ ")
-logger.info("")
-logger.info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-logger.info("    Platform:           " + pltfrm)
-logger.info("    Host:               " + hostname)
-logger.info("    User:               " + username)
-logger.info("    Conda:              " + str(conda_ver))
-logger.info("    Mamba:              " + str(mamba_ver))
-logger.info("    Python:             " + str(sys.version.split(" ")[0]))
-logger.info("    Snakemake:          " + str(snakemake.__version__))
-logger.info("    Grenepipe:          " + str(grenepipe_version))
-logger.info("    Conda env:          " + str(conda_env))
-logger.info("    Command:            " + cmdline)
-logger.info("")
-logger.info("    Base directory:     " + workflow.basedir)
-logger.info("    Working directory:  " + os.getcwd())
-logger.info("    Config file(s):     " + cfgfiles)
-logger.info("    Samples:            " + get_sample_units_print())
-logger.info("")
-logger.info("=====================================================================================")
-logger.info("")
+fix_log_info( "=====================================================================================")
+fix_log_info( r"       _____         _______ __   __   _______ ______  ___   ______   _______ ")
+fix_log_info( r"      /  ___\ ____  /  ____//  \ /  / /  ____/|   _  \ \  \ |   _  \ /  ____/ ")
+fix_log_info( r"     /  /____|  _ \|  |___  |   \|  ||  |___  |  |_]  ||  | |  |_]  |  |___   ")
+fix_log_info( r"    |  /|__  | |_) |   ___| |       ||   ___| |   ___/ |  | |   ___/|   ___|  ")
+fix_log_info( r"    \  \__|  |  _ <|  |____ |  |\   ||  |____ |  |     |  | |  |    |  |____  ")
+fix_log_info( r"     \______/|_| \_\_______\/__| \__|\_______\|__|     \___\|__|    \_______\ ")
+fix_log_info( "")
+fix_log_info( "    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+fix_log_info( "    Platform:           " + pltfrm)
+fix_log_info( "    Host:               " + hostname)
+fix_log_info( "    User:               " + username)
+fix_log_info( "    Conda:              " + str(conda_ver))
+fix_log_info( "    Mamba:              " + str(mamba_ver))
+fix_log_info( "    Python:             " + str(sys.version.split(" ")[0]))
+fix_log_info( "    Snakemake:          " + str(snakemake.__version__))
+fix_log_info( "    Grenepipe:          " + str(grenepipe_version))
+fix_log_info( "    Conda env:          " + str(conda_env))
+fix_log_info( "    Command:            " + cmdline)
+fix_log_info( "")
+fix_log_info( "    Base directory:     " + workflow.basedir)
+fix_log_info( "    Working directory:  " + os.getcwd())
+fix_log_info( "    Config file(s):     " + cfgfiles)
+fix_log_info( "    Samples:            " + get_sample_units_print())
+fix_log_info( "")
+fix_log_info( "=====================================================================================")
+fix_log_info( "")
+
 
 # No need to have these output vars available in the rest of the snakefiles
 del indent

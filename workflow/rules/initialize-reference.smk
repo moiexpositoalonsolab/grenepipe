@@ -27,7 +27,7 @@ if config["data"]["reference-genome"].endswith(".gz"):
 
 # We recommend to use absolute paths. Check that for the reference genome.
 if not os.path.isabs(config["data"]["reference-genome"]):
-    logger.warning(
+    fix_log_warn(
         "Path to the reference genome as provided in the config file is not an absolute path. "
         "We recommend using absolute paths for all files.\n"
     )
@@ -60,7 +60,7 @@ if "restrict-regions" not in config["settings"] or not config["settings"]["restr
 
 # We recommend to use absolute paths. Check that for the known variants.
 if config["data"]["known-variants"] and not os.path.isabs(config["data"]["known-variants"]):
-    logger.warning(
+    fix_log_warn(
         "Path to samples table as provided in the config file is not an absolute path. "
         "We recommend using absolute paths for all files.\n"
     )

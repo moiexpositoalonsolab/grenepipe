@@ -120,7 +120,7 @@ def make_resource_fn(rule_name, kind):
         mul = factor ** (attempt - 1)
         val = mul * (offset + total * scaler)
         if capped is not None and val > capped:
-            logger.warning(f"[{rule_name}] {kind} {val:.1f} exceeds max {capped}; capping")
+            fix_log_warn(f"[{rule_name}] {kind} {val:.1f} exceeds max {capped}; capping")
             val = capped
         return int(val)
     return _fn

@@ -55,7 +55,7 @@ if config["data"].get("samples-count", 0) > 0:
 
 # We recommend to use absolute paths. Check that for the samples table.
 if not os.path.isabs(config["data"]["mappings-table"]):
-    logger.warning(
+    fix_log_warn(
         "Path to the samples table as provided in the config file is not an absolute path. "
         "We recommend using absolute paths for all files.\n"
     )
@@ -99,7 +99,7 @@ for index, row in config["global"]["samples"].iterrows():
 
 # Warning about input names and files.
 if problematic_filenames > 0:
-    logger.warning(
+    fix_log_warn(
         str(problematic_filenames)
         + " of the "
         + str(len(config["global"]["sample-names"]))
@@ -110,7 +110,7 @@ if problematic_filenames > 0:
         "We will try to continue running with these files, but it might lead to errors.\n"
     )
 if relative_filenames > 0:
-    logger.warning(
+    fix_log_warn(
         str(relative_filenames)
         + " of the "
         + str(len(config["global"]["sample-names"]))
@@ -137,7 +137,7 @@ for sn in config["global"]["sample-names"]:
         numeric_sample_names += 1
 
 if numeric_sample_names > 0:
-    logger.warning(
+    fix_log_warn(
         str(numeric_sample_names)
         + " of the "
         + str(len(config["global"]["sample-names"]))

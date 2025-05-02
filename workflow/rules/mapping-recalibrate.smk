@@ -21,7 +21,7 @@ if config["settings"]["recalibrate-base-qualities"]:
             "in the config file."
         )
     if "platform" in config["global"]["samples"] and config["params"]["gatk"]["platform"]:
-        logger.warning(
+        fix_log_warn(
             "The samples table contains a column `platform` for each sample, "
             "but the `params: gatk: platform` setting is also provided. "
             "We will use the table, as this is more specific."
@@ -34,7 +34,7 @@ if config["settings"]["recalibrate-base-qualities"]:
         if p in platforms:
             platforms.remove(p)
     if platforms:
-        logger.warning(
+        fix_log_warn(
             "Provided sequencing platforms (in the samples table `platform` column, or in the "
             "`params: gatk: platform` setting) contains values that might not be recognized by "
             "GATK BaseRecalibrator, and hence might lead to errors: " + str(platforms)

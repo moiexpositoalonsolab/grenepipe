@@ -238,7 +238,7 @@ if impmethod in ["simpute", "npute"]:
     # Deactivated this warning now, as we switchted to our own HAF-pipe fork, which fixes this.
     # if impmethod == "npute":
     # No comment...
-    # logger.warning(
+    # fix_log_warn(
     #     "Using HAF-pipe with SNP table imputation method 'npute' is likely going to fail: "
     #     "We are using Python >= 3.7 in grenepipe, whereas npute requires Pyhon 2.*, "
     #     "and there is unfortunately no easy way to fix this. If you require npute, "

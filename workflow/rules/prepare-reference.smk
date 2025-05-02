@@ -322,7 +322,7 @@ def check_fai_contig_names(fai_file):
             if valid_filename(contig):
                 continue
             if not printed_warning_header:
-                logger.warning(
+                fix_log_warn(
                     "In the reference genome, there are chromosome/contig names that contain "
                     "problematic characters. As we use these names to create file names, "
                     "this can lead to crashes later in the pipeline. We generally advise to "
@@ -331,7 +331,7 @@ def check_fai_contig_names(fai_file):
                     "Problematic reference genome names:"
                 )
                 printed_warning_header = True
-            logger.warning(" - " + contig)
+            fix_log_warn( " - " + contig)
     checked_fai_contig_names = True
 
 
