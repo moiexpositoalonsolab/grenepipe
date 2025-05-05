@@ -92,7 +92,7 @@ Pipeline Overview
 Intermediate output files such as `bam` files are also kept by default,
 and `mpileup` files can optionally be created if needed.
 In addition to the above tools, there are some tools used as glue between the steps.
-If you are interested in the details, have a look at the snakemake [rules](https://github.com/lczech/grenepipe/tree/master/rules) for each step.
+If you are interested in the details, have a look at the snakemake [rules](https://github.com/lczech/grenepipe/tree/master/workflow/rules) for each step.
 
 Citation
 -------------------
