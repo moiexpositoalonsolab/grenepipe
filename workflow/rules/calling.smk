@@ -2,8 +2,6 @@
 #     Grouping of (Small) Contigs
 # =================================================================================================
 
-include: "calling-contig-groups.smk"
-
 # Get the list of chromosome names that are present in the fai file,
 # and their length, with a length filter if needed.
 def read_contigs_from_fai(fai, min_contig_size=0):
@@ -20,6 +18,13 @@ def read_contigs_from_fai(fai, min_contig_size=0):
                 continue
             contig_list.append((contig, length))
     return contig_list
+
+
+# If we want to combine contigs into groups, use the rules and functions for this.
+if config["settings"].get("contig-group-size", 0) > 0:
+
+
+    include: "calling-contig-groups.smk"
 
 
 # Dummy definition of the above rule for when we are not using contig groups.
@@ -48,7 +53,7 @@ def get_contigs(fai):
 
     # If the config sets a contig group size, we use this to solve a bin packing problem to
     # combine small contigs into a set, where each bin is at max as big as the threshold.
-    # Here, we request the file via its checkpoit, to make sure that it is created by its rule
+    # Here, we request the file via its checkpoint, to make sure that it is created by its rule
     # before we continue. This is valid, as this function here is only ever called from
     # within input functions of rules, which themselves request the fai file via checkpoint as well.
     # has_contig_groups = ( config["settings"].get("contig-group-size", 0) > 0 )
