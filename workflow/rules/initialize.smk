@@ -30,10 +30,12 @@ basedir = workflow.basedir
 # see https://github.com/snakemake/snakemake/issues/3558
 # Hence, yet again, we need our own tooling to fix other people's mistakes...
 
-# First, set up a customg log file that we can present to our users.
+# First, set up a custom log file that we can present to our users.
 # We need to distinguish between the main instance, and the instances of each rule job.
 if logger_manager.mode is None or logger_manager.mode == ExecMode.DEFAULT:
     extra_logdir = "snakemake"
+elif logger_manager.mode == ExecMode.SUBPROCESS:
+    extra_logdir = "snakemake-subprocess"
 else:
     extra_logdir = "snakemake-jobs"
 os.makedirs(os.path.join("logs", extra_logdir), exist_ok=True)
@@ -46,7 +48,6 @@ extra_logfile = os.path.abspath(
 )
 logger_manager.logger.addHandler(logging.FileHandler(extra_logfile))
 
-
 # For now, we define our own wrapper around the wrapper of the snakemake logging...
 # That allows us to use this as a single point of modification should they finally
 # manage to get the logging to work properly.
@@ -55,13 +56,17 @@ logger_manager.logger.addHandler(logging.FileHandler(extra_logfile))
 # So for now, we promote everything to a warning... that sucks, but otherwise,
 # our users would not be able to see the grenepipe header etc.
 # Furthermore, we print everything to terminal as well, because we have to.
+def fix_log_info(message):
+    logger.info(message)
+    # print(message, file=sys.stdout)
+    sys.__stdout__.write(message + "\n")
+    sys.__stdout__.flush()
+
 def fix_log_warn(message):
     logger.warning(message)
-    print(message)
-
-def fix_log_info(message):
-    logger.warning(message)
-    print(message)
+    # print(message, file=sys.stdout)
+    sys.__stdout__.write(message + "\n")
+    sys.__stdout__.flush()
 
 # =================================================================================================
 #     Basic Configuration
