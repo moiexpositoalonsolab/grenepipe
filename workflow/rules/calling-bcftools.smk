@@ -59,7 +59,7 @@ if not bcftools_mode_good:
 
 # When using small contigs, we further need to sort the output, as
 # this won't be done for us. Let's only do this extra work though if needed.
-if config["settings"].get("contig-group-size"):
+if config["settings"].get("contig-group-size", 0):
 
     rule sort_variants:
         input:

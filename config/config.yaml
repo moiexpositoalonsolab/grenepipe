@@ -804,10 +804,27 @@ params:
     platform: ""
 
     # By default, starting in grenepipe v0.14.0, we are using GATK GenomicsDBImport instead of
-    # GATK CombineGVCFs to prepare the singular GVCF for GATK GenotypeGVCFs. However, for full
+    # GATK CombineGVCFs to prepare the per-sample GVCF for GATK GenotypeGVCFs. However, for full
     # compatibility, we also offer to use the old way with CombineGVCFs here, by setting
     # the option to `false`.
     use-GenomicsDBImport: true
+
+    # EXPERIMENTAL: When working with thousands of samples, GATK GenomicsDBImport is ridiculously
+    # inefficient, even when optimizing the settings. Hence, we implement a workaround for their
+    # slow code, by breaking up the step into even smaller intervals. This is on top of the more
+    # general `contig-group-size` from above, and is unfortunately needed to get GATK to work on
+    # large datasets. Here, set the interval size (in nucleotides) for each broken-down chromosome
+    # or contig. The interval size needed to get an acceptable runtime depends on how many samples
+    # your dataset has, but might be in the range of 1MB for instance. We recommend to test this for
+    # your dataset and see which size works best. Furthermore, we recommend to pad each interval,
+    # so that variants at interval boundaries can be called properly, which GATK otherwise would
+    # not do correctly. The padding should match the expected max read length.
+    # By default, we do not use this feature, i.e., leave the interval size at 0.
+    # Note: Unfortunately, GATK seems to have a bug and does not use the padding here at all,
+    # see https://github.com/broadinstitute/gatk/issues/9165 - you might have to set padding
+    # as an extra option in `GenotypeGVCFs-extra`, for instance via `--interval-padding` instead.
+    GenomicsDBImport-interval-size: 0
+    GenomicsDBImport-interval-padding: 250
 
     # Temporary directory for GenomicsDBImport.
     # If the default system temp dir does not have enough space, which can happen on cluster systems,

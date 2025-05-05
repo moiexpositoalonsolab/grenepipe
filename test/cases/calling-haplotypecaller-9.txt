@@ -1,0 +1,4 @@
+contig-group-size: 0	contig-group-size: 38283346
+GenomicsDBImport-interval-size: 0	GenomicsDBImport-interval-size: 10000000
+snpeff: false	snpeff: true
+vep: false	vep: true

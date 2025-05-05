@@ -2,6 +2,7 @@
 #     Grouping of (Small) Contigs
 # =================================================================================================
 
+include: "calling-contig-groups.smk"
 
 # Get the list of chromosome names that are present in the fai file,
 # and their length, with a length filter if needed.
@@ -19,12 +20,6 @@ def read_contigs_from_fai(fai, min_contig_size=0):
                 continue
             contig_list.append((contig, length))
     return contig_list
-
-
-# If we want to combine contigs into groups, use the rules and functions for this.
-if config["settings"].get("contig-group-size", 0) > 0:
-
-    include: "calling-contig-groups.smk"
 
 
 # Dummy definition of the above rule for when we are not using contig groups.
@@ -56,6 +51,19 @@ def get_contigs(fai):
     # Here, we request the file via its checkpoit, to make sure that it is created by its rule
     # before we continue. This is valid, as this function here is only ever called from
     # within input functions of rules, which themselves request the fai file via checkpoint as well.
+    # has_contig_groups = ( config["settings"].get("contig-group-size", 0) > 0 )
+
+    # Alternatively, when using GATK with the sharding of contigs for the awefully slow
+    # genomics db processing step (at least when many samples are involved), we also want
+    # to use contig groups, which in that case only contain a single contig per group
+    # when used without the contig-group-size, or contain a further beakdown of these contigs.
+    # Using contig groups for both these cases makes the code in the sharded genome db file
+    # simpler, but requires us here to make that distinction, and also set contig groups.
+    # is_gatk = ( config["settings"]["calling-tool"] == "haplotypecaller" )
+    # uses_shards = ( config["params"]["gatk"].get("GenomicsDBImport-interval-size", 0) > 0 )
+
+    # Now in either case of the above, we use contig groups.
+    # if has_contig_groups or ( is_gatk and uses_shards ):
     if config["settings"].get("contig-group-size", 0) > 0:
         # Get the contigs group file. We parse it as a dict, whose keys are the contig group names.
         # Python wants us to explicitly convert this to a list here, as otherwise, some weird
@@ -74,6 +82,26 @@ def get_contigs(fai):
     contig_list = read_contigs_from_fai(fai, min_contig_size)
     config["global"]["contigs"] = [t[0] for t in contig_list]
     return config["global"]["contigs"]
+
+
+# Get the contig lengths from the fai file, cached in our global config for speed.
+def get_contig_lengths(fai):
+    # This function might be called multiple times in different invocations of the below rule.
+    # To avoid re-reading the contig from fai, we cache them in the global config dict.
+    global config
+    if "contig-lengths" in config["global"]:
+        return config["global"]["contig-lengths"]
+
+    # parse the fai file to get all contigs
+    lengths = {}
+    with open(fai, "r") as f:
+        for line in f:
+            name, length = line.split("\t", 2)[:2]
+            name = name.strip()
+            length = int(length.strip())
+            lengths[name] = length
+    config["global"]["contig-lengths"] = lengths
+    return lengths
 
 
 # =================================================================================================
@@ -110,7 +138,7 @@ if "restrict-regions" in config["settings"]:
 if config["settings"]["calling-tool"] == "haplotypecaller":
 
     # Use `GATK HaplotypeCaller`
-    include: "calling-haplotypecaller.smk"
+    include: "calling-gatk.smk"
 
 elif config["settings"]["calling-tool"] == "bcftools":
 

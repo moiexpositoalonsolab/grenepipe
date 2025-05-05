@@ -24,7 +24,7 @@ rule call_variants:
             if (config["settings"].get("restrict-regions"))
             else (
                 "calling/contig-groups/{contig}.bed"
-                if (config["settings"].get("contig-group-size"))
+                if (config["settings"].get("contig-group-size", 0))
                 else []
             )
         ),
@@ -178,12 +178,12 @@ rule merge_variants:
         # If we do not use small contigs, we directly output the final file.
         vcf=(
             temp("calling/merged/merged-all.vcf.gz")
-            if (config["settings"].get("contig-group-size"))
+            if (config["settings"].get("contig-group-size", 0))
             else "calling/genotyped-all.vcf.gz"
         ),
         done=(
             touch("calling/merged/merged-all.vcf.gz.done")
-            if (config["settings"].get("contig-group-size"))
+            if (config["settings"].get("contig-group-size", 0))
             else touch("calling/genotyped-all.vcf.gz.done")
         ),
     log:

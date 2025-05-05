@@ -43,7 +43,7 @@ rule call_variants:
             if (config["settings"].get("restrict-regions"))
             else (
                 "calling/contig-groups/{contig}.bed"
-                if (config["settings"].get("contig-group-size"))
+                if (config["settings"].get("contig-group-size", 0))
                 else []
             )
         ),

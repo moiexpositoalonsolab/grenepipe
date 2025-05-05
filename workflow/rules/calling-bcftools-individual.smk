@@ -23,7 +23,7 @@ rule call_variants:
             if (config["settings"].get("restrict-regions"))
             else (
                 "calling/contig-groups/{contig}.bed"
-                if (config["settings"].get("contig-group-size"))
+                if (config["settings"].get("contig-group-size", 0))
                 else []
             )
         ),
@@ -171,22 +171,22 @@ rule combine_all:
         # done="calling/genotyped-all.done"
         vcf=(
             temp("calling/merged/merged-all.vcf.gz")
-            if (config["settings"].get("contig-group-size"))
+            if (config["settings"].get("contig-group-size", 0))
             else "calling/genotyped-all.vcf.gz"
         ),
         tbi=(
             temp("calling/merged/merged-all.vcf.gz.tbi")
-            if (config["settings"].get("contig-group-size"))
+            if (config["settings"].get("contig-group-size", 0))
             else "calling/genotyped-all.vcf.gz.tbi"
         ),
         lst=(
             temp("calling/merged/merged-all.txt")
-            if (config["settings"].get("contig-group-size"))
+            if (config["settings"].get("contig-group-size", 0))
             else "calling/genotyped-all.txt"
         ),
         done=(
             touch("calling/merged/merged-all.vcf.gz.done")
-            if (config["settings"].get("contig-group-size"))
+            if (config["settings"].get("contig-group-size", 0))
             else touch("calling/genotyped-all.vcf.gz.done")
         ),
     params:

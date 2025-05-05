@@ -153,6 +153,17 @@ def optimize_contig_group(contigs, max_contig_group_size, max_contigs_per_group)
     return large_groups + small_groups
 
 
+# This is an alternative function to the above two that does not bin the contigs in any way,
+# but just returns their list in the same format as the above, such that we can build a list
+# of individual contigs if no binning is needed.
+def get_contig_tuple_list(contigs):
+    bins = []
+    for cont in contigs:
+        bins.append([])
+        bins[-1].append(cont)
+    return bins
+
+
 # =================================================================================================
 #     Checkpoints
 # =================================================================================================
@@ -183,15 +194,20 @@ checkpoint contig_groups:
         # Solve the bin packing for the contigs, to get a close to optimal solution
         # for putting them in groups. Large contigs (e.g., whole chromosomes) that are larger
         # than the bin size will simply get their own (overflowing...) bin.
+        # If we do not want to group contigs, simply create bed files for each of them.
         contig_list = read_contigs_from_fai(input.fai, params.min_contig_size)
         if params.max_contigs_per_group == 0:
             print("Running bin packing solver")
             contig_groups = solve_bin_packing(contig_list, params.contig_group_size)
-        else:
+        elif params.contig_group_size > 0:
             print("Running heuristic optimizer")
             contig_groups = optimize_contig_group(
                 contig_list, params.contig_group_size, params.max_contigs_per_group
             )
+        else:
+            # print("Gathering individual contigs")
+            # contig_groups = get_contig_tuple_list(contig_list)
+            raise Exception("Invalid context for checkpoint contig_groups")
 
             # Now turn the contig bins into groups for the result of this function.
             # We store our resulting list of contigs containing all contigs,
@@ -205,6 +221,7 @@ checkpoint contig_groups:
             # We need to store the result in a file, so that the rule that creates the per-contig
             # files can access it.
         json.dump(contigs, open(output[0], "w"))
+        print("Total number of contig groups:", len(contigs))
 
 
 # Rule is not submitted as a job to the cluster.
