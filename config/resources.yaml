@@ -4,25 +4,27 @@
 # mostly relevant on computer clusters, such as when using slurm to execute
 # individual rule jobs. For these, we need to specify memory and runtime,
 # and the number of CPU cores to use. The latter is also relevant when running
-# grenepipe locally on a single machine - in that case, only the CPU specified
-# below will be used.
+# grenepipe locally on a single machine - in that case, only the `cpus` params
+# specified below will be used.
 
 # This file specifies the typical resources needed for submitting jobs to a cluster:
 #
-#     (1) number of cores/threads,
+#     (1) number of CPUs/cores/threads (all meaning the same here),
 #     (2) memory, and
-#     (3) wall time (run time).
+#     (3) wall time (overall run time).
 #
 # We scale the memory and time with file sizes, such that larger inputs get more
 # resources. This makes the approach flexible for optimization, but of course can
-# feel a bit hard to get right. We hope that the defaults work for most cases.
-# If not, please let us know: https://github.com/moiexpositoalonsolab/grenepipe/issues
+# feel a bit hard to get right. If you simply want to use fixed values instead,
+# just set the below `scaler` values to 0, and only use the `offset`.
+# We hope though that the defaults work for most cases. If not, please let us
+# know: https://github.com/moiexpositoalonsolab/grenepipe/issues
 
 # Note that most academic clusters use slurm. In that case, things should work fine
 # with the snakemake slurm cluster executor. If your cluster is using a different
-# workload manager (such as Torque), you might need to forward the resources properly
-# to the cluster submission script in order for snakemake to know how to call
-# the cluster submission correctly.
+# workload manager (such as PBS/Torque), you might need to forward the resources
+# properly to the cluster submission script in order for snakemake to know how to
+# call the cluster submission correctly.
 # See https://github.com/moiexpositoalonsolab/grenepipe/issues/62 for a discussion.
 # Generally, if you want to adapt this to other clusters: We use the below resource
 # settings to define the "standardized" snakemake resources, which means that each
@@ -48,15 +50,19 @@
 
 # Default resources, used for all job submissions, unless overwritten by values
 # for individual rules below. All values here are inherited by each rule unless
-# explicitly overwritten for a rule (in the second half of this file).
-# Resources need to be specified in MB and minutes. The resources are computed
-# based on the input file sizes of each rule, using a fixed offset plus the
-# scaled file sizes, up to a maximum value (to avoid breaking computer clusters).
-# They are then further scaled linearily for each subsequent attempt of running
-# the rule, should it have failed previously. Note that sometimes snakemake/slurm
-# can fail running a job for reasons other than too little resources; the attempt
-# will still be increased and give the rule more resources, as we cannot determine
-# automatically why the job failed, and so assume it was due to resources.
+# explicitly overwritten for a rule (in the bottom part of this file).
+# Resources need to be specified in MB and minutes here.
+
+# The resources are computed based on the input file sizes of each rule, using a
+# fixed offset plus the scaled file sizes, up to a maximum value (to avoid asking
+# more of the  clusters that what it offers). They are then further scaled
+# for each subsequent attempt of running the rule, should it have failed previously.
+
+# Note that sometimes snakemake/slurm can fail running a job for reasons other
+# than too little resources; the attempt will still be increased and give the
+# rule more resources, as we cannot determine automatically why the job failed,
+# and so assume it was due to resources.
+
 default:
 
   # Fixed offset of the required memory, in MB. This accounts for basic memory
