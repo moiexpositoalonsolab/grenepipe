@@ -48,6 +48,7 @@ extra_logfile = os.path.abspath(
 )
 logger_manager.logger.addHandler(logging.FileHandler(extra_logfile))
 
+
 # For now, we define our own wrapper around the wrapper of the snakemake logging...
 # That allows us to use this as a single point of modification should they finally
 # manage to get the logging to work properly.
@@ -62,11 +63,13 @@ def fix_log_info(message):
     sys.__stdout__.write(message + "\n")
     sys.__stdout__.flush()
 
+
 def fix_log_warn(message):
     logger.warning(message)
     # print(message, file=sys.stdout)
     sys.__stdout__.write(message + "\n")
     sys.__stdout__.flush()
+
 
 # =================================================================================================
 #     Basic Configuration
@@ -248,33 +251,33 @@ if resources_file:
 cfgfiles = "\n                        ".join(cfgfiles)
 
 # Main grenepipe header, helping with debugging etc for user issues
-fix_log_info( "=====================================================================================")
-fix_log_info( r"       _____         _______ __   __   _______ ______  ___   ______   _______ ")
-fix_log_info( r"      /  ___\ ____  /  ____//  \ /  / /  ____/|   _  \ \  \ |   _  \ /  ____/ ")
-fix_log_info( r"     /  /____|  _ \|  |___  |   \|  ||  |___  |  |_]  ||  | |  |_]  |  |___   ")
-fix_log_info( r"    |  /|__  | |_) |   ___| |       ||   ___| |   ___/ |  | |   ___/|   ___|  ")
-fix_log_info( r"    \  \__|  |  _ <|  |____ |  |\   ||  |____ |  |     |  | |  |    |  |____  ")
-fix_log_info( r"     \______/|_| \_\_______\/__| \__|\_______\|__|     \___\|__|    \_______\ ")
-fix_log_info( "")
-fix_log_info( "    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-fix_log_info( "    Platform:           " + pltfrm)
-fix_log_info( "    Host:               " + hostname)
-fix_log_info( "    User:               " + username)
-fix_log_info( "    Conda:              " + str(conda_ver))
-fix_log_info( "    Mamba:              " + str(mamba_ver))
-fix_log_info( "    Python:             " + str(sys.version.split(" ")[0]))
-fix_log_info( "    Snakemake:          " + str(snakemake.__version__))
-fix_log_info( "    Grenepipe:          " + str(grenepipe_version))
-fix_log_info( "    Conda env:          " + str(conda_env))
-fix_log_info( "    Command:            " + cmdline)
-fix_log_info( "")
-fix_log_info( "    Base directory:     " + workflow.basedir)
-fix_log_info( "    Working directory:  " + os.getcwd())
-fix_log_info( "    Config file(s):     " + cfgfiles)
-fix_log_info( "    Samples:            " + get_sample_units_print())
-fix_log_info( "")
-fix_log_info( "=====================================================================================")
-fix_log_info( "")
+fix_log_info("=====================================================================================")
+fix_log_info(r"       _____         _______ __   __   _______ ______  ___   ______   _______ ")
+fix_log_info(r"      /  ___\ ____  /  ____//  \ /  / /  ____/|   _  \ \  \ |   _  \ /  ____/ ")
+fix_log_info(r"     /  /____|  _ \|  |___  |   \|  ||  |___  |  |_]  ||  | |  |_]  |  |___   ")
+fix_log_info(r"    |  /|__  | |_) |   ___| |       ||   ___| |   ___/ |  | |   ___/|   ___|  ")
+fix_log_info(r"    \  \__|  |  _ <|  |____ |  |\   ||  |____ |  |     |  | |  |    |  |____  ")
+fix_log_info(r"     \______/|_| \_\_______\/__| \__|\_______\|__|     \___\|__|    \_______\ ")
+fix_log_info("")
+fix_log_info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+fix_log_info("    Platform:           " + pltfrm)
+fix_log_info("    Host:               " + hostname)
+fix_log_info("    User:               " + username)
+fix_log_info("    Conda:              " + str(conda_ver))
+fix_log_info("    Mamba:              " + str(mamba_ver))
+fix_log_info("    Python:             " + str(sys.version.split(" ")[0]))
+fix_log_info("    Snakemake:          " + str(snakemake.__version__))
+fix_log_info("    Grenepipe:          " + str(grenepipe_version))
+fix_log_info("    Conda env:          " + str(conda_env))
+fix_log_info("    Command:            " + cmdline)
+fix_log_info("")
+fix_log_info("    Base directory:     " + workflow.basedir)
+fix_log_info("    Working directory:  " + os.getcwd())
+fix_log_info("    Config file(s):     " + cfgfiles)
+fix_log_info("    Samples:            " + get_sample_units_print())
+fix_log_info("")
+fix_log_info("=====================================================================================")
+fix_log_info("")
 
 
 # No need to have these output vars available in the rest of the snakefiles

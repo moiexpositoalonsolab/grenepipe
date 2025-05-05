@@ -2,6 +2,7 @@
 #     Grouping of (Small) Contigs
 # =================================================================================================
 
+
 # Get the list of chromosome names that are present in the fai file,
 # and their length, with a length filter if needed.
 def read_contigs_from_fai(fai, min_contig_size=0):
@@ -22,7 +23,6 @@ def read_contigs_from_fai(fai, min_contig_size=0):
 
 # If we want to combine contigs into groups, use the rules and functions for this.
 if config["settings"].get("contig-group-size", 0) > 0:
-
 
     include: "calling-contig-groups.smk"
 

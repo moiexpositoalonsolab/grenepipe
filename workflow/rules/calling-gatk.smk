@@ -142,6 +142,7 @@ else:
 #     Merging Variants
 # =================================================================================================
 
+
 # Need an input function to work with the fai checkpoint
 def merge_variants_vcfs_input(wildcards):
     fai = checkpoints.samtools_faidx.get().output[0]

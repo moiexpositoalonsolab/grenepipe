@@ -2,6 +2,7 @@
 #     Make Contig Shards
 # =================================================================================================
 
+
 # Special rule for the case that we want to split the contigs for the genomics db import,
 # but are not using contig groups. In that case, we could pretend to have contig groups,
 # and create fake ones that each contain a single chromosome or contig of the reference.
@@ -13,9 +14,9 @@ rule make_contig_bed:
     input:
         fai=get_fai,
     output:
-        bed="calling/contig-shards/{contig}/contig.bed"
+        bed="calling/contig-shards/{contig}/contig.bed",
     params:
-        contig="{contig}"
+        contig="{contig}",
     run:
         # Produce only the matching contig and write 0–length interval
         contig_lengths = get_contig_lengths(input.fai)
@@ -37,20 +38,20 @@ localrules:
 # Why that then is an option at all is beyond my comprehension. GATK, WTF.
 checkpoint preprocess_contig_shard:
     input:
-        dict = genome_dict(),
-        ref  = config["data"]["reference-genome"],
+        dict=genome_dict(),
+        ref=config["data"]["reference-genome"],
         # contigs=contigs_groups_input,
-        contig = (
+        contig=(
             "calling/contig-groups/{contig}.bed"
             if config["settings"].get("contig-group-size", 0) > 0
             else "calling/contig-shards/{contig}/contig.bed"
-        )
+        ),
     output:
-        interval_list = "calling/contig-shards/{contig}/contig.interval_list",
-        shard_list = "calling/contig-shards/{contig}/shards.interval_list",
+        interval_list="calling/contig-shards/{contig}/contig.interval_list",
+        shard_list="calling/contig-shards/{contig}/shards.interval_list",
     params:
-        bin_length = config["params"]["gatk"]["GenomicsDBImport-interval-size"],
-        padding    = config["params"]["gatk"]["GenomicsDBImport-interval-padding"],
+        bin_length=config["params"]["gatk"]["GenomicsDBImport-interval-size"],
+        padding=config["params"]["gatk"]["GenomicsDBImport-interval-padding"],
     log:
         "logs/calling/preprocess-contig-shard/{contig}.log",
     conda:
@@ -85,18 +86,18 @@ localrules:
 rule extract_contig_shard:
     input:
         # shard_list=checkpoints.preprocess_contig_shard.output.shard_list
-        shard_list="calling/contig-shards/{contig}/shards.interval_list"
+        shard_list="calling/contig-shards/{contig}/shards.interval_list",
     output:
-        shard = "calling/contig-shards/{contig}/shard-{shard}.interval_list"
+        shard="calling/contig-shards/{contig}/shard-{shard}.interval_list",
     run:
         header, data = [], []
         for line in open(input.shard_list):
-            if line.startswith('@'):
+            if line.startswith("@"):
                 header.append(line)
             else:
                 data.append(line)
         i = int(wildcards.shard)
-        with open(output.shard, 'w') as out:
+        with open(output.shard, "w") as out:
             out.writelines(header + [data[i]])
 
 
@@ -108,7 +109,7 @@ localrules:
 def get_shard_indices(wc):
     r = checkpoints.preprocess_contig_shard.get(contig=wc.contig)
     # skip header lines
-    shards = [l for l in open(r.output.shard_list) if not l.startswith('@')]
+    shards = [l for l in open(r.output.shard_list) if not l.startswith("@")]
     return [i for i in range(len(shards))]
     # return [{"shard": i} for i in range(len(shards))]
 
@@ -208,8 +209,7 @@ rule genotype_variants:
         + " "
         + config["params"]["gatk"]["GenotypeGVCFs-extra"],
         java_opts=config["params"]["gatk"]["GenotypeGVCFs-java-opts"],
-    threads:
-        get_rule_threads("genotype_variants")
+    threads: get_rule_threads("genotype_variants")
     log:
         "logs/calling/gatk-genotype-gvcfs/{contig}/shard-{shard}.log",
     benchmark:
@@ -241,6 +241,7 @@ rule genotype_variants:
 #         shard=get_shard_indices(wildcards)
 #     )
 
+
 def merge_vcfs_vcfs_input(wc):
     cp = checkpoints.preprocess_contig_shard.get(**wc)
     # cp = checkpoints.preprocess_contig_shard.get(contig=wc.contig)
@@ -250,8 +251,9 @@ def merge_vcfs_vcfs_input(wc):
     return expand(
         "calling/genotyped/{contig}/shard-{shard}.vcf.gz",
         contig=wc.contig,
-        shard=list(range(len(shards)))
+        shard=list(range(len(shards))),
     )
+
 
 def merge_vcfs_done_input(wc):
     cp = checkpoints.preprocess_contig_shard.get(**wc)
@@ -261,13 +263,14 @@ def merge_vcfs_done_input(wc):
     return expand(
         "calling/genotyped/{contig}/shard-{shard}.vcf.gz.done",
         contig=wc.contig,
-        shard=list(range(len(shards)))
+        shard=list(range(len(shards))),
     )
+
 
 rule merge_shard_vcfs:
     input:
-        dict = genome_dict(),
-        ref  = config["data"]["reference-genome"],
+        dict=genome_dict(),
+        ref=config["data"]["reference-genome"],
         contigs=contigs_groups_input,
         # vcfs = expand("calling/genotyped/{contig}/shard-{shard}.vcf.gz", get_shard_indices),
         # done = expand("calling/genotyped/{contig}/shard-{shard}.vcf.gz.done", get_shard_indices),
@@ -288,8 +291,7 @@ rule merge_shard_vcfs:
             if platform.system() == "Darwin"
             else ""
         ),
-    threads:
-        get_rule_threads("merge_shard_vcfs")
+    threads: get_rule_threads("merge_shard_vcfs")
     log:
         "logs/calling/picard-merge-vcfs/{contig}.log",
     benchmark:

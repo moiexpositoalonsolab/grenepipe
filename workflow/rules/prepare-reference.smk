@@ -331,7 +331,7 @@ def check_fai_contig_names(fai_file):
                     "Problematic reference genome names:"
                 )
                 printed_warning_header = True
-            fix_log_warn( " - " + contig)
+            fix_log_warn(" - " + contig)
     checked_fai_contig_names = True
 
 
