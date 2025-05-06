@@ -451,6 +451,24 @@ def get_all_bams_done():
 # =================================================================================================
 
 
+rule final_bam_table:
+    input:
+        bams=get_all_bams(),
+        done=get_all_bams_done(),
+    output:
+        list="mapping/final.tsv",
+    run:
+        with open(output.list, "w") as f:
+            f.write("sample\tbam\n")
+            for sample in config["global"]["sample-names"]:
+                bam = os.path.abspath(get_sample_bams(sample))
+                f.write(sample + "\t" + bam + "\n")
+
+
+localrules:
+    final_bam_table,
+
+
 # This alternative target rule executes all steps up to th mapping, and yields the final bam
 # files that would otherwise be used for variant calling in the downstream process.
 # That is, depending on the config, these are the sorted+merged, filtered, remove duplicates, or
@@ -467,6 +485,7 @@ rule all_bams:
         # merged=get_all_sorted_sample_bams(),
         bams=get_all_bams(),
         done=get_all_bams_done(),
+        list="mapping/final.tsv",
         qc="qc/multiqc.html",
     output:
         bams=expand("mapping/final/{sample}.bam", sample=config["global"]["sample-names"]),
