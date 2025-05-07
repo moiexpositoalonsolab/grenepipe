@@ -184,8 +184,11 @@ jobs:
       # Run the test case.
       - name: Run Test
         run: |
+          # Right now, with Snakemake >= 9, we only use mamba here as it works with
+          # the GitHub Action for settig it up, but then internally use conda in our env,
+          # as apparently, conda now uses the libmamba solver internally anyway... what a mess!
           conda info
-          mamba info
+          # mamba info
 
           if [[ "${{ matrix.installer }}" == "conda" ]]; then
             export GRENEPIPE_TESTS_NO_MAMBA=1
