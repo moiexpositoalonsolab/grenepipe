@@ -99,7 +99,7 @@ def make_resource_fn(rule_name, kind):
     - <kind>_scaler
     - <kind>_max
     """
-    def _fn(wildcards, inputs=[], threads=None, attempt=1):
+    def _fn(wildcards, input=[], threads=None, attempt=1):
         # Config keys (mem or time)
         o_key = f"{kind}-offset"
         s_key = f"{kind}-scaler"
@@ -114,7 +114,8 @@ def make_resource_fn(rule_name, kind):
         capped = rule_cfg.get(m_key, resources_config["default"][m_key])
 
         # Compute the total file size in MB
-        total = sum(Path(f).stat().st_size for f in inputs) / 1000000.0
+        total = sum(Path(f).stat().st_size for f in input) / 1000000.0
+        # Alternative: total = input.size_mb
 
         # Compute the resource value, capping it at the max.
         mul = factor ** (attempt - 1)
