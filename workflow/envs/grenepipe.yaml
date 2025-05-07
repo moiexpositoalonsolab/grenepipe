@@ -8,7 +8,7 @@ channels:
   # - r
 dependencies:
   # Basics
-  - mamba < 2.0.0
+  - conda >24.7.1
   - git
   - curl
 
