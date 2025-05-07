@@ -9,6 +9,7 @@ channels:
 dependencies:
   # Basics
   - conda >24.7.1
+  - mamba
   - git
   - curl
 

@@ -317,9 +317,11 @@ jobs:
           # - macos-14
 
         installer:
-          # Conda is just waaaay to slow... some runs even exceed the GitHub Actions
-          # max runtime of 6h, so we have to deactivate it for now.
-          # - conda
+          # Conda used to be just waaaay to slow... some runs even exceed the GitHub Actions
+          # max runtime of 6h, so we had to deactivate it in the past. Now, with Snakemake 9,
+          # we are using a more recent conda, which apparently now internally uses the
+          # libmamba solver anyway, so let's hope that it is fast enough now again.
+          - conda
           - mamba
           - micromamba
 
