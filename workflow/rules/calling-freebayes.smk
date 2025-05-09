@@ -55,7 +55,11 @@ rule call_variants:
         extra=config["params"]["freebayes"]["extra"] + know_variants_extra(),
         # Reference genome chunk size for parallelization (default: 100000)
         chunksize=config["params"]["freebayes"]["chunksize"],
-    threads: get_rule_threads("call_variants")
+    # The following line reserves one thread for the piped compress_vcf rule.
+    # Only correct as of now, as that rule has a hard-coded single thread.
+    # But if we later change this to be configurable via the resources,
+    # this needs to be adapted here.
+    threads: int(get_rule_threads("call_variants")) - 1
     log:
         "logs/calling/freebayes/{contig}.log",
     benchmark:
@@ -84,7 +88,9 @@ rule compress_vcf:
         ),
         # protected("calling/called/{contig}.vcf.gz")
         touch("calling/called/{contig}.vcf.gz.done"),
-    threads: 1  # Dummy, but will be overwritten by our automatic resources
+    # Single thread for now, and not configurable via the resources.
+    # If changed later, then the above rule needs adjusting to the threads as well.
+    threads: 1
     log:
         "logs/calling/compress-vcf/{contig}.log",
     group:
