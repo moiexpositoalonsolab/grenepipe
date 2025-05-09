@@ -326,18 +326,28 @@ if config["settings"]["recalibrate-base-qualities"]:
 # These might not exist when running with bam files from the outside, so we touch them here.
 def get_bam_from_mappings_table(sample):
     assert "mappings-table" in config["data"] and config["data"]["mappings-table"]
-    bams = config["global"]["samples"].loc[sample, ["bam"]].dropna()
+
+    # Get the bam file(s) of the sample.
+    # In a previous version, this was a series, with a loop over its elements below,
+    # for reasons that I do not understand any more. It should only be a single bam file
+    # per sample, so fixing this now, but keeping the old version for reference just in case.
+    # bams = config["global"]["samples"].loc[sample, ["bam"]].dropna()
+    bam = config["global"]["samples"].at[sample, "bam"]
 
     # Touch all non-existing files. If they already exist,
     # we do nothing, to not mess with their time stamps.
-    for f in bams:
-        fp = Path(f + ".done")
-        fp.parent.mkdir(parents=True, exist_ok=True)
-        if not fp.exists():
-            fp.touch(exist_ok=False)
+    # for f in bams:
+    #     fp = Path(f + ".done")
+    #     fp.parent.mkdir(parents=True, exist_ok=True)
+    #     if not fp.exists():
+    #         fp.touch(exist_ok=False)
+    bam_done = Path(bam + ".done")
+    bam_done.parent.mkdir(parents=True, exist_ok=True)
+    if not bam_done.exists():
+        bam_done.touch(exist_ok=False)
 
     # Now we can return the bam file list to the caller.
-    return bams
+    return bam
 
 
 # =================================================================================================
