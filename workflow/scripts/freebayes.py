@@ -56,6 +56,13 @@ assert snakemake.input.ref + ".fai" == fai
 #     Main Call
 # =================================================================================================
 
+# For large numbers of input bam files, we might run into a max length issue when trying to
+# call parallel. Hence, we write a temporary list of the bam files instead.
+# One BAM path per line, so freebayes-parallel only needs a single --bam-list arg.
+with open(snakemake.output.bamlist, "w") as fh:
+    for bam in snakemake.input.samples:
+        fh.write(f"{bam}\n")
+
 # Prepare the output and compression.
 # We need to pipe through bcftools in each case, in order to ensure the correct output format.
 pipe = ""
@@ -156,5 +163,5 @@ else:
 
 shell(
     "({freebayes} {extra_params} -f {snakemake.input.ref}"
-    " {snakemake.input.samples} {pipe} > {snakemake.output[0]}) {log}"
+    " --bam-list {snakemake.output.bamlist} {pipe} > {snakemake.output[0]}) {log}"
 )

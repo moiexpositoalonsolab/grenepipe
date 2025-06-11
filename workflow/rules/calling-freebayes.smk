@@ -50,6 +50,7 @@ rule call_variants:
     output:
         # touch("calling/called/{contig}.vcf.done"),
         pipe("calling/called/{contig}.vcf"),
+        bamlist=temp("calling/called/{contig}.bamlist")
     params:
         # Optional extra parameters.
         extra=config["params"]["freebayes"]["extra"] + know_variants_extra(),
