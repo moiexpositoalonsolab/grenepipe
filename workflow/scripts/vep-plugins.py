@@ -11,7 +11,7 @@
 # So here, we use it with `exist_ok = True` to avoid that error...
 
 # =================================================================================================
-#     VEP Cache
+#     VEP Plugins
 # =================================================================================================
 
 import sys
@@ -26,10 +26,17 @@ if snakemake.log:
 outdir = Path(snakemake.output[0])
 outdir.mkdir(exist_ok=True)
 
+try:
+    release = int(snakemake.params.release)
+    if snakemake.params.get("plugins_release", 0) > 0:
+        release = int(snakemake.params.get("plugins_release"))
+except ValueError:
+    raise ValueError("The parameter release is supposed to be an integer.")
+
 with NamedTemporaryFile() as tmp:
     urlretrieve(
         "https://github.com/Ensembl/VEP_plugins/archive/release/{release}.zip".format(
-            release=snakemake.params.release
+            release=release
         ),
         tmp.name,
     )

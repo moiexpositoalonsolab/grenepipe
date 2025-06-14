@@ -127,9 +127,12 @@ rule vep_cache:
         touch(get_vep_cache_dir().rstrip("/") + ".done"),
     params:
         species=config["params"]["vep"]["species"],
-        release=config["params"]["vep"]["release"],
         build=config["params"]["vep"]["build"],
-        cacheurl=config["params"]["vep"]["cache-url"],
+        release=config["params"]["vep"]["release"],
+        cache_release=config["params"]["vep"].get("cache-release", ""),
+        cache_url=config["params"]["vep"]["cache-url"],
+        extra=config["params"]["vep"].get("cache-extra", ""),
+        full_cache_url=config["params"]["vep"].get("full-cache-url", ""),
         # fastaurl = config["params"]["vep"]["fasta-url"],
         # fasta-url: "ftp://ftp.ebi.ac.uk/ensemblgenomes/pub/plants/current/fasta"
     log:
@@ -158,6 +161,7 @@ rule vep_plugins:
         touch(get_vep_plugins_dir().rstrip("/") + ".done"),
     params:
         release=config["params"]["vep"]["release"],
+        plugins_release=config["params"]["vep"].get("plugins-release", ""),
     log:
         # Log file where the download is made to, so that this is independent of the run itself.
         os.path.abspath(os.path.join(get_vep_plugins_dir(), "../vep-plugins.log")),

@@ -10,7 +10,7 @@ dependencies:
   # Tools
   # The VEP version should not be changed unless the vep_install command needs an
   # update or suddenly stops working. It's super fragile...
-  - ensembl-vep =112
+  - ensembl-vep =114.1
   # Unfortunately, for that reason, we also have to keep the bcftools version at this here,
   # instead of using the more recent version that we have throughout the other env files.
   # Updating this to bcftools 1.16 conflicts with VEP 104, but updating VEP to a non-conflicting
@@ -30,3 +30,6 @@ dependencies:
   # Latest error appearing in our GitHub Actions CI: Can't locate List/MoreUtils.pm in @INC
   # To fix this, we try to install the missind dependency:
   - perl-list-moreutils
+
+  # Next issue: with the new http protocol download, we need this package as well:
+  - perl-html-tableextract

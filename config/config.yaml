@@ -1030,7 +1030,17 @@ params:
 
     # Ensembl release version.
     # Used for the species cache version and for the plugins download.
-    release: 104
+    release: 114
+
+    # The above release version is used for both the cache and the plugins. However, it seems that
+    # the versioning is diverging, and for instance the plan genome versions (see `cache-url` below)
+    # are not follwoing the same increments as the plugins... So if you need to specify these two
+    # independently of each other, use the below two release versions instead to separate them. 
+    # If set to 0 instead, the above `release` is used for both.
+    # Alternatively, if that is not working either, you can also specify the full cache URL instead,
+    # see below for an example for Arabidopsis thaliana.
+    cache-release: 61
+    plugins-release: 114
 
     # For non-metazoans, we need different download URLs for obtaining the Ensembl data,
     # but it does not seem to be documented well where to find those URLs.
@@ -1038,10 +1048,18 @@ params:
     # and http://uswest.ensembl.org/info/docs/tools/vep/script/vep_cache.html#cache
     # which list FTP directories for the Ensembl Genomes.
     # Alternatively, try to find your desired species here: http://ftp.ebi.ac.uk/ensemblgenomes/pub/
-    # Then, use the FTP url here (instead of tht http URL) so that we can find and download the
+    # Then, use the FTP url here (instead of the http URL) so that we can find and download the
     # above species data.
     # If left empty, we use the default URL as used by the VEP install script.
     cache-url: "ftp://ftp.ebi.ac.uk/ensemblgenomes/pub/plants/current/variation/vep"
+    cache-extra: "--USE_HTTPS_PROTO"
+
+    # If the above still does not work, because Ensembl changed their FTP paths or some other issue,
+    # you can instead speficy the full URL for the download here. This is currently the case
+    # with our Arabidopsis thaliana example here, so we fully specify the download path here.
+    # If specified, all the above cache-related settings are ignored.
+    # Use an empty string here instead if you want to use the normal VEP cache download above.
+    full-cache-url: "https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-61/plants/vep/arabidopsis_thaliana_vep_61_TAIR10.tar.gz"
 
     # Add any plugin from https://www.ensembl.org/info/docs/tools/vep/script/vep_plugins.html
     # Plugin arguments can be passed as well, e.g. "LoFtool,path/to/custom/scores.txt",
