@@ -18,14 +18,26 @@
 # =================================================================================================
 
 from snakemake.shell import shell
+import os
 
 shell.executable("bash")
-
-log = snakemake.log_fmt_shell(stdout=True, stderr=True)
+log = snakemake.log_fmt_shell(stdout=True, stderr=True, append=True)
 
 extra_params = snakemake.params.get("extra", "")
 norm = snakemake.params.get("normalize", False)
 assert norm in [True, False]
+
+def local_log(message):
+    """
+    Append a message to the Snakemake log file.
+    Ensures there's a trailing newline.
+    """
+    log_path = snakemake.log[0]
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    if not message.endswith("\n"):
+        message += "\n"
+    with open(log_path, "a") as lf:
+        lf.write(message)
 
 # Additions to the original wrapper made by LC:
 #
@@ -91,6 +103,7 @@ with open(fai) as faif:
         chrom_length = int(fields[1])
         if chrom_name == contig:
             regions = '<(echo "' + chrom_name + ":0-" + str(chrom_length) + '")'
+local_log(f"regions = {regions} (after chromosome)")
 
 # If we are here, we must have found the contig in the fai file,
 # otherwise that name would not have appeared in the "{contig}" wildcard of our snakemake rule -
@@ -111,6 +124,7 @@ if snakemake.input.get("regions", ""):
             "{regions}) -b {snakemake.input.regions} | "
             r"sed 's/\t\([0-9]*\)\t\([0-9]*\)$/:\1-\2/')"
         ).format(regions=regions, snakemake=snakemake)
+        local_log(f"regions = {regions} (after intersection)")
     else:
         # If there are no regions yet, we have the case that a small contig group was provided.
         # In this case, we just parse that file and turn its bed format into the freebayes
@@ -118,9 +132,14 @@ if snakemake.input.get("regions", ""):
         regions = ("<(cat {snakemake.input.regions} | sed 's/\\t/:/' | sed 's/\\t/-/')").format(
             snakemake=snakemake
         )
+        local_log(f"regions = {regions} (after small contig)")
 
-if snakemake.threads == 1:
+# The single threaded cases has some issue with the region bash substitution...
+# Just deactivating this for now, and running the parallel case instead.
+# if snakemake.threads == 1:
+if False:
     freebayes = "freebayes --region " + regions
+    # freebayes = "freebayes --region <(" + regions + ")"
 else:
     # Ideally, we'd be using bamtools coverage and coverage_to_regions.py here,
     # as suggsted in the freebayes-parallel script, but this runs a long time and had some errors
@@ -140,6 +159,7 @@ else:
         "{chunks}) | "
         r"sed 's/\t\([0-9]*\)\t\([0-9]*\)$/:\1-\2/')"
     ).format(regions=regions, chunks=chunks)
+    local_log(f"regions = {regions} (with threads)")
     freebayes = ("freebayes-parallel {regions} {snakemake.threads}").format(
         snakemake=snakemake, regions=regions
     )
@@ -162,6 +182,6 @@ else:
     pipe = "| bcftools sort -Ou - " + pipe
 
 shell(
-    "({freebayes} {extra_params} -f {snakemake.input.ref}"
+    "set -x; ({freebayes} {extra_params} -f {snakemake.input.ref}"
     " --bam-list {snakemake.output.bamlist} {pipe} > {snakemake.output[0]}) {log}"
 )
