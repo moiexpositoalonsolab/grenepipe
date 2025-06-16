@@ -48,8 +48,8 @@ rule call_variants:
             )
         ),
     output:
-        # touch("calling/called/{contig}.vcf.done"),
-        pipe("calling/called/{contig}.vcf"),
+        temp("calling/called/{contig}.vcf"),
+        touch("calling/called/{contig}.vcf.done"),
         bamlist=temp("calling/called/{contig}.bamlist")
     params:
         # Optional extra parameters.
@@ -60,7 +60,7 @@ rule call_variants:
     # Only correct as of now, as that rule has a hard-coded single thread.
     # But if we later change this to be configurable via the resources,
     # this needs to be adapted here.
-    threads: int(get_rule_threads("call_variants")) - 1
+    threads: int(get_rule_threads("call_variants"))
     log:
         "logs/calling/freebayes/{contig}.log",
     benchmark:
@@ -81,6 +81,7 @@ rule call_variants:
 rule compress_vcf:
     input:
         "calling/called/{contig}.vcf",
+        "calling/called/{contig}.vcf.done",
     output:
         (
             "calling/called/{contig}.vcf.gz"
