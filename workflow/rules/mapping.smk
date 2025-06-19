@@ -21,8 +21,6 @@ rule bam_index:
     log:
         # "logs/mapping/samtools-index/{prefix}.log",
         "logs/mapping/samtools-index/_" + "{prefix}.log",
-    group:
-        "mapping_extra"
     conda:
         "../envs/samtools.yaml"
     wrapper:
