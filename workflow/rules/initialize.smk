@@ -150,105 +150,167 @@ def get_rule_threads(rule_name):
 # The final output is tabular, we might need to indent subsequent lines correctly.
 indent = 24
 
-# Get a nicely formatted username and hostname
-username = pwd.getpwuid(os.getuid())[0]
-hostname = socket.gethostname()
-hostname = hostname + ("; " + platform.node() if platform.node() != socket.gethostname() else "")
-
 # Get some info on the platform and OS
-pltfrm = platform.platform() + "\n" + (" " * indent) + platform.version()
-try:
-    # Not available in all versions, so we need to catch this
-    ld = platform.linux_distribution()
-    if len(ld):
-        pltfrm += "\n" + (" " * indent) + ld
-    del ld
-except:
-    pass
-try:
-    # Mac OS version comes back as a nested tuple?!
-    # Need to merge the tuples...
-    def merge_tuple(x, bases=(tuple, list)):
-        for e in x:
-            if type(e) in bases:
-                for e in merge_tuple(e, bases):
+def info_platform():
+    pltfrm = platform.platform() + "\n" + (" " * indent) + platform.version()
+    try:
+        # Not available in all versions, so we need to catch this
+        ld = platform.linux_distribution()
+        if len(ld):
+            pltfrm += "\n" + (" " * indent) + ld
+    except:
+        pass
+    try:
+        # Mac OS version comes back as a nested tuple?!
+        # Need to merge the tuples...
+        def merge_tuple(x, bases=(tuple, list)):
+            for e in x:
+                if type(e) in bases:
+                    for e in merge_tuple(e, bases):
+                        yield e
+                else:
                     yield e
-            else:
-                yield e
 
-    mv = " ".join(merge_tuple(platform.mac_ver()))
-    if not mv.isspace():
-        pltfrm += "\n" + (" " * indent) + mv
-    del mv, merge_tuple
-except:
-    pass
+        mv = " ".join(merge_tuple(platform.mac_ver()))
+        if not mv.isspace():
+            pltfrm += "\n" + (" " * indent) + mv
+    except:
+        pass
+    return pltfrm
 
-# Get the git commit hash of grenepipe, if available.
-try:
-    process = subprocess.Popen(
-        ["git", "rev-parse", "--short", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    out, err = process.communicate()
-    out = out.decode("ascii")
-    grenepipe_git_hash = out.strip()
-    if grenepipe_git_hash:
-        grenepipe_version += "-" + grenepipe_git_hash
-    del process, out, err, grenepipe_git_hash
-except:
-    pass
+# Get a nicely formatted hostname
+def info_hostname():
+    hostname = socket.gethostname()
+    hostname = hostname + ("; " + platform.node() if platform.node() != socket.gethostname() else "")
+    return hostname
+
+# Get a nicely formatted username
+def info_username():
+    return pwd.getpwuid(os.getuid())[0]
 
 # Get the conda version, if available.
-try:
-    process = subprocess.Popen(["conda", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = process.communicate()
-    out = out.decode("ascii")
-    conda_ver = out[out.startswith("conda") and len("conda") :].strip()
-    del process, out, err
-    if not conda_ver:
-        conda_ver = "n/a"
-except:
+def info_conda_version():
     conda_ver = "n/a"
+    try:
+        process = subprocess.Popen(
+            ["conda", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        out, err = process.communicate()
+        out = out.decode("ascii")
+        conda_ver = out[out.startswith("conda") and len("conda") :].strip()
+        if not conda_ver:
+            conda_ver = "n/a"
+    except:
+        pass
+    return str(conda_ver)
 
 # Same for mamba. This somehow can also give a differing conda version.
 # Who knows what that means. I'm sick of conda. Just reporting the version here,
 # and have someone else deal with it.
-try:
-    process = subprocess.Popen(["mamba", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = process.communicate()
-    out = out.decode("ascii")
-    mamba_ver = re.findall("mamba *(.*) *", out)[0]
-    conda_ver_mamba = re.findall("conda *(.*) *", out)[0]
-    del process, out, err
+def info_mamba_version():
+    mamba_ver = ""
+
+    # Get normal mamba first, for the old mamba version output
+    try:
+        process = subprocess.Popen(
+            ["mamba", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        out, err = process.communicate()
+        out = out.decode("ascii")
+        mamba_ver = re.findall("mamba *(.*) *", out)[0]
+        conda_ver_mamba = re.findall("conda *(.*) *", out)[0]
+        if not mamba_ver:
+            mamba_ver = ""
+            conda_ver_mamba = ""
+    except:
+        mamba_ver = ""
+        conda_ver_mamba = ""
+    if conda_ver_mamba and conda_ver_mamba != info_conda_version():
+        mamba_ver += ", with conda " + conda_ver_mamba
+
+    # If that did not work, try the new mamba version output
+    if not mamba_ver:
+        try:
+            process = subprocess.Popen(
+                ["mamba", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+            out, err = process.communicate()
+            mamba_ver = str(out.decode("ascii")).strip()
+        except:
+            mamba_ver = ""
+
+    # Lastly, also check for micromamba, for full info
+    try:
+        process = subprocess.Popen(
+            ["micromamba", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        out, err = process.communicate()
+        micromamba_ver = str(out.decode("ascii")).strip()
+    except:
+        micromamba_ver = ""
+    if micromamba_ver:
+        if mamba_ver:
+            mamba_ver += "\n    Micromamba:         " + micromamba_ver
+        else:
+            mamba_ver = micromamba_ver + " (micromamba)"
+
+    # Finaly check: if we did not find any mamba, report n/a
     if not mamba_ver:
         mamba_ver = "n/a"
-        conda_ver_mamba = ""
-except:
-    mamba_ver = "n/a"
-    conda_ver_mamba = ""
-if conda_ver_mamba and conda_ver_mamba != conda_ver:
-    conda_ver += " (conda), " + conda_ver_mamba + " (mamba)"
+    return str(mamba_ver)
+
+# Get the grenepipe version including git commit hash of grenepipe, if available.
+def info_grenepipe_version():
+    gpv = grenepipe_version
+    try:
+        process = subprocess.Popen(
+            ["git", "rev-parse", "--short", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        out, err = process.communicate()
+        out = out.decode("ascii")
+        grenepipe_git_hash = out.strip()
+        if grenepipe_git_hash:
+            gpv += "-" + grenepipe_git_hash
+    except:
+        pass
+    return str(gpv)
+
+# Get the python version currently executing this script.
+# If this differs in sub-instances of snakemake, we have an issue.
+def info_python_version():
+    return str(sys.version.split(" ")[0])
+
+# Get the snakemake version running this script.
+def info_snakemake_version():
+    return str(snakemake.__version__)
 
 # Get the conda env name, if available.
 # See https://stackoverflow.com/a/42660674/4184258
-conda_env = os.environ["CONDA_DEFAULT_ENV"] + " (" + os.environ["CONDA_PREFIX"] + ")"
-if conda_env == " ()":
-    conda_env = "n/a"
+def info_conda_env():
+    conda_env = os.environ["CONDA_DEFAULT_ENV"] + " (" + os.environ["CONDA_PREFIX"] + ")"
+    if conda_env == " ()":
+        conda_env = "n/a"
+    return str(conda_env)
 
 # Get nicely wrapped command line
-cmdline = sys.argv[0]
-for i in range(1, len(sys.argv)):
-    if sys.argv[i].startswith("--"):
-        cmdline += "\n" + (" " * indent) + sys.argv[i]
-    else:
-        cmdline += " " + sys.argv[i]
+def info_command_line():
+    cmdline = sys.argv[0]
+    for i in range(1, len(sys.argv)):
+        if sys.argv[i].startswith("--"):
+            cmdline += "\n" + (" " * indent) + sys.argv[i]
+        else:
+            cmdline += " " + sys.argv[i]
+    return cmdline
 
 # Get abs paths of all config files
-cfgfiles = []
-for cfg in workflow.configfiles:
-    cfgfiles.append(os.path.abspath(cfg))
-if resources_file:
-    cfgfiles.append(os.path.abspath(resources_file))
-cfgfiles = "\n                        ".join(cfgfiles)
+def info_config_files():
+    cfgfiles = []
+    for cfg in workflow.configfiles:
+        cfgfiles.append(os.path.abspath(cfg))
+    if resources_file:
+        cfgfiles.append(os.path.abspath(resources_file))
+    cfgfiles = "\n                        ".join(cfgfiles)
+    return cfgfiles
 
 # Main grenepipe header, helping with debugging etc for user issues
 fix_log_info("=====================================================================================")
@@ -260,28 +322,25 @@ fix_log_info(r"    \  \__|  |  _ <|  |____ |  |\   ||  |____ |  |     |  | |  | 
 fix_log_info(r"     \______/|_| \_\_______\/__| \__|\_______\|__|     \___\|__|    \_______\ ")
 fix_log_info("")
 fix_log_info("    Date:               " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-fix_log_info("    Platform:           " + pltfrm)
-fix_log_info("    Host:               " + hostname)
-fix_log_info("    User:               " + username)
-fix_log_info("    Conda:              " + str(conda_ver))
-fix_log_info("    Mamba:              " + str(mamba_ver))
-fix_log_info("    Python:             " + str(sys.version.split(" ")[0]))
-fix_log_info("    Snakemake:          " + str(snakemake.__version__))
-fix_log_info("    Grenepipe:          " + str(grenepipe_version))
-fix_log_info("    Conda env:          " + str(conda_env))
-fix_log_info("    Command:            " + cmdline)
+fix_log_info("    Platform:           " + info_platform())
+fix_log_info("    Host:               " + info_hostname())
+fix_log_info("    User:               " + info_username())
+fix_log_info("    Conda:              " + info_conda_version())
+fix_log_info("    Mamba:              " + info_mamba_version())
+fix_log_info("    Python:             " + info_python_version())
+fix_log_info("    Snakemake:          " + info_snakemake_version())
+fix_log_info("    Grenepipe:          " + info_grenepipe_version())
+fix_log_info("    Conda env:          " + info_conda_env())
+fix_log_info("    Command:            " + info_command_line())
 fix_log_info("")
 fix_log_info("    Base directory:     " + workflow.basedir)
 fix_log_info("    Working directory:  " + os.getcwd())
-fix_log_info("    Config file(s):     " + cfgfiles)
+fix_log_info("    Config file(s):     " + info_config_files())
 fix_log_info("    Samples:            " + get_sample_units_print())
 fix_log_info("")
 fix_log_info("=====================================================================================")
 fix_log_info("")
 
 
-# No need to have these output vars available in the rest of the snakefiles
+# No need to have these vars available in the rest of the snakefiles
 del indent
-del pltfrm, hostname, username
-del conda_ver, conda_env
-del cmdline, cfgfiles
