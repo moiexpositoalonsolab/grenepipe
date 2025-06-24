@@ -14,8 +14,8 @@ dependencies:
   - curl
 
   # Snakemake
-  - snakemake ==9.3.3
-  - snakemake-wrapper-utils ==0.6.2
+  - snakemake ==9.6.2
+  - snakemake-wrapper-utils >=0.6.2
   - snakemake-executor-plugin-slurm
 
   # Python
