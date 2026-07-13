@@ -28,9 +28,8 @@ rule bcftools_stats:
         "../envs/bcftools.yaml"
     group:
         "bcftools-stats"
-    wrapper:
-        "v1.7.0/bio/bcftools/stats"
-
+    shell:
+        "bcftools stats {params} {input.calls} > {output} 2> {log}"
 
 rule bcftools_stats_plot:
     input:
